@@ -12,4 +12,5 @@ urlpatterns = [
      ), name="login"),
 
      path('inicio/', views.InicioView, name='inicio'),
+     path('clientes/', views.ClientesView, name='clientes'),
 ]

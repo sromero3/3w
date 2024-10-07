@@ -1,0 +1,132 @@
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+
+{% block title %}
+M1 | Clientes
+{% endblock %}
+
+{% block styles %}
+{% endblock styles %}
+
+{% block content %}
+
+
+
+<main id="main" class="main" style="margin-top: 40px;">
+
+
+
+    <!-- <section class="section"> -->
+    <!-- <div class="row"> -->
+    <div class="col-lg-12">
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Cientes <a href="{% url 'inicio' %}" class="float-end">
+                        <!-- <i class="bi bi-x-circle-fill h4 h" title='Cerrar'></i> -->
+                        <i class="bi bi-x-circle" title='Cerrar'></i>
+                    </a></h5>
+
+
+                <table id="clientes" class="table table-hover table-bordered " style="width:100%;">
+                    <!-- <table id="clientes" class="table  table-bordered table-hover " style="width:100%;"> -->
+                    <thead>
+                        <tr>
+                            <th>Ced/Rif</th>
+                            <th style="width:300px">Nombre</th>
+                            <th>Telefono</th>
+                            <th>Ciudad</th>
+                            <th>Status</th>
+                            <th>Opcion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        {% for xCliente in xClientes %}
+                        <tr>
+                            <td>{{xCliente.ced_rif}}</td>
+                            <td>{{xCliente.nombre|truncatechars:22}}</td>
+                            <td>{{xCliente.telefono}}</td>
+                            <td>{{xCliente.ciudad__ciudad}}</td>
+                            <td>{{xCliente.status__status}}</td>
+                            <td class="text-center" style="width:50px">
+                                <a href="#">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <!-- End Table with stripped rows -->
+
+            </div>
+        </div>
+
+    </div>
+    <!-- </div> -->
+    <!-- </section> -->
+
+</main><!-- End #main -->
+
+
+
+
+
+{% endblock content %}
+
+{% block Scripts_Adicionales %}
+<script>
+    $(function () {
+        $("#clientes").DataTable({
+            language: {
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ registros",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "*** No se encontró información ***",
+                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                "sInfoPostFix": "",
+                "sSearch": "Buscar:",
+                "sUrl": "",
+                "sInfoThousands": ",",
+                "sLoadingRecords": "Cargando...",
+                "oPaginate": {
+                    "sFirst": "Primero",
+                    "sLast": "Último",
+                    "sNext": "Siguiente",
+                    "sPrevious": "Anterior"
+                },
+                "oAria": {
+                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                },
+                "buttons": {
+                    "copy": "Copiar",
+                    "colvis": "Visibilidad"
+                }
+            },
+            "responsive": true,
+            "lengthChange": true,
+            "autoWidth": true,
+            "pageLength": 50,
+            "scrollX": true,
+            "order": [[1, "asc"]],
+            "columnDefs": [{
+                "targets": [0, 2, 3, 5],
+                "orderable": false
+            }]
+
+
+        })
+        
+    });
+
+
+    // tool tip
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
+</script>
+{% endblock Scripts_Adicionales %}

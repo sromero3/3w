@@ -20,7 +20,7 @@ body {
 }
 
 a {
-  color: #4154f1;
+  color: #0d6efd;
   text-decoration: none;
 }
 
@@ -42,13 +42,10 @@ h6 {
 # Main
 --------------------------------------------------------------*/
 #main {
-  margin-top: 60px;
-  padding: 20px 30px;
+  /* margin-top: 60px; */
+  padding: 20px 10px;
   transition: all 0.3s;
   min-height: 600px;
-  background: url("../img/cxc.jpg") no-repeat center;
-  /* background-size: cover; */
-  /* background-color: #FFFFFF; */
 }
 
 @media (max-width: 1199px) {
@@ -69,6 +66,7 @@ h6 {
   margin-bottom: 0;
   font-weight: 600;
   color: #012970;
+  padding-bottom: 10px;
 }
 
 /*--------------------------------------------------------------
@@ -81,7 +79,7 @@ h6 {
   right: 15px;
   bottom: 15px;
   z-index: 99999;
-  background: #4154f1;
+  background: #1977CC;
   width: 40px;
   height: 40px;
   border-radius: 4px;
@@ -95,7 +93,7 @@ h6 {
 }
 
 .back-to-top:hover {
-  background: #6776f4;
+  background: #328bd8;
   color: #fff;
 }
 
@@ -253,6 +251,7 @@ h6 {
 
 .card-body {
   padding: 0 20px 20px 20px;
+  font-family: var(--bs-body-font-family);
 }
 
 .card-img-overlay {
@@ -700,7 +699,8 @@ h6 {
 .sidebar-nav .nav-link i {
   font-size: 16px;
   margin-right: 10px;
-  color: #4154f1;
+  color: #1c2833;
+  
 }
 
 .sidebar-nav .nav-link.collapsed {
@@ -714,11 +714,11 @@ h6 {
 
 .sidebar-nav .nav-link:hover {
   color: #1977cc;
-  background: #f6f9ff;
+  background: #e9e9eb;
 }
 
 .sidebar-nav .nav-link:hover i {
-  color: #4154f1;
+  color: #1977cc;
 }
 
 .sidebar-nav .nav-link .bi-chevron-down {
@@ -1224,7 +1224,7 @@ h6 {
   font-size: 14px;
   transition: all 0.3s;
   border-top: 1px solid #9cb3d7;
-  background-color: #EEF1F5;
+  background-color: #f6f9ff;
 }
 
 .footer .copyright {
@@ -1260,4 +1260,10 @@ h6 {
   --bs-btn-disabled-color: #fff;
   --bs-btn-disabled-bg: #0d6efd;
   --bs-btn-disabled-border-color: #0d6efd;
+}
+
+.fondo{
+  /* min-height: 600px;
+  background-color: #328bd8!important; */
+  background: url("../img/cxc.jpg") no-repeat center;
 }
