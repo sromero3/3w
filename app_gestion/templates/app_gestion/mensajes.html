@@ -1,0 +1,13 @@
+<div class="row mt-3">
+    <div class="col-12">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-dismissible fade show erro-en-backend" role="alert">
+                    <h3 align="center" style="color: red;">¡Ocurrió un error!</h3>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>

@@ -1,0 +1,8 @@
+<div class="input-group-prepend">
+    {% if 'username' in field.name  %}
+    <span class="input-group-text"> <i class="fa fa-user"></i> </span>
+
+    {% elif 'password' in field.name   %}
+    <span class="input-group-text"> <i class="fa fa-lock" style="width: 16px"></i> </span>
+    {% endif %}
+</div>

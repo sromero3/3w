@@ -1,0 +1,168 @@
+<!--
+Page...: app_gestion.html:
+Father.: base.html
+Content: pagina de inicio
+-->
+{% extends 'app_gestion/base_app_gestion.html' %}
+{% load static %}
+
+{% block title %}
+3W | App Gestion
+{% endblock %}
+
+{% block content %}
+
+<body class="index-page">
+
+  <header id="header" class="header sticky-top">
+
+    <div class="topbar d-flex align-items-center">
+      <div class="container d-flex justify-content-center justify-content-md-between">
+        <div class="contact-info d-flex align-items-center">
+          <i class="d-flex align-items-center"><a href="#">M1 Cobranza | Gestión empresarial óptima</a></i>
+          <!-- <i class="bi bi-phone d-flex align-items-center ms-4"><span></span></i> -->
+        </div>
+        <div class="social-links d-none d-md-flex align-items-center">
+          <!-- <a href="#" class="instagram"><i class="bi bi-instagram"></i></a> -->
+        </div>
+      </div>
+    </div><!-- End Top Bar -->
+
+    <div class="branding d-flex align-items-center">
+
+      <div class="container position-relative d-flex align-items-center justify-content-between">
+        <a href="index.html" class="logo d-flex align-items-center me-auto">
+          <!-- Uncomment the line below if you also wish to use an image logo -->
+          <!-- <img src="assets/img/logo.png" alt=""> -->
+          <img src="{% static 'app_website/custom-files/assets/img/3wlogo.png' %}" alt="" data-aos="fade-in">
+          <h1 class="sitename">3W2014, C.A.</h1>
+        </a>
+
+        <nav id="navmenu" class="navmenu">
+          <!-- <ul>
+            <li><a href="#hero" class="active">Home<br></a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#departments">Departments</a></li>
+            <li><a href="#doctors">Doctors</a></li>
+            <li class="dropdown"><a href="#"><span>Dropdown</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+              <ul>
+                <li><a href="#">Dropdown 1</a></li>
+                <li class="dropdown"><a href="#"><span>Deep Dropdown</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+                  <ul>
+                    <li><a href="#">Deep Dropdown 1</a></li>
+                    <li><a href="#">Deep Dropdown 2</a></li>
+                    <li><a href="#">Deep Dropdown 3</a></li>
+                    <li><a href="#">Deep Dropdown 4</a></li>
+                    <li><a href="#">Deep Dropdown 5</a></li>
+                  </ul>
+                </li>
+                <li><a href="#">Dropdown 2</a></li>
+                <li><a href="#">Dropdown 3</a></li>
+                <li><a href="#">Dropdown 4</a></li>
+              </ul>
+            </li>
+            <li><a href="#contact">Contact</a></li>
+          </ul> -->
+          <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+        </nav>
+
+        <a class="cta-btn d-none d-sm-block" href="{% url 'login' %}">Ingresar</a>
+        <!-- <li><a  class="getstarted n2">Ingresar</a></li> -->
+
+      </div>
+
+    </div>
+
+  </header>
+
+  <main class="main">
+
+    <!-- Hero Section -->
+    <section id="hero" class="hero section light-background">
+
+      <img src="{% static 'app_website/custom-files/assets/img/hero2-bg.jpg' %}">
+
+
+      <div class="container position-relative">
+
+        <div class="welcome position-relative" data-aos="fade-down" data-aos-delay="100">
+          <h2>SISTEMA DE GESTION EMPRESARIAL</h2>
+          <p>Gestión empresarial óptima</p>
+
+        </div><!-- End Welcome -->
+
+        <div class="content row gy-4">
+          <div class="col-lg-4 d-flex align-items-stretch">
+            <div class="why-box" data-aos="zoom-out" data-aos-delay="200">
+              <h3>El M1 Cobranza:</h3>
+              <p>
+                El Módulo M1 es un software desarrollado para automatizar todos los procesos que se realizan al
+                gestionar la cobranza de 3W. La aplicación está adaptada a los procesos de la empresa, por lo que viene
+                hacer una herramienta óptima y potente en dicha gestión.
+                Tiene como obejetivos principales:<br><br>
+                - Facilitar y agilizar el trabajo <br>
+                - Aprovechar el análisis de datos para mejorar <br>
+                - Dar seguimiento <br>
+                - Acceso en linea <br>
+                - Reducir el tiempo de recuperación del capital
+
+            </div>
+          </div><!-- End Why Box -->
+
+          <div class="col-lg-8 d-flex align-items-stretch">
+            <div class="d-flex flex-column justify-content-center">
+              <div class="row gy-4">
+
+                <div class="col-xl-4 d-flex align-items-stretch">
+                  <div class="icon-box" data-aos="zoom-out" data-aos-delay="300">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <h4>Clasificación de deudores</h4>
+                    <p>Procesos óptimos, donde se registran los documentos de las ventas a crédito permitiendo así
+                      identificar y clasificar los clientes que tienen una deuda pendiente.
+
+                    </p>
+                  </div>
+                </div><!-- End Icon Box -->
+
+                <div class="col-xl-4 d-flex align-items-stretch">
+                  <div class="icon-box" data-aos="zoom-out" data-aos-delay="400">
+                    <i class="fas fa-database"></i>
+                    <h4>Centralización de la información</h4>
+                    <p>AInformación centralizada en una base de datos lo cual elimina errores de inconsistencias y
+                      repetición de datos.</p>
+                  </div>
+                </div><!-- End Icon Box -->
+
+                <div class="col-xl-4 d-flex align-items-stretch">
+
+                  <div class="icon-box" data-aos="zoom-out" data-aos-delay="500">
+                    <!-- <i class="bi bi-gem"></i> -->
+                    <i class="fas fa-info"></i>
+                    <h4>Información oportuna</h4>
+                    <p>Información precisa y oportuna que reduce los tiempos de respuesta, ayudando así a recuperar la
+                      deuda lo antes posible.</p>
+                  </div>
+                </div><!-- End Icon Box -->
+
+              </div>
+            </div>
+          </div>
+        </div><!-- End  Content-->
+
+      </div>
+
+    </section><!-- /Hero Section -->
+
+
+
+
+  </main>
+
+
+
+</body>
+
+
+
+{% endblock content %}
