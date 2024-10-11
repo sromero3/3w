@@ -329,14 +329,14 @@ div.dataTables_wrapper div.dataTables_length label {
 div.dataTables_wrapper div.dataTables_length select {
   width: auto;
   display: inline-block;
-  border-radius: 0px;
+  border-radius: 5px;
   border-color: #dee2e6;
 }
 div.dataTables_wrapper div.dataTables_length select:focus {
   width: auto;
   display: inline-block;
-  border-radius: 0px;
-  border-color: #d9232d;
+  border-radius: 5px;
+  border-color: #729fe4;
 }
 div.dataTables_wrapper div.dataTables_filter {
   text-align: right;
@@ -350,15 +350,15 @@ div.dataTables_wrapper div.dataTables_filter input {
   margin-left: 0.5em;
   display: inline-block;
   width: auto;
-  border-radius: 0px;
+  border-radius: 5px;
   border-color: #dee2e6;
 }
 div.dataTables_wrapper div.dataTables_filter input:focus {
   margin-left: 0.5em;
   display: inline-block;
   width: auto;
-  border-radius: 0px;
-  border-color: #d9232d;
+  border-radius: 5px;
+  border-color: #729fe4;
 }
 div.dataTables_wrapper div.dataTables_info {
   padding-top: 0.85em;

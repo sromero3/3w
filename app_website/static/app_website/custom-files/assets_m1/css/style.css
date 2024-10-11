@@ -607,20 +607,20 @@ h6 {
   top: 60px;
   left: 0;
   bottom: 0;
-  width: 300px;
+  width: 250px;
   z-index: 996;
   transition: all 0.3s;
   padding: 20px;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #aab7cf transparent;
+  scrollbar-width:thin;
+  scrollbar-color: #cdd1d7 transparent;
   box-shadow: 0px 0px 20px rgba(1, 41, 112, 0.1);
   background-color: #fff;
 }
 
 @media (max-width: 1199px) {
   .sidebar {
-    left: -300px;
+    left: -250px;
   }
 }
 
@@ -638,7 +638,7 @@ h6 {
 
   #main,
   #footer {
-    margin-left: 300px;
+    margin-left: 250px;
   }
 }
 
@@ -709,7 +709,7 @@ h6 {
 }
 
 .sidebar-nav .nav-link.collapsed i {
-  color: #6c7e9e;
+  color: #343a401a;
 }
 
 .sidebar-nav .nav-link:hover {
@@ -1266,4 +1266,35 @@ h6 {
   /* min-height: 600px;
   background-color: #328bd8!important; */
   background: url("../img/cxc.jpg") no-repeat center;
+}
+
+.clockf {
+  color: #1977cc;
+  font-family: 'Orbitron';
+  text-align: center;
+  /* font-weight: bold; */
+  font-size: 15px;
+}
+
+.alto{
+  height: 32px;
+  width: 189;
+  padding: .195rem .25rem;
+}
+
+.tooltip-inner {
+  background-color: #1977CC;
+  border-radius: 5px;
+}
+
+.form-control {
+  appearance: auto;
+}
+
+.sin-bordes{
+  border-style: none;
+}
+
+.izquierda{
+  text-align: left !important;
 }

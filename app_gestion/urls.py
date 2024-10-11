@@ -13,4 +13,5 @@ urlpatterns = [
 
      path('inicio/', views.InicioView, name='inicio'),
      path('clientes/', views.ClientesView, name='clientes'),
+     path('documentos/<int:xCliente>/<int:xVendedor>/<int:xIva>/', views.DocumentosView, name='documentos'),
 ]
