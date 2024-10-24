@@ -1,0 +1,162 @@
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+{% block title %}
+M1 | Documentos
+{% endblock %}
+{% block styles %}
+{% endblock styles %}
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+               <h5 class="card-title">Estado de cuenta<a href="javascript:history.back()" class="float-end">
+                        <i class="bi bi-arrow-return-left" title='Regresar'></i>
+                    </a></h5>
+                <form id="filtros" action="" method="post" class="mb-4">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-6" style="margin-bottom: 12px;">
+                            <span class="titulos">
+                                Cliente</span>
+                            <select name="cliente" id="cliente" class="form-control d-flex alto" required
+                                onChange="obtener_estado_cuenta()">
+                                <option value="0" selected></option>
+                                {% for xCliente in xClientes %}
+                                <option value={{xCliente.id}} {% if xCliente.id == xId %} selected {%endif %}>
+                                    {{xCliente.nombre}}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <span class="titulos">Mes</span>
+                            <select name="banco_destino" id="banco_destino" class="form-control alto d-flex">
+                                <option value="" selected></option>
+                                {% for xBancodestino in xBancosdestino %}
+                                <option value={{xBancodestino.id}}>
+                                    {{xBancodestino.nombre}}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="titulos">
+                                Desde</span>
+                            <input type="date" id="start" name=desde" value="2018-07-22" min="2018-01-01"
+                                max="2018-12-31" class="form-control alto" />
+                        </div>
+                        <div class="col-md-4"">
+                            <span class="titulos">
+                                Hasta</span>
+                            <input type="date" id="start" name="hasta" value="2018-07-22" min="2018-01-01"
+                                max="2018-12-31" class="form-control alto" />
+                        </div>
+                    </div>
+                </form>
+                <table id="asientos" class="table table-hover table-bordered " style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Documento</th>
+                            <th>forma</th>
+                            <th>Monto</th>
+                            <th style="width:20px">d/c</th>
+                            <th>Saldo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for xAsiento in xAsientos %}
+                        <tr>
+                            <td>{{xAsiento.fecha|date:"d/m/y"}}</td>
+                            <td>{{xAsiento.documento}}</td>
+                            <td align="center">{{xAsiento.forma}}</td>
+                            <td align="right" style="width:70px;padding-right: 20px;">{{xAsiento.monto_m|darFormato}}</td>
+                            {% if xAsiento.forma == "-" %}
+                                <td align="center" style="color:#1977cc">{{xAsiento.dc}}</td>
+                            {% else %}
+                                <td align="center">{{xAsiento.dc}}</td>
+                            {% endif %}
+                                <td align="right" style="width:70px;">{{xAsiento.balance|darFormato}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                          
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</main><!-- End #main -->
+{% endblock content %}
+{% block Scripts_Adicionales %}
+<script>
+    $(function () {
+        $("#asientos").DataTable({
+         
+            language: {
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ registros",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "*** No se encontró información ***",
+                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                "sInfoPostFix": "",
+                "sSearch": "Buscar:",
+                "sUrl": "",
+                "sInfoThousands": ",",
+                "sLoadingRecords": "Cargando...",
+                "oPaginate": {
+                    "sFirst": "Primero",
+                    "sLast": "Último",
+                    "sNext": "Siguiente",
+                    "sPrevious": "Anterior"
+                },
+                "oAria": {
+                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                },
+                "buttons": {
+                    "copy": "Copiar",
+                    "colvis": "Visibilidad"
+                }
+            },
+            "info": false,
+            // "ordering": false,
+            "paging": false,
+            "responsive": true,
+            "lengthChange": true,
+            "autoWidth": true,
+            // "pageLength": 50,
+            "scrollX": true,
+            "order": [[0, "asc"]],
+            "columnDefs": [{
+                "targets": [1,2,3,4,5],
+                "orderable": false
+            }]
+        })
+    }) // fin tabla
+
+    // pbtener asientos
+    function obtener_estado_cuenta() {
+        // var cliente_select = document.getElementById("cliente")
+        // var id_cliente = cliente_select.options[cliente_select.selectedIndex].value
+        // var texto_cliente = cliente_select.options[cliente_select.selectedIndex].text
+        // filtros.action = `/estado_cuentas/${id_cliente}/${texto_cliente}`
+         filtros.submit()
+    } // fin obtener asientos    
+
+</script>
+{% endblock Scripts_Adicionales %}

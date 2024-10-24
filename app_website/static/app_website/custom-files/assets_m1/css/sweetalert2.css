@@ -1,5 +1,5 @@
 /* perzonalizado*/
-/*.swal2-styled.swal2-confirm.btnConfirmColor {
+/* .swal2-styled.swal2-confirm.btnConfirmColor {
     background-color: #d9232d;
     padding: 1px 23px 4px 23px;
    
@@ -17,24 +17,23 @@
 
 
 
-/* boton confirmar rojo */
+/* boton confirmar */
 .swal2-styled.swal2-confirm {
    
     /*border: 1px solid #d6d3d3 !important;*/
-    background-color: #d9232d!important;
+    background-color: #1977CC!important;
+    width: 110px!important;
 }
 .swal2-styled.swal2-confirm:hover {
    
-    background-color: #e24d55!important;
+    background-color: #1064ad!important;
 }
 
-/* boton canvelar gris */
-.swal2-styled.swal2-cancel {
-    background-color: #d9232d!important;
-}
 
-.swal2-styled.swal2-cancel:hover {
-    background-color: #e24d55!important;
+.swal2-styled.swal2-deny {
+
+    background-color: #6c757d!important;
+  
 }
 
 
@@ -1424,3 +1423,11 @@ body.swal2-toast-shown .swal2-container.swal2-bottom-right {
     transition: none !important;
     box-shadow: none !important;
   }
+
+  /* .swal2-container.swal2-center>.swal2-popup {
+    margin-left: 250px !important;
+  } */
+
+   
+
+  

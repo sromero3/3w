@@ -43,7 +43,7 @@ h6 {
 --------------------------------------------------------------*/
 #main {
   /* margin-top: 60px; */
-  padding: 20px 10px;
+  padding: 20px 20px;
   transition: all 0.3s;
   min-height: 600px;
 }
@@ -1250,7 +1250,7 @@ h6 {
   --bs-btn-bg: #1977cc;
   --bs-btn-border-color: #0d6efd;
   --bs-btn-hover-color: #fff;
-  --bs-btn-hover-bg: #328bd8;
+  --bs-btn-hover-bg: #1064ad;
   --bs-btn-hover-border-color: #0a58ca;
   --bs-btn-focus-shadow-rgb: 49, 132, 253;
   --bs-btn-active-color: #fff;
@@ -1260,6 +1260,7 @@ h6 {
   --bs-btn-disabled-color: #fff;
   --bs-btn-disabled-bg: #0d6efd;
   --bs-btn-disabled-border-color: #0d6efd;
+  width: 94px;
 }
 
 .fondo{
@@ -1278,7 +1279,7 @@ h6 {
 
 .alto{
   height: 32px;
-  width: 189;
+  /* width: 189; */
   padding: .195rem .25rem;
 }
 
@@ -1297,4 +1298,77 @@ h6 {
 
 .izquierda{
   text-align: left !important;
+}
+
+.form-switch .form-check-input {
+  /* --bs-form-switch-bg: url(data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%280, 0, 0, 0.25%29'/%3e%3c/svg%3e); */
+  width: 2em;
+  margin-top: 10px;
+  margin-left: .3em;
+  background-image: var(--bs-form-switch-bg);
+  background-position: left center;
+  border-radius: 2em;
+  transition: background-position .15s ease-in-out;
+}
+
+.boton-a{
+  font-size: 16px;
+  /* margin-left: 10px; */
+  color: #1c2833;
+}
+
+.boton-a:hover {
+  color: #1977cc;
+}
+
+.erro-en-backend {
+  color: black;
+  background: #ffffc5;
+  text-align: Center;
+  margin-top: 60px;
+  margin-left: 250px;
+  padding: 15px;
+  border-radius: 0;
+  font-weight: 600;
+}
+
+.boton-ajustado-a-la-derecha {
+  font-size: small;
+  color: #1977cc;
+  font-weight: bold;
+  padding-top: 5px;
+  float: right;
+  font-size: 12PX;
+  cursor: pointer;
+}
+
+.titulos {
+  font-size: 14PX;
+  margin-bottom: 0%;
+  color: #414141;
+}
+
+/* .formulario-1-col{
+  padding:  0px 200px 0px 200px;
+} */
+
+.card-title2 {
+  /* padding: 0px 0 0px 0; */
+  text-align: center;
+  font-size: 18px;
+  font-weight: 500;
+  color: #012970;
+  font-family: "Poppins", sans-serif;
+}
+
+.input-numero {
+  text-align: right;
+  padding: .375rem .75rem;
+  color: var(--bs-body-color);
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }

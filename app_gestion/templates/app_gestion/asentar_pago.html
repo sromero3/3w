@@ -1,0 +1,336 @@
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+
+{% block title %}
+M1 | Documentos
+{% endblock %}
+
+{% block styles %}
+{% endblock styles %}
+
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px">
+
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+
+                <h5 class="card-title">Pago a cuenta<a href="javascript:history.back()" >
+                        <i class="bi bi-arrow-return-left" title='Regresar'></i>
+                    </a></h5>
+                
+                <form id="asentar_pago_global" action="" method="post" class="row g-3">
+                    {% csrf_token %}
+                 
+                    <div class="col-6">
+                        <span class="titulos">
+                            Cliente</span>
+                        <input type="text" class="form-control alto alto" id="cliente" name="cliente"
+                            value="{{xCliente}}" readonly>
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">
+                            {{form.fecha.label}}</span><span id="hoy" class="boton-ajustado-a-la-derecha"
+                            onclick="get_hoy(id_fecha)">HOY</span>
+                        {{form.fecha}}
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">{{form.forma.label}}</span>
+                        <select name="forma" id="forma" class="form-control alto d-flex" required
+                            onChange="mostrar_campos()">
+                            <option value="" selected></option>
+                            {% for xForma in xFormas %}
+                            <option value={{xForma.id}}>
+                                {{xForma.forma}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Campos variables -->
+                    <div id="div_ref" class="col-md-6" hidden>
+                        <span class="titulos"> {{form.referencia.label}}</span>
+                        {{form.referencia}}
+                    </div>
+                    <div id="div_monto" class="col-md-6" hidden>
+                        <span class="titulos">{{form.monto.label}}</span>
+                        <input id="monto" name="monto" class="form-control input-numero alto" value="" maxlength="10" onChange=" Calcular()"></input>
+                    </div>
+                    <div id="div_tasa" class="col-md-6" hidden>
+                        <span class="titulos">{{form.tasa.label}}</span>
+                        <input class="form-control alto input-numero" name="tasa" id="tasa" value="{{xTasa}}"
+                            onChange="Calcular()" required maxlength="5">
+                    </div>
+
+                    <div id="div_ban" class="col-md-6" style="margin-bottom: 15px" hidden>
+                        <span class="titulos">{{form.banco_destino.label}}</span>
+                        <select name="banco_destino" id="banco_destino" class="form-control alto d-flex">
+                            <option value="" selected></option>
+                            {% for xBancodestino in xBancosdestino %}
+                            <option value={{xBancodestino.id}}>
+                                {{xBancodestino.nombre}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div id="div_monto_procesar" class="col-md-6" hidden>
+                        <span class="titulos">{{form.monto_procesar.label}}</span>
+                        <input id="monto_procesar" name="monto_procesar" class="form-control input-numero alto"
+                            readonly maxlength="9"></input>
+                    </div>
+                    <!-- fin Campos variables -->
+
+                    <div class="col-12 pb-4">
+                        <span class="titulos">
+                            {{form.observacion.label}}</span>
+                        {{form.observacion}}
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" id="guardar" class="btn btn-primary"
+                            onclick="validar(event)">Guardar</button>
+                        <button type="button" class="btn btn-secondary"
+                            onclick="javascript:history.back()">Descartar</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+</main><!-- End #main -->
+
+
+{% endblock content %}
+{% block Scripts_Adicionales %}
+<script>
+    // mostrar campos
+    function mostrar_campos() {
+
+        if (document.getElementById('forma').value == 1) { // Transferencia Bancos Nacionales
+            document.getElementById("div_ref").removeAttribute('hidden')
+            document.getElementById("div_monto").removeAttribute('hidden')
+            document.getElementById("div_tasa").removeAttribute('hidden')
+            document.getElementById("div_monto_procesar").removeAttribute('hidden')
+            document.getElementById("div_ban").removeAttribute('hidden')
+            document.getElementById('monto').setAttribute("required", "")
+            document.getElementById('banco_destino').setAttribute("required", "")
+            document.getElementById("monto").value = ""
+            document.getElementById("monto_procesar").value = ""
+            document.getElementById('monto_procesar').setAttribute("readonly", "")
+
+            // cargar bancos destinos
+            let campo = "Nacional"
+            let options = '<option value=""></option>'
+            $.ajax({
+                url: "{% url 'cargar_bancos' %}",
+                type: 'POST',
+                async: false,
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    'campo': campo,
+                },
+                datatype: 'json',
+                success: function (data) {
+                    let select_tipo = $('select[name="banco_destino"]')
+                    $.each(data, function (key, item) {
+                        options += '<option value="' + item.id + '">' + item.nombre + '</option>'
+                    })
+                    select_tipo.html(options)
+                },
+                error: function (xhr, txtStatus, error) {
+                    console.log(xhr, txtStatus, error);
+                }
+            }) // cargar bancos destinos
+        } // fin forma 1
+
+        if (document.getElementById('forma').value == 2) { // Dolares en efectivo
+            document.getElementById("div_ref").hidden = true
+            document.getElementById("div_monto").hidden = true
+            document.getElementById("div_tasa").hidden = true
+            document.getElementById("div_monto_procesar").removeAttribute('hidden')
+            document.getElementById("div_ban").hidden = true
+            document.getElementById("monto_procesar").removeAttribute('readonly')
+            document.getElementById('monto_procesar').setAttribute("required", "")
+            document.getElementById('monto').removeAttribute("required")
+            document.getElementById("monto").value = ""
+            document.getElementById('monto_procesar').value = ""
+            document.getElementById('banco_destino').removeAttribute("required")
+        }
+
+        if (document.getElementById('forma').value == 3) {// Transferencia zelle
+            document.getElementById("div_ref").removeAttribute('hidden')
+            document.getElementById("div_ban").removeAttribute('hidden')
+            document.getElementById("div_monto_procesar").removeAttribute('hidden')
+            document.getElementById('monto').setAttribute("required", "")
+            document.getElementById('banco_destino').setAttribute("required", "")
+            document.getElementById("monto_procesar").removeAttribute('readonly')
+            document.getElementById('monto_procesar').setAttribute("required", "")
+            document.getElementById('monto').removeAttribute("required")
+            document.getElementById("monto").value = ""
+            document.getElementById('monto_procesar').value = ""
+            document.getElementById('banco_destino').setAttribute("required", "")
+            document.getElementById("div_tasa").hidden = true
+            document.getElementById("div_monto").hidden = true
+
+            // cargar bancos destinos
+            let campo = "Inter"
+            let options = '<option value=""></option>'
+            $.ajax({
+                url: "{% url 'cargar_bancos' %}",
+                type: 'POST',
+                async: false,
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    'campo': campo,
+                },
+                datatype: 'json',
+                success: function (data) {
+                    let select_tipo = $('select[name="banco_destino"]')
+                    $.each(data, function (key, item) {
+                        options += '<option value="' + item.id + '">' + item.nombre + '</option>'
+                    })
+                    select_tipo.html(options)
+                },
+                error: function (xhr, txtStatus, error) {
+                    console.log(xhr, txtStatus, error);
+                }
+            }) // cargar bancos destinos
+        } // fin forma 3
+
+        if (document.getElementById('forma').value == 4) { // Bolivares en efectivo
+            document.getElementById("div_monto").removeAttribute('hidden')
+            document.getElementById("div_tasa").removeAttribute('hidden')
+            document.getElementById("div_monto_procesar").removeAttribute('hidden')
+            document.getElementById('monto').setAttribute("required", "")
+            document.getElementById("monto").value = ""
+            document.getElementById("monto_procesar").value = ""
+            document.getElementById('monto_procesar').setAttribute("readonly", "")
+            document.getElementById("div_ref").hidden = true
+            document.getElementById("div_ban").hidden = true
+            document.getElementById('banco_destino').removeAttribute("required")
+        }
+    } // fin mostrar campos
+
+
+    checkPattern("monto")
+    checkPattern("monto_procesar")
+    checkPattern("tasa")
+
+    document.getElementById('tasa').value = darFormato(document.getElementById('tasa').value)
+
+    // formatear entrada
+    function checkPattern(e) {
+        $("#" + e).on({
+            "focus": function (event) {
+                $(event.target).select()
+            },
+            "keyup": function (event) {
+                $(event.target).val(function (index, value) {
+                    return value.replace(/\D/g, "")
+                        .replace(/([0-9])([0-9]{2})$/, '$1,$2')
+                        .replace(/\B(?=(\d{3})+(?!\d)\.?)/g, ".")
+                })
+            }
+        })
+    } // fin formatear entrada
+
+    // calculara monto en dolares
+    function Calcular() {
+
+        if ((document.getElementById('forma').value == "1") || (document.getElementById('forma').value == "4")) {
+            let m_nro = quitarFormato(document.getElementById('monto').value) * 1
+            let t_nro = quitarFormato(document.getElementById('tasa').value) * 1
+            let m_p = (m_nro / t_nro)
+            // console.log("m_nro:", m_nro, t_nro)
+            if (m_p < 0.01) {
+                return false
+            }
+            document.getElementById('monto_procesar').value = darFormato(m_p)
+        }
+    } // fin calculara monto en dolares
+
+    // validar formulario
+    function validar(e) {
+        const form = document.getElementById('asentar_pago_global') // tomo el nombre del formulario
+
+        if (form.checkValidity()) {
+
+            e.preventDefault()
+
+            // validar referencia 
+            var existe = false
+            let campo = $('#id_referencia').val()
+            $.ajax({
+                url: "{% url 'validar_referencia' %}",
+                type: 'POST',
+                async: false,
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    'campo': campo,
+                },
+                datatype: 'json',
+                success: function (data) {
+                    // console.log('RESULTADO', data.status, typeof data.status)
+                    existe = data.status
+                },
+                error: function (xhr, status, error) {
+                }
+            })
+            if (existe) {
+                Swal.fire({
+                    position: 'center',
+                    icon: 'error',
+                    title: 'Esta Referencia ya esta rigistrada' + ' Verifique...!',
+                    showDenyButton: true,
+                    // showCancelButton: true,
+                    confirmButtonText: "Continuar",
+                    denyButtonText: `Descartar`
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Condirmar
+                        let c = document.getElementById('cliente').value
+                        var m = document.getElementById('monto_procesar').value
+                        Swal.fire({
+                            title: '¿ Esta seguro de abonar ?',
+                            html: `<h1>${m}$</h1><br>A ${c} `,
+                            showDenyButton: true,
+                            // showCancelButton: true,
+                            confirmButtonText: "Guardar",
+                            denyButtonText: `Descartar`
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                document.getElementById('asentar_pago_global').submit()
+                            } else {
+                                return false
+                            }
+                        }) // fin Confirmar
+                    } else {
+                        return false
+                    }
+                })
+            } else {
+                // Condirmar
+                let c = document.getElementById('cliente').value
+                var m = document.getElementById('monto_procesar').value
+                Swal.fire({
+                    title: '¿ Esta seguro de abonar ?',
+                    html: `<h1>${m}$</h1><br>A ${c} `,
+                    showDenyButton: true,
+                    // showCancelButton: true,
+                    confirmButtonText: "Guardar",
+                    denyButtonText: `Descartar`
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('asentar_pago_global').submit()
+                    } else {
+                        return false
+                    }
+                })// fin Confirmar
+            }//validar referencia 
+        }// fin de checkValidity()
+    } // fin validar formulario
+
+</script>
+{% endblock Scripts_Adicionales %}

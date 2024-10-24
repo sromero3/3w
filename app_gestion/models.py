@@ -6,6 +6,27 @@ from datetime import *
 from django.utils import timezone
 # Create your models here.
 
+class Control(models.Model):
+    fecha_control = models.DateField()
+
+    def __str__(self):
+        return str(self.fecha_control) # que campo va a retornar al llamar el objeto
+    
+
+class Tasa(models.Model):
+    fecha = models.DateField()
+    monto = models.DecimalField(
+        validators=[MinValueValidator(0.01), MaxValueValidator(10000.99)], max_digits=7, decimal_places=2)
+    fuente = models.CharField(max_length=30)
+    createdo = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.fuente
+
+    class Meta:
+        ordering = ["-id"]    
+
 
 class Siono(models.Model):
     siono = models.CharField(max_length=10)
@@ -96,6 +117,7 @@ class Cliente(models.Model):
     status = models.ForeignKey(Statu, on_delete=models.CASCADE, default=1)
     observacion = models.TextField(max_length=1000,blank=True,null=True)
     creado = models.DateTimeField(auto_now_add=True, null=False)
+    actualizado = models.DateTimeField(auto_now_add=True, null=False)
     
     def __str__(self) -> str:
         return self.nombre
@@ -109,14 +131,16 @@ class Documento(models.Model):
     numero = models.CharField(max_length=40)
     fecha = models.DateField()
     vencimiento = models.DateField()
-    # dias_credito
-    monto = models.DecimalField(
-        validators=[MinValueValidator(0.00), MaxValueValidator(10000.99)], max_digits=7, decimal_places=2)
-    abonado = models.DecimalField(
-        validators=[MinValueValidator(0.00), MaxValueValidator(10000.99)], max_digits=7, decimal_places=2)
+    dias_v = models.IntegerField()
+    monto = models.DecimalField(max_digits=9, decimal_places=2)
+    abonado = models.DecimalField(max_digits=9, decimal_places=2)
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     observacion = models.TextField(max_length=1000,blank=True,null=True)
     iva = models.ForeignKey(Iva, on_delete=models.CASCADE, default="Pendiente")
+    creado = models.DateTimeField(auto_now_add=True, null=False)
+    actualizado = models.DateTimeField(auto_now_add=True, null=False)
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+  
     
     def __str__(self) -> str:
         return self.numero
@@ -125,6 +149,59 @@ class Documento(models.Model):
         db_table = "app_gestion_documentos"
         verbose_name = "Documento"
         verbose_name_plural = "Documentos"
-        ordering = ["-vencimiento"]  
+        ordering = ["vencimiento"]  
+
+
+class PagoForma(models.Model):
+    forma = models.CharField(max_length=40, default="")
+    orden = models.IntegerField()
+
+    def __str__(self):
+        return self.forma
+
+class Banco(models.Model):
+    cod = models.CharField(max_length=4, default="")
+    nombre = models.CharField(max_length=50, default="")
+
+    def __str__(self):
+        return str(self.nombre)
+    
+class BancoDestino(models.Model):
+    cod = models.CharField(max_length=4, default="")
+    nombre = models.CharField(max_length=50, default="")
+    tipo = models.CharField(max_length=15, default="")
+
+    def __str__(self):
+        return str(self.nombre)
+    
+
+class Pago(models.Model):
+    fecha = models.DateField()
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
+    # documento = models.ForeignKey(Documento, on_delete=models.CASCADE)
+    referencia = models.CharField(max_length=30, null=True, blank=True)
+    monto = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Monto en Bs.")
+    # validators=[MinValueValidator(0.00), MaxValueValidator(999999.99)], 
+    monto_procesar = models.DecimalField(max_digits=7, decimal_places=2, verbose_name="Monto en $")
+    observacion = models.TextField(max_length=250, blank=True)
+    forma = models.ForeignKey(PagoForma, on_delete=models.CASCADE, verbose_name="Forma de pago")
+    banco_destino = models.ForeignKey(BancoDestino, on_delete=models.CASCADE, verbose_name="Banco destino")
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    creado = models.DateTimeField(auto_now_add=True, null=False)
+    actualizado = models.DateTimeField(auto_now_add=True, null=False)
+    tasa = models.DecimalField(max_digits=5, decimal_places=2)
+  
+    def __str__(self):
+         return self.id
+
+    class Meta:
+        db_table = "app_gestion_pagos"
+        verbose_name = "Pago"
+        verbose_name_plural = "Pagos"
+        ordering = ["fecha", "id"]
+        #constraints = [
+        #    models.UniqueConstraint(fields=["banco", "referencia"], name='asiento_restriccion')
+        #]
+        # validar_facturaView es el ejemplo
 
 
