@@ -1,0 +1,231 @@
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+{% block title %}
+M1 | Documentos
+{% endblock %}
+{% block styles %}
+{% endblock styles %}
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ xOpcion }} un Documento<a href="{% url 'documentos' %}" class="float-end"><i class="bi bi-arrow-return-left" title='Regresar'></i></a></h5>
+                <form id="documento_form" action="" method="post" class="row g-3">
+                    {% csrf_token %}
+                    <!-- ------------------------------------ agregando ------------------------------------- -->
+                    {% if xOpcion == 'Agregando' %}
+                    <div class="col-6">
+                        <span class="titulos">
+                            Cliente</span>
+                        <select name="cliente" id="cliente" class="form-control d-flex alto" required>
+                            <option selected></option>
+                            {% for xCliente in xClientes %}
+                            <option value={{xCliente.id}}>
+                                {{xCliente.nombre}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">{{form.numero.label}}</span>
+                        {{form.numero}}
+                        <input type="text" id="rNum"  value="{{rNum}}" hidden>
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">
+                            {{form.fecha.label}}</span><span id="hoy" class="boton-ajustado-a-la-derecha"
+                            onclick="get_hoy(id_fecha)">HOY</span>
+                        {{form.fecha}}
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">
+                            {{form.vencimiento.label}}</span>
+                        {{form.vencimiento}}
+                    </div>
+                    <div id="div_ref" class="col-md-6">
+                        <span class="titulos"> {{form.monto.label}}</span>
+                        {{form.monto}}
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">
+                            Iva</span>
+                        <select name="iva" id="iva" class="form-control d-flex alto" required>
+                            <option  selected></option>
+                            {% for xIva in xIvas %}
+                            <option value={{xIva.id}}>
+                                {{xIva.iva}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 pb-4">
+                        <span class="titulos">
+                            {{form.observacion.label}}</span>
+                        {{form.observacion}}
+                    </div>
+                    {% endif %} <!-- fin agregando -->
+                    {% csrf_token %}
+                    <!-- ------------------------------------ editando ------------------------------------- -->
+                    {% if xOpcion == 'Editando' %}
+                    <div class="col-6">
+                        <span class="titulos">
+                            Cliente</span>
+                            <select name="cliente" id="cliente" class="form-control d-flex alto" required>
+                                <!-- <option selected></option> -->
+                                {% for xCliente in xClientes %}
+                                <option id={{xCliente.id}} value="{{xCliente.id}}" {% if xCliente.id == rClienteId %} selected {% endif %}>
+                                    {{xCliente.nombre}}
+                                </option>
+                                {% endfor %}
+                            </select>
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">{{form.numero.label}}</span>
+                        {{form.numero}}
+                        <input type="text" id="rNum"  value="{{rNum}}" hidden>
+                    </div>
+                
+                    <div class="col-6">
+                        <span class="titulos">{{form.fecha.label}}</span>
+                        {{form.fecha}}
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">{{form.vencimiento.label}}</span>
+                        {{form.vencimiento}}
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">{{form.monto.label}}</span>
+                        {{form.monto}}
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">
+                            Iva</span>
+                        <select name="iva" id="iva" class="form-control d-flex alto" required>
+                            <!-- <option  selected></option> -->
+                            {% for xIva in xIvas %}
+                            <option id={{xIva.id}} value="{{xIva.id}}" {% if xIva.id == rIvaId %} selected {% endif %}>
+                                {{xIva.iva}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 pb-4">
+                        <span class="titulos">
+                            {{form.observacion.label}}</span>
+                        {{form.observacion}}
+                    </div>
+
+                    {% endif %}
+
+                    <!-- Botones -->
+                    <div class="text-center">
+                        <button type="submit" id="guardar" class="btn btn-primary"
+                            onclick="validar(event)">Guardar</button>
+                        <button type="button" class="btn btn-secondary"
+                            onclick="javascript:window.location='/documentos'">Regresar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main><!-- End #main -->
+{% endblock content %}
+{% block Scripts_Adicionales %}
+{% if otro %}
+<script>
+    Swal.fire({
+        title: "Su operación ha sido exitosa!",
+        //text: "",
+        icon: "success"
+    });
+</script>
+{% endif %}
+<script>
+    checkPattern("id_monto")
+    // formatear entrada
+    function checkPattern(e) {
+        $("#" + e).on({
+            "focus": function (event) {
+                $(event.target).select()
+            },
+            "keyup": function (event) {
+                $(event.target).val(function (index, value) {
+                    return value.replace(/\D/g, "")
+                        .replace(/([0-9])([0-9]{2})$/, '$1,$2')
+                        .replace(/\B(?=(\d{3})+(?!\d)\.?)/g, ".")
+                })
+            }
+        })
+    } // fin formatear entrada
+
+    // validar formulario
+    function validar(e) {
+        const form = document.getElementById('documento_form') // tomo el nombre del formulario
+        if (form.checkValidity()) {
+
+            e.preventDefault()
+
+            // si validar
+            let Var_rNum = document.getElementById('rNum').value 
+            let Var_numero = document.getElementById('id_numero').value 
+            console.log("Var_rNum: ",Var_rNum,"-",Var_numero )
+            if (Var_rNum != Var_numero) {
+            // validar numero
+            let  existe = false
+            let campo = $('#id_numero').val()
+            $.ajax({
+                url: "{% url 'validar_numero' %}",
+                type: 'POST',
+                async: false,
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    'campo': campo,
+                },
+                datatype: 'json',
+                success: function (data) {
+                    // console.log('RESULTADO', data.status, typeof data.status)
+                    existe = data.status
+                },
+                error: function (xhr, status, error) {
+                }
+            }) 
+            if (existe) {
+                    document.getElementById('id_numero').focus();
+                    Swal.fire({
+                        position: 'center',
+                        icon: 'error',
+                        title: 'Este numero de Documento ya esta rigistrado' + ' Verifique...!',
+                        showConfirmButton: true,
+                        //timer: 2500
+                    })
+                    return;
+                }//validar numero
+            } // fin si validar
+
+            // Condirmar
+            let c = document.getElementById('cliente').value
+            let cliente_select = document.getElementById("cliente")
+            let c_texto = cliente_select.options[cliente_select.selectedIndex].text
+            let m = document.getElementById('id_monto').value
+           
+            Swal.fire({
+                title: '¿ Esta seguro de Guardar ?',
+                    html: `<h1>${m}$</h1><br>A ${c_texto} `,
+                    showDenyButton: true,
+                    // showCancelButton: true,
+                    confirmButtonText: "Guardar",
+                    denyButtonText: `Descartar`
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('documento_form').submit()
+                    } else {
+                        return false
+                    }
+            })// fin Confirmar        
+
+        }// fin de checkValidity()
+    } // fin validar formulario
+</script>
+{% endblock Scripts_Adicionales %}

@@ -1,90 +1,25 @@
 {% extends "app_gestion/base_m1.html" %}
 {% load static %}
 {% load filtros %}
-
 {% block title %}
-M1 | Documentos
+M1 | Cobranza
 {% endblock %}
-
 {% block styles %}
 {% endblock styles %}
-
 {% block content %}
-
 <main id="main" class="main" style="margin-top: 40px">
-
     <div class="col-lg-12">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Cobranza <a href="{% url 'inicio' %}" class="float-end"><i class="bi bi-x-circle" title='Cerrar'></i></a></h5>
+                <h5 class="card-title">Documentos<a href="{% url 'inicio' %}" class="float-end"><i class="bi bi-x-circle" title='Cerrar'></i></a></h5>
+                
+                <div class="row">
+                    <div class="col-lg-12" style="text-align: center;">
+                        <h6 > <a href="{% url 'add_documento' %}" ><i class="bi bi-stickies"  title='Agregar un documento'></i><span>+</span></a></h6>
 
-                <form id="filtros" action="" method="post" class="mb-4">
-                    {% csrf_token %}
-
-                    <div class="row">
-                        <div class="col-lg-3 col-sm-12 d-flex">
-                            <label id="m" class="titulos d-flex me-2 mt-1">Cliente</label>
-                            <select name="cliente" id="cliente" class="form-control d-flex alto" required
-                                onChange="obtener_documentos()">
-                                <option value="0" selected>Todos</option>
-                                {% for xCliente in xClientes %}
-                                <option value={{xCliente.id}} {% if xCliente.id == xCliente_seleccionado %} selected {%endif %}>
-                                    {{xCliente.nombre}}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="col-lg-3 col-sm-12 d-flex">
-                            <label class="titulos d-flex ms-2 me-2 mt-1">Vend.</label>
-                            <select name="vendedor" id="vendedor" class="form-control d-flex alto" required
-                                onChange="obtener_documentos()">
-                                <option value="0" selected>Todos</option>
-                                {% for xVendedor in xVendedores %}
-                                <option value={{xVendedor.id}} {% if xVendedor.id == xVendedor_seleccionado %} selected {%endif %}>
-                                    {{xVendedor.nombre}}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    
-                        <div class="col-lg-3 col-sm-12 d-flex">
-                            <label class="titulos d-flex ms-2 me-2 mt-1">Iva</label>
-                            <select name="iva" id="iva" class="form-control d-flex alto" required
-                                onChange="obtener_documentos()">
-                                <option value="0" selected>Todos</option>
-                                {% for xIva in xIvas %}
-                                <option value={{xIva.id}} {% if xIva.id == xIva_seleccionado %} selected {% endif %}>
-                                    {{xIva.iva}}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="col-lg-3 col-sm-12 d-flex form-check form-switch" style="padding-left: 10px"> 
-                            <label class="titulos ms-2 me-2 mt-1">Vencidos</label>
-                            {% if xVencido_seleccionado == 0 %}
-                            <input name="vencido" class="form-check-input" type="checkbox" id="vencido"  onChange="obtener_documentos()">
-                            {% else %}
-                            <input name="vencido" class="form-check-input" type="checkbox" id="vencido"  checked onChange="obtener_documentos()">
-                            {% endif %}
-                        </div> 
-                  
                     </div>
-
-                    <div class="row" >
-                        <div class="mt-1 pb-2 col-lg-3 col-sm-12">
-                            <span id="enlaces" hidden>
-                                <a  id="url_cuenta">Pago a cuenta<br>
-                                <a  id="url_documento">Pago a documento<a/><br>
-                                <a  id="url_estado">Estado de cuenta<a/>
-                            </span>
-                        </div>
-                    </div>
-
-                </form>
-
-
+                </div>
+                
                 <table id="documentos" class="table table-hover table-bordered " style="width:100%">
                     <thead>
                         <tr>
@@ -95,16 +30,12 @@ M1 | Documentos
                             <th style="width:200px">Cliente</th>
                             <th>Monto</th>
                             <th>Abonado</th>
-                            <th>Saldo</th>
                             <th>Ciudad</th>
                             <th>Vendedor</th>
                             <th>Iva</th>
                             <th>Opcion</th>
                         </tr>
                     </thead>
-
-
-
                     <tbody>
                         {% for xDocumento in xDocumentos %}
                         <tr>
@@ -113,120 +44,39 @@ M1 | Documentos
                                         data-bs-html="true" data-bs-title="{{xDocumento.observacion}}<br>"></i>
                             </i></a>
                             </td>
-                            <td>{{xDocumento.fecha|date:"d/m/y"}}<a href="#"> <i class="bi bi-pencil"></a></i></td>
+                            <td>{{xDocumento.fecha|date:"d/m/y"}}</td>
                             <td>{{xDocumento.vencimiento|date:"d/m/y"}}</td>
                             <td align="center">{{xDocumento.dias_v}}</td>
                             <td>{{xDocumento.cliente__nombre|truncatechars:30}}</td>
                             <td align="right">{{xDocumento.monto|darFormato}}</td>
                             <td align="right">{{xDocumento.abonado|darFormato}}</td>
-                            <td align="right">{{xDocumento.saldo|darFormato}}</td>
                             <td>{{xDocumento.cliente_id__ciudad__ciudad}}</td>
                             <td>{{xDocumento.cliente_id__vendedor__nombre}}</td>
                             <td>{{xDocumento.iva__iva}}</td>
                             <td class="text-center" style="width:50px">
-                                <a href="#">
+                                <a href="{% url 'editar_documento' xDocumento.id %}">
                                     <i class="bi bi-pencil"></i>
                                 </a>
+                                
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                     <tfoot>
-                        <tr>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes izquierda">T. Pagina:</td>
-                            <td id="pt" class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-
-                            <!-- <th ></th> -->
-                            <!-- <th id="pt"   class="totales"></th> -->
-                        </tr>
-                        <!-- <tr>
-                            <th ></th>
-                            <th id="t" ></th>
-                        </tr> -->
-                        <tr>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes izquierda">T. Consulta:</td>
-                            <td id="t" class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                         </tr>
+                       
                     </tfoot>
                 </table>
-
             </div>
         </div>
-
     </div>
-
 </main><!-- End #main -->
-
 {% endblock content %}
-
 {% block Scripts_Adicionales %}
 <script>
  
     $(function () {
         $("#documentos").DataTable({
-
-            // Funcion para totales
-            footerCallback: function (row, data, start, end, display) {
-                var api = this.api()
-                var x = 0
-                // Remove the formatting to get integer data for summation
-                var intVal = function (i) {
-                    x = x + 1
-                    // console.log(intVal)
-                    // console.log("ciclo:",x)
-                    // console.log("Valor de i: ",i,"tipo: ",typeof(i))
-                    return typeof i === 'string' ? i.replace(/[\$,]/g, '.') * 1 : typeof i === 'number' ? i : 0
-                }
-
-                // Total over all pages
-                total = api
-                    .column(7)
-                    .data()
-                    .reduce(function (a, b) {
-                        b = b.replace(".", "") // Eliminado el punto en la undad de mil
-                            // console.log('Monto: ', intVal(b),' Acumulador: ', intVal(a))
-                        return intVal(a) + intVal(b)
-                    }, 0)
-
-                // Total over this page
-                pageTotal = api
-                    .column(7, { page: 'current' })
-                    .data()
-                    .reduce(function (a, b) {
-                        b = b.replace(".", "") // Eliminado el punto en la undad de mil
-                        return intVal(a) + intVal(b)
-                    }, 0)
-
-                // Update footer
-                let pt = darFormato(pageTotal)
-                let t = darFormato(total)
-
-                $('#pt').html('<span style="font-size: 15px">$' + pt +'</span>')
-                $('#t').html('<span style="font-size: 15px">$' + t +'</span>')
-    
-                                
-            },
-
+  
             language: {
                 "sProcessing": "Procesando...",
                 "sLengthMenu": "Mostrar _MENU_ registros",
@@ -260,54 +110,21 @@ M1 | Documentos
             "autoWidth": true,
             "pageLength": 50,
             "scrollX": true,
-            "order": [[2, "asc"]],
+            // "order": [[1, "desc"]],
             "columnDefs": [{
-                "targets": [5,6,7,11    ],
+                "targets": [5,6,7    ],
                 "orderable": false
             }]
-
-
         })
-
     })
-
-    // pbtener docuemntos
-    function obtener_documentos() {
-        let ven
-        checkBox = document.getElementById("vencido")
-        if (checkBox.checked == true){
-             ven = "1"
-        } else {
-             ven = "0"    
-        }
-        filtros.action = `/documentos/${cliente.value}/${vendedor.value}/${iva.value}/${ven}/`
-        filtros.submit()
-        desplegar_links()
-    } // fin pbtener docuemntos
 
     // tool tip
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-
-    // cargar el Documento
+    
+    // cargar pagina
     document.addEventListener('DOMContentLoaded', function () {
-        // mostrar enelaces
-        if (document.getElementById('cliente').value != "0") {
-            var cliente_select = document.getElementById("cliente")
-            var id_cliente = cliente_select.options[cliente_select.selectedIndex].value
-            var texto_cliente = cliente_select.options[cliente_select.selectedIndex].text
-            var anchor = document.getElementById('url_cuenta')
-            anchor.href = `/pagos/${id_cliente}/${texto_cliente}`
-            // var anchor2 = document.getElementById('url_documento')
-            // anchor2.href = `/pagos/${id_cliente}/${texto_cliente}`
-            var anchor3 = document.getElementById('url_estado')
-            anchor3.href = `/estado_cuentas/${id_cliente}/${texto_cliente}`
-            document.getElementById('enlaces').removeAttribute('hidden')
-        } else {
-            document.getElementById('enlaces').hidden = true
-        } // fin mostrar enelaces
-    }) // fin cargar documento
 
-
+    }) // fin pagina
 </script>
 {% endblock Scripts_Adicionales %}

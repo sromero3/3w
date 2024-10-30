@@ -16,7 +16,7 @@ M1 | Documentos
         <div class="card">
             <div class="card-body">
 
-                <h5 class="card-title">Pago a cuenta<a href="javascript:history.back()" >
+                <h5 class="card-title">Pago a cuenta<a href="javascript:history.back()" class="float-end">
                         <i class="bi bi-arrow-return-left" title='Regresar'></i>
                     </a></h5>
                 
@@ -26,7 +26,7 @@ M1 | Documentos
                     <div class="col-6">
                         <span class="titulos">
                             Cliente</span>
-                        <input type="text" class="form-control alto alto" id="cliente" name="cliente"
+                        <input type="text" class="form-control alto" id="cliente" name="cliente"
                             value="{{xCliente}}" readonly>
                     </div>
                     <div class="col-6">
@@ -77,7 +77,7 @@ M1 | Documentos
                     <div id="div_monto_procesar" class="col-md-6" hidden>
                         <span class="titulos">{{form.monto_procesar.label}}</span>
                         <input id="monto_procesar" name="monto_procesar" class="form-control input-numero alto"
-                            readonly maxlength="9"></input>
+                            readonly maxlength="10"></input>
                     </div>
                     <!-- fin Campos variables -->
 
@@ -291,7 +291,7 @@ M1 | Documentos
                     if (result.isConfirmed) {
                         // Condirmar
                         let c = document.getElementById('cliente').value
-                        var m = document.getElementById('monto_procesar').value
+                        let m = document.getElementById('monto_procesar').value
                         Swal.fire({
                             title: '¿ Esta seguro de abonar ?',
                             html: `<h1>${m}$</h1><br>A ${c} `,
@@ -313,7 +313,7 @@ M1 | Documentos
             } else {
                 // Condirmar
                 let c = document.getElementById('cliente').value
-                var m = document.getElementById('monto_procesar').value
+                let m = document.getElementById('monto_procesar').value
                 Swal.fire({
                     title: '¿ Esta seguro de abonar ?',
                     html: `<h1>${m}$</h1><br>A ${c} `,

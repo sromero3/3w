@@ -704,13 +704,13 @@ h6 {
 }
 
 .sidebar-nav .nav-link.collapsed {
-  color: #012970;
+  /* color: #012970; */
   background: #fff;
 }
 
-.sidebar-nav .nav-link.collapsed i {
-  color: #343a401a;
-}
+/* .sidebar-nav .nav-link.collapsed i {
+  color: #343a401a; 
+} */
 
 .sidebar-nav .nav-link:hover {
   color: #1977cc;
@@ -1288,12 +1288,15 @@ h6 {
   border-radius: 5px;
 }
 
+
+
 .form-control {
   appearance: auto;
 }
 
 .sin-bordes{
   border-style: none;
+  text-align: right !important;
 }
 
 .izquierda{
@@ -1372,3 +1375,4 @@ input[type=number]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+

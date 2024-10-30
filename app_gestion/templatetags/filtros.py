@@ -17,7 +17,7 @@ register.filter("darFormato", darFormato)
 # Filtro para rellenar con 0
 def rellenar(numero):
     
-    filled = str(numero).zfill(10)
+    filled = str(numero).zfill(8)
     return (filled)
 
 register.filter("rellenar", rellenar)

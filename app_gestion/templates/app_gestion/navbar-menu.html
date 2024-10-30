@@ -96,21 +96,29 @@
         <span>&nbsp;&nbsp;Inicio</span>
       </a>
     </li>
-
+  
     <li class="nav-item">
-      <a class="nav-link" href="{% url 'documentos' 0 0 0 0 %}">
+      <a class="nav-link" href="{% url 'cobranza' 0 0 0 0 %}">
         <i class="bi bi-cash"></i>
         <span>&nbsp;&nbsp;Cobranza</span>
       </a>
     </li>
 
     <li class="nav-item">
+      <a class="nav-link" href="{% url 'documentos' %}">
+        <i class="bi bi-stickies"></i>
+        <span>&nbsp;&nbsp;Docuementos</span>
+      </a>
+    </li>
+
+<!-- 
+    <li class="nav-item">
       <a class="nav-link" href="#">
        
         <i class="bi bi-cash-coin"></i>
         <span>&nbsp;&nbsp;Asentar pago</span>
       </a>
-    </li>
+    </li> -->
 
     <li class="nav-item">
       <a class="nav-link" href="{% url 'clientes' %}">
@@ -126,12 +134,12 @@
       </a>
       <ul id="components-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
 
-        {% for xColaboradora in xColaboradoras %}
+    
 
 
         <li>
-          <a href="components-alerts.html">
-            <i class="bi bi-circle"></i><span>{{xColaboradora.nombre|truncatechars:22}}</span>
+          <a href="{% url 'estado_cuenta' 0 ' ' 'menu' %}">
+            <i class="bi bi-circle"></i><span>Estado de cuenta</span>
           </a>
         </li>
 
@@ -139,7 +147,7 @@
 
 
 
-        {% endfor %}
+      
 
       </ul>
     </li><!-- End Components Nav -->
@@ -153,8 +161,8 @@
       </a>
       <ul id="components-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
         <li>
-          <a href="{% url 'estado_cuenta' 0 'prueba' %}">
-            <i class="bi bi-circle"></i><span>Estado de cuenta</span>
+          <a href="#">
+            <i class="bi bi-circle"></i><span>dsads</span>
           </a>
         </li>
         <li>

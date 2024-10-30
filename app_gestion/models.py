@@ -129,12 +129,12 @@ class Cliente(models.Model):
 
 class Documento(models.Model):
     numero = models.CharField(max_length=40)
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     fecha = models.DateField()
     vencimiento = models.DateField()
-    dias_v = models.IntegerField()
-    monto = models.DecimalField(max_digits=9, decimal_places=2)
-    abonado = models.DecimalField(max_digits=9, decimal_places=2)
-    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
+    dias_v = models.IntegerField(default=0)
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
+    abonado = models.DecimalField(max_digits=10, decimal_places=2,default=0)
     observacion = models.TextField(max_length=1000,blank=True,null=True)
     iva = models.ForeignKey(Iva, on_delete=models.CASCADE, default="Pendiente")
     creado = models.DateTimeField(auto_now_add=True, null=False)
@@ -149,7 +149,7 @@ class Documento(models.Model):
         db_table = "app_gestion_documentos"
         verbose_name = "Documento"
         verbose_name_plural = "Documentos"
-        ordering = ["vencimiento"]  
+        ordering = ["vencimiento","id"]  
 
 
 class PagoForma(models.Model):
@@ -180,9 +180,9 @@ class Pago(models.Model):
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     # documento = models.ForeignKey(Documento, on_delete=models.CASCADE)
     referencia = models.CharField(max_length=30, null=True, blank=True)
-    monto = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Monto en Bs.")
+    monto = models.DecimalField(max_digits=9, decimal_places=2, verbose_name="Monto en Bs.")
     # validators=[MinValueValidator(0.00), MaxValueValidator(999999.99)], 
-    monto_procesar = models.DecimalField(max_digits=7, decimal_places=2, verbose_name="Monto en $")
+    monto_procesar = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Monto en $")
     observacion = models.TextField(max_length=250, blank=True)
     forma = models.ForeignKey(PagoForma, on_delete=models.CASCADE, verbose_name="Forma de pago")
     banco_destino = models.ForeignKey(BancoDestino, on_delete=models.CASCADE, verbose_name="Banco destino")
@@ -203,5 +203,7 @@ class Pago(models.Model):
         #    models.UniqueConstraint(fields=["banco", "referencia"], name='asiento_restriccion')
         #]
         # validar_facturaView es el ejemplo
+
+
 
 

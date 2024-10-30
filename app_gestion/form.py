@@ -2,7 +2,7 @@ from django import forms
 from django.forms import DateField, DateInput, FloatField, ModelForm
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from app_gestion.models import Pago
+from app_gestion.models import Pago, Documento
 
 
 class DateInput(forms.DateInput):
@@ -44,4 +44,29 @@ class asentar_pagoForm(ModelForm):
 
     fecha = forms.DateField(widget=DateInput)
     
+
+    # 
+class agregar_documentoForm(ModelForm):
+  
+    def __init__(self, *args, **kwargs):
+        super(agregar_documentoForm, self).__init__(*args, **kwargs)
+        for visible in self.visible_fields():
+            visible.field.widget.attrs['class'] = 'form-control alto'
+       
+        self.fields['monto'].widget.input_type = 'text' #Pasa el campo numerico a texto          
+        self.fields['monto'].widget.attrs.update(
+            {'required': True, 
+             'class': 'form-control input-numero alto'})
+        
+        self.fields['observacion'].widget.attrs.update({'class': 'form-control'})
+        self.fields['observacion'].widget.attrs['rows'] = 3
+
+    class Meta:
+        model = Documento
+        fields = ('numero','cliente','fecha','vencimiento','monto','observacion','iva')
+ 
+        widgets = {
+            'fecha': DateInput(format=('%Y-%m-%d')),
+            'vencimiento': DateInput(format=('%Y-%m-%d'))
+        }
 

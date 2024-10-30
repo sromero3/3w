@@ -18,6 +18,7 @@ import csv
 from app_gestion.functions import *
 from decimal import Decimal
 from django.http import JsonResponse
+from operator import itemgetter
 
 
 # Create your views here.
@@ -38,12 +39,13 @@ def InicioView(request):
           for xDocumento in xDocumentos:
                fecha_str = xDocumento.vencimiento.strftime('%d/%m/%Y')
                # Convierte la cadena de texto a un objeto de fecha
-               fecha = datetime.strptime(fecha_str, "%d/%m/%Y")
-                  # Resta la fecha dada de la fecha actual
-               diferencia = fecha - fecha_actual
-               xDocumento.dias_v = diferencia.days + 1 
+               fecha_v = datetime.strptime(fecha_str, "%d/%m/%Y")
+               # Resta la fecha dada de la fecha actual
+           
+               diferencia = fecha_v - fecha_actual
+            #    print("Vence ",fecha_v, "diferencia =======",diferencia)
+               xDocumento.dias_v = diferencia.days + 1
                xDocumento.save()
-    
                xControl.fecha_control = hoy
                xControl.save()
     #else
@@ -64,7 +66,125 @@ def ClientesView(request):
     return render(request, 'app_gestion/clientes.html', context)
 
 @login_required
-def DocumentosView(request, xCliente, xVendedor, xIva, xVencido):
+def docuementosView(request):
+    xUsuario = request.user
+    xDocumentos = Documento.objects.values('id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','cliente_id__ciudad__ciudad','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado','dias_v').order_by('-id')
+
+    context = {
+        'xUsuario': xUsuario,
+        'xDocumentos': xDocumentos
+    }
+    return render(request, 'app_gestion/documentos.html', context)
+
+
+#  add docuemto
+@login_required
+def add_documentoView(request):
+    # xUsuario = request.user
+    xOpcion = "Agregando"
+       
+    xClientes = Cliente.objects.all()
+    xIvas = Iva.objects.all()
+   
+    form = agregar_documentoForm()
+
+    if request.method == 'POST':
+        form = agregar_documentoForm(request.POST)
+
+        request.POST._mutable = True
+        request.POST['monto'] = quitarFormato(request.POST['monto'])
+        request.POST['vencimiento'] = datetime.strptime(request.POST['vencimiento'], '%Y-%m-%d')
+       
+        # for field in form:
+        #      print("Field:", field.name, "-> ", field.errors)
+    
+        if form.is_valid():
+            fecha_actual = datetime.now()
+            documento = form.save(commit=False)
+            documento.usuario_id = request.user.id
+            diferencia = request.POST['vencimiento'] - fecha_actual
+            documento.dias_v = diferencia.days + 1
+            documento.save()
+
+            # Limpiara formulario para otro gasto
+            form = agregar_documentoForm()
+            context = {
+               'form': form,
+               'xOpcion': xOpcion,
+               'xClientes': xClientes,
+               'xIvas': xIvas,
+               'otro': True,
+            }
+
+            return render(request, 'app_gestion/documentos_crud.html', context)
+        else:
+            messages.error(
+                request, "Su operación no se puedo efectuar debido a problemas en el Servidor. El formulario no es válido")
+    
+    context = {
+     'form': form,
+     'xOpcion': xOpcion,
+     'xClientes': xClientes,
+     'xIvas': xIvas,
+     'rNum': "",
+     'otro': False,  
+    }
+    return render(request, 'app_gestion/documentos_crud.html', context)
+
+
+#  editar docuemnto
+@login_required
+def Editar_documentoView(request, id):
+    xUsuario = request.user
+    xOpcion = "Editando"
+   
+    xClientes =  Cliente.objects.all()
+    xIvas =  Iva.objects.all()
+    
+    # Obtengo el registro a editar
+    xDocumento = Documento.objects.get(id=id)
+    rClienteId = xDocumento.cliente.id
+    rIvaId = xDocumento.iva.id
+    rNum = xDocumento.numero
+   
+    form = agregar_documentoForm(instance=xDocumento)
+
+    if request.method == 'POST':
+        form = agregar_documentoForm(request.POST, instance=xDocumento)
+
+        request.POST._mutable = True
+        request.POST['monto'] = quitarFormato(request.POST['monto'])
+        request.POST['vencimiento'] = datetime.strptime(request.POST['vencimiento'], '%Y-%m-%d')
+
+        # for field in form:
+        #      print("Field:", field.name, "-> ", field.errors)
+        
+        if form.is_valid():
+            fecha_actual = datetime.now()
+            documento = form.save(commit=False)
+            diferencia = request.POST['vencimiento'] - fecha_actual 
+            documento.dias_v = diferencia.days + 1
+            documento.save()
+            return redirect('documentos')
+        else:
+            messages.error(
+                request, "Su operación no se puedo efectuar debido a problemas en el Servidor. El formulario no es válido")
+
+    context = {
+        'form': form,
+        'xOpcion': xOpcion,
+        'xClientes': xClientes,
+        'rClienteId': rClienteId,
+        'xIvas': xIvas,
+        'rIvaId': rIvaId,
+        'rNum': rNum,
+       
+    }
+    return render(request, 'app_gestion/documentos_crud.html', context)
+
+
+@login_required
+def cobranzaView(request, xCliente, xVendedor, xIva, xVencido):
     xUsuario = request.user
     # print("--------- Parametros recibidos GET ----------")
     if xCliente != 0:
@@ -91,15 +211,12 @@ def DocumentosView(request, xCliente, xVendedor, xIva, xVencido):
         else:
           #   xVencido = 0
             xVencido_seleccionado = 0
-             
         
     if xVencido_seleccionado == 1:
        qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','cliente_id__ciudad__ciudad','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado','saldo','dias_v').filter(dias_v__lte=0)
     else: 
        qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','cliente_id__ciudad__ciudad','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado','saldo','dias_v')
  
-
-
     if xCliente == 0 and xVendedor == 0 and xIva == 0:
        xDocumentos=qDocumentos
      
@@ -145,7 +262,7 @@ def DocumentosView(request, xCliente, xVendedor, xIva, xVencido):
         'xVencido_seleccionado': xVencido_seleccionado,
     }
     
-    return render(request, 'app_gestion/documentos.html', context)
+    return render(request, 'app_gestion/cobranza.html', context)
 
 @login_required
 def Asentar_pagosView(request, id, cliente):
@@ -153,7 +270,7 @@ def Asentar_pagosView(request, id, cliente):
     xCliente = cliente
     xId = id
  
-    xFormas = PagoForma.objects.order_by('orden')
+    xFormas = PagoForma.objects.order_by('orden').exclude(id=5)
     xBancosdestino = BancoDestino.objects.exclude(id=6)
   
     xTasas = Tasa.objects.all()
@@ -175,7 +292,7 @@ def Asentar_pagosView(request, id, cliente):
 
         if request.POST['banco_destino'] == "":
             request.POST['banco_destino'] = "6"
-        print("---------------", request.POST['referencia'] )
+      
         if request.POST['referencia'] == "":
             request.POST['referencia'] = "-"
 
@@ -184,8 +301,8 @@ def Asentar_pagosView(request, id, cliente):
         request.POST['monto_procesar'] = quitarFormato(request.POST['monto_procesar'])
    
         
-        for field in form:
-            print("Field:", field.name, "-> ", field.errors)
+        # for field in form:
+        #     print("Field:", field.name, "-> ", field.errors)
         
         if form.is_valid():
 
@@ -193,9 +310,8 @@ def Asentar_pagosView(request, id, cliente):
             pago.cliente_id = id
             pago.usuario_id = request.user.id
             form.save()
-         
 
-            # Actualizar el campo abono en los Documentos 
+            # Actualizar el campo abono en los Asientos 
             xDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).filter(cliente=id)
             xMonto_procesar = round(Decimal((request.POST['monto_procesar'])),2)
                   
@@ -237,7 +353,7 @@ def Asentar_pagosView(request, id, cliente):
                 print("Monto restante",  xMonto_procesar )
                 print("--------- Sobro monto_procesar ----------")
             
-            return redirect('documentos', id, 0, 0, 0)
+            return redirect('cobranza', id, 0, 0, 0)
         
         # redirect
      #    if xUsuario.profile.rango == "Usuario":  
@@ -259,7 +375,7 @@ def Asentar_pagosView(request, id, cliente):
     return render(request, 'app_gestion/asentar_pago.html', context)
 
    
-# validar si un proveedor ced_rif estste en un condominio
+# validar si un documento ced_rif estste en un condominio
 def Validar_referenciaView(request):
     # print('Dato: ',request.POST.get('campo'))
     data = {'status': False}
@@ -278,22 +394,18 @@ def Cargar_bancosView(request):
 
 # estado de cuenta
 @login_required
-def Estado_cuentaView(request, id, cliente):
+def Estado_cuentaView(request, id, cliente, desde):
     xUsuario = request.user
     xCliente = cliente
     xId = id
 
     xClientes = Cliente.objects.all()
     
-    if request.method == 'POST':
-        print("clinte================",id)
-        pass
-    
     # obtengo los docuemntos
-    qDocumentos = Documento.objects.filter(cliente=id).values('id','numero','fecha','monto')
+    qDocumentos = Documento.objects.filter(cliente=id).values('id','numero','fecha','monto','creado')
     # obtengo los pagos
-    qPagos = Pago.objects.filter(cliente=id).values('id','fecha','monto_procesar', 'forma__forma','referencia')
-
+    qPagos = Pago.objects.filter(cliente=id).values('id','fecha','monto_procesar', 'forma__forma','referencia','creado')
+    
     xTotal = 0
     # Prepara lista de datos    
     balance = xTotal
@@ -305,29 +417,96 @@ def Estado_cuentaView(request, id, cliente):
         xAsiento["forma"] = "-"
         xAsiento["dc"] = "+"
         xAsiento["monto_m"] = xAsiento['monto']
-        balance += xAsiento['monto']
-        xAsiento["balance"] = balance
-        
+        xAsiento["hora"] = xAsiento['creado'].time()
         data_lista.append(xAsiento) # Se agrega cada registro a la lista
-    
+  
     for xAsiento in qPagos:
         xAsiento["documento"] = xAsiento['referencia']
         xAsiento["forma"] = xAsiento['forma__forma']
         xAsiento["dc"] = "-"
         xAsiento["monto_m"] = xAsiento['monto_procesar']
-        balance += xAsiento['monto_procesar'] * -1
-        xAsiento["balance"] = balance
-        
-        data_lista.append(xAsiento)
+        xAsiento["hora"] = xAsiento['creado'].time()
+        data_lista.append(xAsiento) # Se agrega cada registro a la lista
+  
+    data_lista_ordenada = sorted(data_lista, key=itemgetter('fecha','hora'))
+    
+    # print("lista agregada")
+    # for item in data_lista:
+    #      print(item)
+    #      print("-----------------------------------------------------------------------------------------")
+    # print("lista agregada ordenda")
+    # for item in data_lista_ordenada:
+    #     print("-----------------------------------------------------------------------------------------")
+    #     print(item) 
+    
+    for key in data_lista_ordenada:
+         if key['dc'] == "-":
+            balance = balance - key['monto_m']
+         else:
+            balance = balance + key['monto_m']
+         
+         key['balance'] = balance
+    
+    # print("lista agregada ordenda con balance")
+    # for item in data_lista_ordenada:
+    #     print("-----------------------------------------------------------------------------------------")
+    #     print(item) 
+
      
     context = {
         'xUsuario': xUsuario,
         'xCliente': xCliente,
         'xClientes': xClientes,
         'xId':xId,
-        'xAsientos': data_lista
+        'xDesde': desde,
+        'xAsientos': data_lista_ordenada
     }
     
     return render(request, 'app_gestion/estado_de_cuenta.html', context)
+
+# validar si un mumero de documento
+def Validar_numeroView(request):
+    # print('campo: ',request.POST.get('campo'))
+
+    data = {'status': True}
+    try:
+        buscar_doc = Documento.objects.get(numero=request.POST.get('campo'))
+        # print("Encontrado el Documento: ",buscar_doc)
+    except Documento.DoesNotExist:
+        data = {'status': False}
+    
+    return JsonResponse(data, safe=False)
+
+#  actualizar fechas
+@login_required
+def Actualizar_fechasView(request):
+    # parametros
+    id =  request.POST.get('campo')
+    data = {'status': True}
+    f = request.POST.get('f')
+    v = request.POST.get('v')
+    fecha_actual = datetime.now()
+    # Obtengo el registro a editar
+    try:
+        documento = Documento.objects.get(id=id)
+        # print("Encontrado el Documento: ",documento.id)
+    except documento.DoesNotExist:
+        data = {'status': False}
+    
+    # actualizo las fechas
+    documento.fecha = f
+    documento.vencimiento = v
+    # Convierto la fecha str a objeto de fecha
+    fecha_v = datetime.strptime(v, '%Y-%m-%d')
+    # Resto la fecha de veneciemto de la fecha actual
+    diferencia = fecha_v - fecha_actual 
+    documento.dias_v = diferencia.days  + 1
+          
+    documento.save()
+    
+    return JsonResponse(data, safe=False)
+    
+
+
 
 
