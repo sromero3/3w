@@ -1,25 +1,57 @@
 {% extends "app_gestion/base_m1.html" %}
 {% load static %}
-
+{% load filtros %}
 {% block title %}
-M1 | Clientes
+M1 | Cobranza
 {% endblock %}
-
 {% block styles %}
 {% endblock styles %}
-
 {% block content %}
-
-<main id="main" class="main" style="margin-top: 40px;">
-
+<main id="main" class="main" style="margin-top: 40px">
     <div class="col-lg-12">
-
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Cientes <a href="{% url 'inicio' %}" class="float-end">
-                        <i class="bi bi-x-circle" title='Cerrar'></i>
-                    </a></h5>
-                <table id="clientes" class="table table-hover table-bordered " style="width:100%;">
+                <h5 class="card-title">Clientes<a href="{% url 'inicio' %}" class="float-end"><i class="bi bi-x-circle" title='Cerrar'></i></a></h5>
+                
+                <form id="filtros" action="" method="post" class="mb-4">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-lg-3 col-sm-12 d-flex">
+                            <label id="m" class="titulos d-flex me-2 mt-1">Status</label>
+                            <select name="status" id="status" class="form-control d-flex alto" required
+                                onChange="obtener_status()">
+                                <option value="0" selected>Todos</option>
+                                {% for xStatu in xStatus_select %}
+                                <option value={{xStatu.id}} {% if xStatu.id == xStatu_seleccionado %} selected
+                                    {%endif %}>
+                                    {{xStatu.statu}}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- <div class="col-lg-3 col-sm-12 d-flex" style="width: 200px;">
+                            <label class="titulos d-flex ms-2 me-2 mt-1">Ultimos</label>
+                            <select name="dias" id="dias" class="form-control d-flex alto" required
+                                onChange="obtener_status()">
+                                <option value="0" selected>Todos</option>
+                                {% for xDia in xDias_select %}
+                                <option value={{xDia.id}} {% if xDia.id == xDia_seleccionado %} selected
+                                    {%endif %}>
+                                    {{xDia.dia}}
+                                </option>
+                                {% endfor %}
+                            </select><span class="titulos d-flex ms-2 me-2 mt-1"> dias</span>
+                        </div> -->
+                </form>
+
+                <div class="row">
+                    <div class="col-lg-12" style="text-align: center;">
+                        <h6 > <a href="{% url 'add_cliente' %}" ><i class="bi bi-people"  title='Agregar un documento'></i><span>+</span></a></h6>
+
+                    </div>
+                </div>
+                
+                <table id="clientes" class="table table-hover table-bordered " style="width:100%">
                     <thead>
                         <tr>
                             <th>Ced/Rif</th>
@@ -37,7 +69,7 @@ M1 | Clientes
                             <td>{{xCliente.nombre|truncatechars:22}}</td>
                             <td>{{xCliente.telefono}}</td>
                             <td>{{xCliente.ciudad__ciudad}}</td>
-                            <td>{{xCliente.statu__statu}}</td>
+                            <td>{{xCliente.status__statu}}</td>
                             <td class="text-center" style="width:50px">
                                 <a href="#">
                                     <i class="bi bi-pencil"></i>
@@ -50,17 +82,15 @@ M1 | Clientes
 
             </div>
         </div>
-
     </div>
-
 </main><!-- End #main -->
-
 {% endblock content %}
-
 {% block Scripts_Adicionales %}
 <script>
+ 
     $(function () {
         $("#clientes").DataTable({
+  
             language: {
                 "sProcessing": "Procesando...",
                 "sLengthMenu": "Mostrar _MENU_ registros",
@@ -89,26 +119,29 @@ M1 | Clientes
                     "colvis": "Visibilidad"
                 }
             },
+            "ordering": false,
             "responsive": true,
             "lengthChange": true,
             "autoWidth": true,
             "pageLength": 50,
             "scrollX": true,
-            "order": [[1, "asc"]],
+            // "order": [[1, "desc"]],
             "columnDefs": [{
-                "targets": [0, 2, 5],
+                "targets": [  ],
                 "orderable": false
             }]
-
-
         })
-
-    });
-
+    })
 
     // tool tip
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
+    // obtener docuemntos
+    function obtener_status() {
+        filtros.action = `/documentos/${cliente.value}/${dias.value}/`
+        filtros.submit()
+    } // fin obtener docuemntos  
+  
 </script>
 {% endblock Scripts_Adicionales %}

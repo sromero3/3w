@@ -12,10 +12,11 @@ urlpatterns = [
      ), name="login"), 
      #       url     -    vista     -    nombre_u
      path('inicio/', views.InicioView, name='inicio'),
-     path('documentos/', views.docuementosView, name='documentos'),
+     path('documentos/<int:xCliente>/<int:xDias>/', views.docuementosView, name='documentos'),
      path('add_documento/', views.add_documentoView, name='add_documento'),
      path('editar_documento/<int:id>/', views.Editar_documentoView, name='editar_documento'),
      path('clientes/', views.ClientesView, name='clientes'),
+     path('add_cliente/', views.add_clienteView, name='add_cliente'),
      path('cobranza/<int:xCliente>/<int:xVendedor>/<int:xIva>/<int:xVencido>/', views.cobranzaView, name='cobranza'),
      path('pagos/<int:id>/<cliente>/', views.Asentar_pagosView, name='pagos'),
      path('estado_cuentas/<int:id>/<cliente>/<desde>/', views.Estado_cuentaView, name='estado_cuenta'),
@@ -24,6 +25,10 @@ urlpatterns = [
      path('validar_numero/', views.Validar_numeroView, name='validar_numero'), 
      path('validar_referencia/', views.Validar_referenciaView, name='validar_referencia'),
      path('cargar_bancos/', views.Cargar_bancosView, name='cargar_bancos'),
-     path('actualizar_fechas/', views.Actualizar_fechasView, name='actualizar_fechas')
-     
+     path('actualizar_fechas/', views.Actualizar_fechasView, name='actualizar_fechas'),
+     path('validar_cliente/', views.validar_clienteView, name='validar_cliente'),
+     path('agregar_ciudad_desde_agregar_cliente/', views.agregar_ciudad_desde_agregar_clienteView, name='agregar_ciudad_desde_agregar_cliente'),
+     path('obtener_ciudades/', views.obtener_ciudadesView, name='obtener_ciudades'),
+     path('agregar_vendedor_desde_agregar_cliente/', views.agregar_vendedor_desde_agregar_clienteView, name='agregar_vendedor_desde_agregar_cliente'),
+     path('obtener_vendedores/', views.obtener_vendedoresView, name='obtener_vendedores'),
 ]

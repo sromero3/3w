@@ -69,7 +69,7 @@ M1 | Cobranza
                         <div class="mt-1 pb-2 col-lg-3 col-sm-12">
                             <span id="enlaces" hidden>
                                 <a id="url_cuenta">Pago a cuenta<br>
-                                    <a id="url_documento">Pago a documento<a /><br>
+                                    <a id="url_documento">Pago a documentos<a /><br>
                                         <a id="url_estado">Estado de cuenta<a />
                             </span>
                         </div>
@@ -78,7 +78,6 @@ M1 | Cobranza
                 <table id="documentos" class="table table-hover table-bordered " style="width:100%">
                     <thead>
                         <tr>
-
                             <th>Documento</th>
                             <th>Fecha</th>
                             <th>Vence</th>
@@ -157,35 +156,38 @@ M1 | Cobranza
         </div>
     </div>
 
-    <!-- Small Modal -->
-    <button type="button" id="modal_fechas" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#smallModal"
+</main><!-- End #main -->
+
+<button type="button" id="modal_fechas" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#smallModal"
         hidden>
         Small Modal
     </button>
-
+    <!-- modal -->
     <div class="modal fade" id="smallModal" tabindex="-1" style="margin-top: 100px;">
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="card-title">Actualizando fechas</h5>
-                    <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> -->
                 </div>
-                <div class="modal-body">
-                    <span class="titulos">Fecha</span>
+                <form  id="modal-form" action="" method="post">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <span class="titulos">Fecha</span>
                         <input type="date" id="modal_f" class="form-control alto" required/>
-                    <span class=" titulos">Vence</span>
+                        
+                        <span class=" titulos">Vence</span>
                         <input type="date" id="modal_v" class="form-control alto" required/>
-                        <input type="text" id="modal_i" hidden>
-                </div>
-                <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn btn-primary" id="gurdar_fechas" onclick="guardar_fechas()">Guardar</button>
-                    <button type="button" class="btn btn-secondary" id="cerrar" data-bs-dismiss="modal">Descartar</button>
-                </div>
-            </div>
-        </div>
-    </div><!-- End Small Modal-->
-</main><!-- End #main -->
-
+                        
+                        <input type="text" id="modal_i" hidden >
+                    </div>
+                    <div class="modal-footer justify-content-center">
+                        <button type="submit"   class="btn btn-primary" id="gurdar_fechas" onclick="guardar_fechas(event)">Guardar</button>
+                        <button type="button" class="btn btn-secondary" id="cerrar" data-bs-dismiss="modal">Descartar</button>
+                    </div>
+                </form>
+            </div> <!-- fin modal content -->
+        </div> <!-- fin modal-dialog -->
+    </div><!-- fin modal-->
 
 
 {% endblock content %}
@@ -272,6 +274,7 @@ M1 | Cobranza
     })
     // obtener docuemntos
     function obtener_documentos() {
+        // console.log(document.getElementById('cliente').value)
         let ven
         checkBox = document.getElementById("vencido")
         if (checkBox.checked == true) {
@@ -282,13 +285,17 @@ M1 | Cobranza
         filtros.action = `/cobranza/${cliente.value}/${vendedor.value}/${iva.value}/${ven}/`
         filtros.submit()
     } // fin obtener docuemntos
+
     // tool tip
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    
     // cargar pagina
     document.addEventListener('DOMContentLoaded', function () {
         // mostrar enelaces
+        console.log(document.getElementById('cliente').value)
         if (document.getElementById('cliente').value != "0") {
+            console.log("entro a mostrar enlaces")
             var cliente_select = document.getElementById("cliente")
             var id_cliente = cliente_select.options[cliente_select.selectedIndex].value
             var texto_cliente = cliente_select.options[cliente_select.selectedIndex].text
@@ -312,31 +319,54 @@ M1 | Cobranza
     }
 
     // guardar fechas
-    function guardar_fechas(){
-        let op_exitosa = false
-        let campo = document.getElementById('modal_i').value
-        let f = document.getElementById('modal_f').value 
-        let v = document.getElementById('modal_v').value 
+    function guardar_fechas(e){
         
-        $.ajax({
-                url: "{% url 'actualizar_fechas' %}",
-                type: 'POST',
-                async: false,
-                data: {
-                    csrfmiddlewaretoken: '{{ csrf_token }}',
-                    'campo': campo,
-                    'f': f,
-                    'v': v,
-                },
-                datatype: 'json',
-                success: function (data) {
-                    // console.log('RESULTADO', data.status, typeof data.status)
-                    op_exitosa = data.status
-                },
-                error: function (xhr, status, error) {
-                }
-            }) 
-            // console.log(op_exitosa)
+        // Valida el modal
+        const form = document.getElementById('modal-form'); // tomo el nombre del formulario
+        if (form.checkValidity()) { // Si es valido //
+
+            e.preventDefault();
+
+            let op_exitosa = false
+            let f = document.getElementById('modal_f').value 
+            let v = document.getElementById('modal_v').value 
+            let campo = document.getElementById('modal_i').value
+           
+            // validar fechas
+            var fechaf = new Date(f); 
+            var fechav = new Date(v);
+            if (fechaf > fechav) { 
+                document.getElementById('modal_v').focus();
+                    Swal.fire({
+                        position: 'center',
+                        icon: 'error',
+                        title: 'la fecha de vencimiento no pude ser menor que la fecha' + ' Verifique...!',
+                        showConfirmButton: true,
+                        //timer: 2500
+                    })
+                    return 
+            } // fin validar fechas
+
+            $.ajax({
+                    url: "{% url 'actualizar_fechas' %}",
+                    type: 'POST',
+                    async: false,
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                        'campo': campo,
+                        'f': f,
+                        'v': v,
+                    },
+                    datatype: 'json',
+                    success: function (data) {
+                        // console.log('RESULTADO', data.status, typeof data.status)
+                        op_exitosa = data.status
+                    },
+                    error: function (xhr, status, error) {
+                    }
+                }) 
+                // console.log(op_exitosa)
+        
             cerrar.click();
             let ven
             checkBox = document.getElementById("vencido")
@@ -347,6 +377,9 @@ M1 | Cobranza
             }
             filtros.action = `/cobranza/${cliente.value}/${vendedor.value}/${iva.value}/${ven}/`
             filtros.submit()
+        } else {
+            return false;
+        }// fin validar modal
     } // fin guardar fechas
 
 

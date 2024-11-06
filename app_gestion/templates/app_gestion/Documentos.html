@@ -13,6 +13,37 @@ M1 | Cobranza
             <div class="card-body">
                 <h5 class="card-title">Documentos<a href="{% url 'inicio' %}" class="float-end"><i class="bi bi-x-circle" title='Cerrar'></i></a></h5>
                 
+                <form id="filtros" action="" method="post" class="mb-4">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-lg-3 col-sm-12 d-flex">
+                            <label id="m" class="titulos d-flex me-2 mt-1">Cliente</label>
+                            <select name="cliente" id="cliente" class="form-control d-flex alto" required
+                                onChange="obtener_documentos()">
+                                <option value="0" selected>Todos</option>
+                                {% for xCliente in xClientes_select %}
+                                <option value={{xCliente.id}} {% if xCliente.id == xCliente_seleccionado %} selected
+                                    {%endif %}>
+                                    {{xCliente.nombre}}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-sm-12 d-flex" style="width: 200px;">
+                            <label class="titulos d-flex ms-2 me-2 mt-1">Ultimos</label>
+                            <select name="dias" id="dias" class="form-control d-flex alto" required
+                                onChange="obtener_documentos()">
+                                <option value="0" selected>Todos</option>
+                                {% for xDia in xDias_select %}
+                                <option value={{xDia.id}} {% if xDia.id == xDia_seleccionado %} selected
+                                    {%endif %}>
+                                    {{xDia.dia}}
+                                </option>
+                                {% endfor %}
+                            </select><span class="titulos d-flex ms-2 me-2 mt-1"> dias</span>
+                        </div>
+                </form>
+
                 <div class="row">
                     <div class="col-lg-12" style="text-align: center;">
                         <h6 > <a href="{% url 'add_documento' %}" ><i class="bi bi-stickies"  title='Agregar un documento'></i><span>+</span></a></h6>
@@ -31,7 +62,7 @@ M1 | Cobranza
                             <th>Monto</th>
                             <th>Abonado</th>
                             <th>Ciudad</th>
-                            <th>Vendedor</th>
+                            <th>Dia</th>
                             <th>Iva</th>
                             <th>Opcion</th>
                         </tr>
@@ -105,6 +136,7 @@ M1 | Cobranza
                     "colvis": "Visibilidad"
                 }
             },
+            "ordering": false,
             "responsive": true,
             "lengthChange": true,
             "autoWidth": true,
@@ -112,7 +144,7 @@ M1 | Cobranza
             "scrollX": true,
             // "order": [[1, "desc"]],
             "columnDefs": [{
-                "targets": [5,6,7    ],
+                "targets": [1,5,6,7    ],
                 "orderable": false
             }]
         })
@@ -121,10 +153,12 @@ M1 | Cobranza
     // tool tip
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-    
-    // cargar pagina
-    document.addEventListener('DOMContentLoaded', function () {
 
-    }) // fin pagina
+    // obtener docuemntos
+    function obtener_documentos() {
+        filtros.action = `/documentos/${cliente.value}/${dias.value}/`
+        filtros.submit()
+    } // fin obtener docuemntos  
+  
 </script>
 {% endblock Scripts_Adicionales %}

@@ -48,14 +48,27 @@ class Dia(models.Model):
         return str(self.dia) # que campo va a retornar al llamar el objeto
 
     class Meta:
-        db_table = "app_gestion_dia" # Nombre en PostgreSQL
+        db_table = "app_gestion_dias" # Nombre en PostgreSQL
         verbose_name = "Dia" # Nombre en Admin
         verbose_name_plural = "Dias" # Nombre en Admin plural
         ordering = ["id"]  
 
 
+class Credito(models.Model):
+    dia = models.IntegerField()
+
+    def __str__(self):
+        return str(self.dia) # que campo va a retornar al llamar el objeto
+
+    class Meta:
+        db_table = "app_gestion_credito" # Nombre en PostgreSQL
+        verbose_name = "Credito" # Nombre en Admin
+        verbose_name_plural = "Creditos" # Nombre en Admin plural
+        ordering = ["id"]  
+
+
 class Statu(models.Model):
-    statu = models.CharField(max_length=10)
+    statu = models.CharField(max_length=20)
 
     def __str__(self):
         return str(self.statu) # que campo va a retornar al llamar el objeto
@@ -94,7 +107,7 @@ class Iva(models.Model):
 
 
 class Vendedor(models.Model):
-    ced_rif = models.CharField(max_length=10)
+    cedula = models.CharField(max_length=9)
     nombre = models.CharField(max_length=40)
     status = models.ForeignKey(Statu, on_delete=models.CASCADE, default=1)
 
@@ -106,18 +119,31 @@ class Vendedor(models.Model):
         verbose_name = "Vendedor"
         verbose_name_plural = "Vendedores"
 
+class Prefijo_ced_rif(models.Model):
+    prefijo_r = models.CharField(max_length=1)
+
+    def __str__(self):
+        return self.prefijo_r
+    
+class Prefijo_telefono(models.Model):
+    prefijo_t = models.CharField(max_length=4)
+
+    def __str__(self):
+        return self.prefijo_t
+
 class Cliente(models.Model):
     ced_rif = models.CharField(max_length=10)
     nombre = models.CharField(max_length=40)
     telefono = models.CharField(max_length=25)
-    correo = models.CharField(max_length=20,blank=True,null=True)
-    direccion = models.TextField(max_length=200)
+    correo = models.CharField(max_length=50,blank=True,null=True)
+    direccion = models.CharField(max_length=300)
     ciudad = models.ForeignKey(Ciudad, on_delete=models.CASCADE) 
     vendedor = models.ForeignKey(Vendedor, on_delete=models.CASCADE)
     status = models.ForeignKey(Statu, on_delete=models.CASCADE, default=1)
     observacion = models.TextField(max_length=1000,blank=True,null=True)
     creado = models.DateTimeField(auto_now_add=True, null=False)
     actualizado = models.DateTimeField(auto_now_add=True, null=False)
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     
     def __str__(self) -> str:
         return self.nombre
@@ -133,8 +159,8 @@ class Documento(models.Model):
     fecha = models.DateField()
     vencimiento = models.DateField()
     dias_v = models.IntegerField(default=0)
-    monto = models.DecimalField(max_digits=10, decimal_places=2)
-    abonado = models.DecimalField(max_digits=10, decimal_places=2,default=0)
+    monto = models.DecimalField(max_digits=8, decimal_places=2)
+    abonado = models.DecimalField(max_digits=8, decimal_places=2,default=0)
     observacion = models.TextField(max_length=1000,blank=True,null=True)
     iva = models.ForeignKey(Iva, on_delete=models.CASCADE, default="Pendiente")
     creado = models.DateTimeField(auto_now_add=True, null=False)
