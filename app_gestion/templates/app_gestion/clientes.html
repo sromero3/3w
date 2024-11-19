@@ -11,15 +11,15 @@ M1 | Cobranza
     <div class="col-lg-12">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Clientes<a href="{% url 'inicio' %}" class="float-end"><i class="bi bi-x-circle" title='Cerrar'></i></a></h5>
+                <h5 class="card-title">Clientes<a href="{% url 'inicio'%}" class="float-end"><i class="bi bi-x-circle" title='Cerrar'></i></a></h5>
                 
                 <form id="filtros" action="" method="post" class="mb-4">
                     {% csrf_token %}
                     <div class="row">
                         <div class="col-lg-3 col-sm-12 d-flex">
                             <label id="m" class="titulos d-flex me-2 mt-1">Status</label>
-                            <select name="status" id="status" class="form-control d-flex alto" required
-                                onChange="obtener_status()">
+                            <select name="f_status" id="f_status" class="form-control d-flex alto" required
+                                onChange="obtener_clientes()">
                                 <option value="0" selected>Todos</option>
                                 {% for xStatu in xStatus_select %}
                                 <option value={{xStatu.id}} {% if xStatu.id == xStatu_seleccionado %} selected
@@ -29,23 +29,23 @@ M1 | Cobranza
                                 {% endfor %}
                             </select>
                         </div>
-                        <!-- <div class="col-lg-3 col-sm-12 d-flex" style="width: 200px;">
-                            <label class="titulos d-flex ms-2 me-2 mt-1">Ultimos</label>
-                            <select name="dias" id="dias" class="form-control d-flex alto" required
-                                onChange="obtener_status()">
+                        <div class="col-lg-3 col-sm-12 d-flex">
+                            <label class="titulos d-flex ms-2 me-2 mt-1">Vend.</label>
+                            <select name="f_vendedor" id="f_vendedor" class="form-control d-flex alto" required
+                                onChange="obtener_clientes()">
                                 <option value="0" selected>Todos</option>
-                                {% for xDia in xDias_select %}
-                                <option value={{xDia.id}} {% if xDia.id == xDia_seleccionado %} selected
+                                {% for xVendedor in xVendedores %}
+                                <option value={{xVendedor.id}} {% if xVendedor.id == xVendedor_seleccionado %} selected
                                     {%endif %}>
-                                    {{xDia.dia}}
+                                    {{xVendedor.nombre}}
                                 </option>
                                 {% endfor %}
-                            </select><span class="titulos d-flex ms-2 me-2 mt-1"> dias</span>
-                        </div> -->
+                            </select>
+                        </div>
                 </form>
 
                 <div class="row">
-                    <div class="col-lg-12" style="text-align: center;">
+                    <div class="col-lg-12" style="text-align: center;margin-top: 10px;">
                         <h6 > <a href="{% url 'add_cliente' %}" ><i class="bi bi-people"  title='Agregar un documento'></i><span>+</span></a></h6>
 
                     </div>
@@ -56,8 +56,7 @@ M1 | Cobranza
                         <tr>
                             <th>Ced/Rif</th>
                             <th style="width:300px">Nombre</th>
-                            <th>Telefono</th>
-                            <th>Ciudad</th>
+                            <th>Vendedor</th>
                             <th>Status</th>
                             <th>Opcion</th>
                         </tr>
@@ -67,11 +66,10 @@ M1 | Cobranza
                         <tr>
                             <td>{{xCliente.ced_rif}}</td>
                             <td>{{xCliente.nombre|truncatechars:22}}</td>
-                            <td>{{xCliente.telefono}}</td>
-                            <td>{{xCliente.ciudad__ciudad}}</td>
+                            <td>{{xCliente.vendedor__nombre}}</td>
                             <td>{{xCliente.status__statu}}</td>
                             <td class="text-center" style="width:50px">
-                                <a href="#">
+                                <a href="{% url 'editar_cliente' xCliente.id %}">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                             </td>
@@ -119,15 +117,15 @@ M1 | Cobranza
                     "colvis": "Visibilidad"
                 }
             },
-            "ordering": false,
+            "ordering": true,
             "responsive": true,
             "lengthChange": true,
             "autoWidth": true,
             "pageLength": 50,
             "scrollX": true,
-            // "order": [[1, "desc"]],
+            "order": [[1, "asc"]],
             "columnDefs": [{
-                "targets": [  ],
+                "targets": [0, 4],
                 "orderable": false
             }]
         })
@@ -138,8 +136,8 @@ M1 | Cobranza
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
     // obtener docuemntos
-    function obtener_status() {
-        filtros.action = `/documentos/${cliente.value}/${dias.value}/`
+    function obtener_clientes() {
+        filtros.action = `/clientes/${f_status.value}/${f_vendedor.value}/`
         filtros.submit()
     } // fin obtener docuemntos  
   

@@ -19,7 +19,8 @@ M1 | Documentos crud
                     {% if xOpcion == 'Agregando' %}
                     <div class="col-6">
                         <span class="titulos">
-                            Cliente</span>
+                            Cliente</span><span id="nuevo" class="boton-ajustado-a-la-derecha"
+                            title="Agrgara un cliente" onclick="javascript:openModal.click()">AGREGAR</span>
                         <select name="cliente" id="cliente" class="form-control d-flex alto" required>
                             <option selected></option>
                             {% for xCliente in xClientes %}
@@ -30,7 +31,7 @@ M1 | Documentos crud
                         </select>
                     </div>
                     <div class="col-6">
-                        <span class="titulos">{{form.numero.label}}</span>
+                        <span class="titulos">Número</span>
                         {{form.numero}}
                         <input type="text" id="rNum" value="{{rNum}}" hidden>
                     </div>
@@ -47,8 +48,9 @@ M1 | Documentos crud
                             onChange="poner_vencimiento()">
                             <option selected></option>
                             {% for xCredito in xCreditos %}
-                            <option value={{xCredito.id}} data-dias_credito="{{xCredito.dia}}">
+                            <option value={{xCredito.dia}} data-dias_credito="{{xCredito.dia}}">
                                 {{xCredito.dia}}
+                                <!-- <input type="text" > -->
                             </option>
                             {% endfor %}
                         </select>
@@ -62,14 +64,26 @@ M1 | Documentos crud
                         <span class="titulos"> {{form.monto.label}}</span>
                         {{form.monto}}
                     </div>
+
                     <div class="col-6">
                         <span class="titulos">
                             Iva</span>
-                        <select name="iva" id="iva" class="form-control d-flex alto" required>
-                            <option selected></option>
+                        <select name="iva" id="iva" class="form-control d-flex alto">
                             {% for xIva in xIvas %}
                             <option value={{xIva.id}}>
                                 {{xIva.iva}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">
+                            Condición</span>
+                        <select name="condicion" id="condicion" class="form-control d-flex alto" required>
+                            <option selected></option>
+                            {% for xCondicion in xCondiciones %}
+                            <option value={{xCondicion.id}}>
+                                {{xCondicion.condicion}}
                             </option>
                             {% endfor %}
                         </select>
@@ -97,13 +111,17 @@ M1 | Documentos crud
                         </select>
                     </div>
                     <div class="col-6">
-                        <span class="titulos">{{form.numero.label}}</span>
+                        <span class="titulos">Número</span>
                         {{form.numero}}
                         <input type="text" id="rNum" value="{{rNum}}" hidden>
                     </div>
                     <div class="col-6">
                         <span class="titulos">{{form.fecha.label}}</span>
                         {{form.fecha}}
+                    </div>
+                    <div class="col-6" hidden>
+                        <!-- <span class="titulos">{{form.fecha.label}}</span> -->
+                        {{form.credito}}
                     </div>
                     <div class="col-6">
                         <span class="titulos">{{form.vencimiento.label}}</span>
@@ -116,11 +134,24 @@ M1 | Documentos crud
                     <div class="col-6">
                         <span class="titulos">
                             Iva</span>
-                        <select name="iva" id="iva" class="form-control d-flex alto" required>
+                        <select name="iva" id="iva" class="form-control d-flex alto">
                             <!-- <option  selected></option> -->
                             {% for xIva in xIvas %}
                             <option id={{xIva.id}} value="{{xIva.id}}" {% if xIva.id == rIvaId %} selected {% endif %}>
                                 {{xIva.iva}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">
+                            Condición</span>
+                        <select name="condicion" id="condicion" class="form-control d-flex alto" required>
+                            <option selected></option>
+                            {% for xCondicion in xCondiciones %}
+                            <option id={{xCondicion.id}} value="{{xCondicion.id}}" {% if xCondicion.id == rCondicionId %}
+                                selected {% endif %}>
+                                {{xCondicion.condicion}}
                             </option>
                             {% endfor %}
                         </select>
@@ -143,6 +174,80 @@ M1 | Documentos crud
         </div>
     </div>
 </main><!-- End #main -->
+
+<!-- cliente Modal -->
+<button id="openModal" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#clienteModal" hidden>
+    AGREGAR
+</button>
+<div class="modal fade" id="clienteModal" tabindex="-1" style="margin-top: 100px">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="card-title">Agregar cliente</h5>
+                <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> -->
+            </div>
+            <div class="modal-body">
+                <!-- Modal form-->
+                <form id="cliente_form" action="" method="post" class="row g-3">
+                    {% csrf_token %}
+                    <div class="col-md-6">
+                        <span class="titulos">Cédula/Rif</span><br>
+                        <div class="col-md-3 float-star t">
+                            <select name="m_prefijo_r" id="m_prefijo_r" class="form-control float-start alto"
+                                style="border-right: 0px" required>
+                                <option></option>
+                                {% for xPre_ced_rif in xPrefijos_ced_rif %}
+                                <option>
+                                    {{xPre_ced_rif}}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-9 float-start">
+                            <input type="text" id="m_ced_rif" class="form-control alto" required  maxlength="10" >
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">Nombre</span>
+                        <input type="text" id="m_nombre" class="form-control alto" required  maxlength="40" >
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">
+                            Vendedor</span>
+                        <select name="m_vendedor" id="m_vendedor" class="form-control d-flex alto" required>
+                            <option selected></option>
+                            {% for xVendedor in xVendedores %}
+                            <option value={{xVendedor.id}}>
+                                {{xVendedor.nombre}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                
+                    <div class="modal-footer justify-content-center">
+                        <button type="submit" class="btn btn-primary" id="gurdar_vendedor"
+                            onclick="validar_cliente(event)">Guardar</button>
+                        <button type="button" class="btn btn-secondary" id="cerrar_cliente"
+                            data-bs-dismiss="modal">Descartar</button>
+                    </div>
+                </form>  <!-- fin Modal form-->
+
+
+                
+
+
+
+
+
+            </div>   <!-- fin modal body-->
+        </div> <!-- fin modal content -->
+    </div> <!-- fin modal-dialog -->
+</div><!-- End cliente Modal-->
+
+
+{% endblock content %}
+
+{% block Scripts_Adicionales %}
 {% if otro %}
 <script>
     Swal.fire({
@@ -152,58 +257,179 @@ M1 | Documentos crud
     });
 </script>
 {% endif %}
-{% endblock content %}
 
-{% block Scripts_Adicionales %}
 <script>
     checkPattern("id_monto")
-document.getElementById('id_monto').value = darFormato(document.getElementById('id_monto').value)
-// formatear entrada
-function checkPattern(e) {
-    $("#" + e).on({
-        "focus": function(event) {
-            $(event.target).select()
-        },
-        "keyup": function(event) {
-            $(event.target).val(function(index, value) {
-                return value.replace(/\D/g, "")
-                    .replace(/([0-9])([0-9]{2})$/, '$1,$2')
-                    .replace(/\B(?=(\d{3})+(?!\d)\.?)/g, ".")
-            })
-        }
-    })
-} // fin formatear entrada
-// validar formulario
-function validar(e) {
-    const form = document.getElementById('documento_form') // tomo el nombre del formulario
-    // si validar
-    if (form.checkValidity()) {
-        e.preventDefault()
-        // validar fechas
-        let f = document.getElementById('id_fecha').value
-        let v = document.getElementById('id_vencimiento').value
-        var fechaf = new Date(f);
-        var fechav = new Date(v);
-        if (fechaf > fechav) {
-            document.getElementById('id_vencimiento').focus();
+    // Si editando dar formato
+    if (document.getElementById('id_monto').value != "") {
+        document.getElementById('id_monto').value = darFormato(document.getElementById('id_monto').value)
+    }
+
+    // formatear entrada
+    function checkPattern(e) {
+        $("#" + e).on({
+            "focus": function (event) {
+                $(event.target).select()
+            },
+            "keyup": function (event) {
+                $(event.target).val(function (index, value) {
+                    return value.replace(/\D/g, "")
+                        .replace(/([0-9])([0-9]{2})$/, '$1,$2')
+                        .replace(/\B(?=(\d{3})+(?!\d)\.?)/g, ".")
+                })
+            }
+        })
+    } // fin formatear entrada
+
+    // validar formulario
+    function validar(e) {
+        const form = document.getElementById('documento_form') // tomo el nombre del formulario
+        // si validar
+        if (form.checkValidity()) {
+            e.preventDefault()
+            // Validar condicion
+            if (document.getElementById('credito')) {
+                if (document.getElementById('credito').value == 1 && document.getElementById('condicion').value == 2) {
+                    document.getElementById('condicion').focus();
+                    Swal.fire({
+                        position: 'center',
+                        icon: 'error',
+                        title: 'El Documento no puede tener Condicion Credito' + ' Verifique...!',
+                        showConfirmButton: true,
+                        //timer: 2500
+                    })
+                    return
+                } // fin validar condicion
+            }
+
+            // validar fechas
+            let f = document.getElementById('id_fecha').value
+            let v = document.getElementById('id_vencimiento').value
+            var fechaf = new Date(f);
+            var fechav = new Date(v);
+            if (fechaf > fechav) {
+                document.getElementById('id_vencimiento').focus();
+                Swal.fire({
+                    position: 'center',
+                    icon: 'error',
+                    title: 'la fecha de vencimiento no pude ser menor que la fecha' + ' Verifique...!',
+                    showConfirmButton: true,
+                    //timer: 2500
+                })
+                return
+            } // fin validar fechas
+
+            // validar numero de docuemnto no exista
+            let Var_rNum = document.getElementById('rNum').value
+            let Var_numero = document.getElementById('id_numero').value
+            // Si esitaron el numero de doc valido
+            if (Var_rNum != Var_numero) { 
+                let existe = false
+                let campo = $('#id_numero').val()
+                $.ajax({
+                    url: "{% url 'validar_numero' %}",
+                    type: 'POST',
+                    async: false,
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                        'campo': campo,
+                    },
+                    datatype: 'json',
+                    success: function (data) {
+                        // console.log('RESULTADO', data.status, typeof data.status)
+                        existe = data.status
+                    },
+                    error: function (xhr, status, error) { }
+                })
+                if (existe) {
+                    document.getElementById('id_numero').focus();
+                    Swal.fire({
+                        position: 'center',
+                        icon: 'error',
+                        title: 'Este numero de Documento ya esta rigistrado' + ' Verifique...!',
+                        showConfirmButton: true,
+                        //timer: 2500
+                    })
+                    return;
+                } //validar numero
+            } // fin validar numero de docuemnto 
+            // Condirmar
+            let c = document.getElementById('cliente').value
+            let credito_select = document.getElementById("cliente")
+            let c_texto = cliente.options[cliente.selectedIndex].text
+            let m = document.getElementById('id_monto').value
+            let n = document.getElementById('id_numero').value
+            Swal.fire({
+                title: '¿ Esta seguro de Guardar ?',
+                html: `DOC: ${n}<br>DE: ${c_texto}<br><h1>${m}$</h1> `,
+                showDenyButton: true,
+                // showCancelButton: true,
+                confirmButtonText: "Guardar",
+                denyButtonText: `Descartar`
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('documento_form').submit()
+                } else {
+                    return false
+                }
+            }) // fin Confirmar        
+        } // fin de checkValidity()
+    } // fin validar formulario
+    function poner_vencimiento() {
+        let Fecha = new Date(document.getElementById('id_fecha').value + "T00:00:00")
+        if (esFechaValida(Fecha) == false) {
+            document.getElementById('id_fecha').focus();
+            document.getElementById('credito').value = ""
             Swal.fire({
                 position: 'center',
                 icon: 'error',
-                title: 'la fecha de vencimiento no pude ser menor que la fecha' + ' Verifique...!',
+                title: 'la fecha no es valida' + ' Verifique...!',
                 showConfirmButton: true,
                 //timer: 2500
             })
             return
-        } // fin validar fechas
-        let Var_rNum = document.getElementById('rNum').value
-        let Var_numero = document.getElementById('id_numero').value
-        console.log("Var_rNum: ", Var_rNum, "-", Var_numero)
-        if (Var_rNum != Var_numero) {
-            // validar numero
-            let existe = false
-            let campo = $('#id_numero').val()
+        }
+        credito_select = document.getElementById('credito').value;
+        // d = credito_select.options[credito_select.selectedIndex].dataset.dias_credito
+        var sFecha = fecha || (Fecha.getDate() + "/" + (Fecha.getMonth() + 1) + "/" + Fecha.getFullYear());
+        var sep = sFecha.indexOf('/') != -1 ? '/' : '-';
+        var aFecha = sFecha.split(sep);
+        var fecha = aFecha[2] + '/' + aFecha[1] + '/' + aFecha[0];
+        fecha = new Date(fecha);
+        fecha.setDate(fecha.getDate() + parseInt(credito_select));
+        var anno = fecha.getFullYear();
+        var mes = fecha.getMonth() + 1;
+        var dia = fecha.getDate();
+        mes = (mes < 10) ? ("0" + mes) : mes;
+        dia = (dia < 10) ? ("0" + dia) : dia;
+        var fechaFinal = anno + "-" + mes + "-" + dia;
+        document.getElementById('id_vencimiento').value = fechaFinal;
+
+        // llenar campo condicion
+        if (credito_select == 3) {
+            document.getElementById('condicion').value = 1 //Contado
+        } else {
+            document.getElementById('condicion').value = 2
+        }
+    } // fin poner vencimiento
+
+    // validar fecha
+    function esFechaValida(fecha) {
+        var fechaObj = new Date(fecha);
+        return fechaObj instanceof Date && !isNaN(fechaObj);
+    } // fin validar fecha
+
+    // validar cliente
+    function validar_cliente(e) {
+        const form_c = document.getElementById('cliente_form') // tomo el nombre del formulario
+        if (form_c.checkValidity()) { // Si es valido //
+            e.preventDefault()
+            // Validar ced_rif 
+            var existe = false
+            // console.log("******", '{{ xOpcion }}')
+            let campo = $('#m_prefijo_r').val() + $('#m_ced_rif').val()
             $.ajax({
-                url: "{% url 'validar_numero' %}",
+                url: "{% url 'validar_cliente' %}",
                 type: 'POST',
                 async: false,
                 data: {
@@ -212,78 +438,115 @@ function validar(e) {
                 },
                 datatype: 'json',
                 success: function(data) {
-                    // console.log('RESULTADO', data.status, typeof data.status)
                     existe = data.status
                 },
-                error: function(xhr, status, error) {}
+                error: function(xhr, status, error) {
+                }
             })
             if (existe) {
-                document.getElementById('id_numero').focus();
+                document.getElementById('m_ced_rif').focus()
                 Swal.fire({
                     position: 'center',
                     icon: 'error',
-                    title: 'Este numero de Documento ya esta rigistrado' + ' Verifique...!',
-                    showConfirmButton: true,
-                    //timer: 2500
+                    title: 'Esta Cédula/Rif ya esta rigistrada' + ' Verifique...!',
+                    showDenyButton: true,
+                    // showCancelButton: true,
+                    confirmButtonText: "Continuar",
+                    denyButtonText: `Descartar`
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Confirmar
+                        Swal.fire({
+                            title: '¿ Esta seguro de grabar ?',
+                            // html: `<h1>${m}$</h1><br>A ${c} `,
+                            showDenyButton: true,
+                            // showCancelButton: true,
+                            confirmButtonText: "Guardar",
+                            denyButtonText: `Descartar`
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                agregar_cliente()
+                            } else {
+                                return false
+                            }
+                        }) // fin Confirmar
+                    } else {
+                        return false
+                    }
                 })
-                return;
-            } //validar numero
-        } // fin si validar
-        // Condirmar
-        let c = document.getElementById('cliente').value
-        let credito_select = document.getElementById("cliente")
-        let c_texto = cliente.options[cliente.selectedIndex].text
-        let m = document.getElementById('id_monto').value
-        let n = document.getElementById('id_numero').value
-        Swal.fire({
-            title: '¿ Esta seguro de Guardar ?',
-            html: `DOC: ${n}<br>DE: ${c_texto}<br><h1>${m}$</h1> `,
-            showDenyButton: true,
-            // showCancelButton: true,
-            confirmButtonText: "Guardar",
-            denyButtonText: `Descartar`
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('documento_form').submit()
-            } else {
-                return false
+            } else { // no existe
+                // Condirmar
+                Swal.fire({
+                    title: '¿ Esta seguro de Guardar ?',
+                    // html: `DOC: ${n}<br>DE: ${c_texto}<br><h1>${m}$</h1> `,
+                    showDenyButton: true,
+                    // showCancelButton: true,
+                    confirmButtonText: "Guardar",
+                    denyButtonText: `Descartar`
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        agregar_cliente()
+                    } else {
+                        return false
+                    }
+                }) // fin Confirmar 
+            } // fin existe  
+         } // fin de checkValidity()
+    } // fin validar cliente
+
+    // agregar una cliente
+    // tomo el nombre del formulario
+    function agregar_cliente() {
+        const form_c = document.getElementById('cliente_form') 
+        $.ajax({
+            url: "{% url 'agregar_cliente_desde_agregar_documento' %}",
+            type: 'POST',
+            async: false,
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                'ced_rif': $('#m_prefijo_r').val()+$('#m_ced_rif').val(),
+                'nombre': $('#m_nombre').val(),
+                'vendedor_id': $('#m_vendedor').val()
+            },
+            datatype: 'json',
+            success: function(data) {
+                //console.log('RESULTADO', data.id)
+                form_c.reset()
+                cerrar_cliente.click()
+                obtener_clientes(data.id) // cargar el cleinte agregado
+            },
+            error: function(xhr, status, error) {
+                console.log(xhr.responseText)
             }
-        }) // fin Confirmar        
-    } // fin de checkValidity()
-} // fin validar formulario
-function poner_vencimiento() {
-    let Fecha = new Date(document.getElementById('id_fecha').value + "T00:00:00")
-    if (esFechaValida(Fecha) == false) {
-        document.getElementById('id_fecha').focus();
-        Swal.fire({
-            position: 'center',
-            icon: 'error',
-            title: 'la fecha no es valida' + ' Verifique...!',
-            showConfirmButton: true,
-            //timer: 2500
+        }) // fin ajax
+    } // fin agregar cliente
+
+        // obtener los los clientes
+        function obtener_clientes(id) {
+        let options = '<option></option>'
+        $.ajaxSetup({
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
         })
-        return
+        $.ajax({
+            url: "{% url 'obtener_clientes' %}",
+            type: 'POST',
+            datatype: 'json',
+            success: function(data) {
+                let select_ciudad = $('select[name="cliente"]')
+                $.each(data, function(key, item) {
+                    let selected = (id == item.id) ? "selected" : ""
+                    options += `<option value="${item.id}" ${selected}> ${item.nombre} </option>`
+                })
+                select_ciudad.html(options)
+            },
+            error: function(xhr, status, error) {
+                console.log(xhr.responseText)
+            }
+        })
     }
-    let v = new Date(document.getElementById('id_vencimiento').value)
-    credito_select = document.getElementById('credito');
-    d = credito_select.options[credito_select.selectedIndex].dataset.dias_credito
-    var sFecha = fecha || (Fecha.getDate() + "/" + (Fecha.getMonth() + 1) + "/" + Fecha.getFullYear());
-    var sep = sFecha.indexOf('/') != -1 ? '/' : '-';
-    var aFecha = sFecha.split(sep);
-    var fecha = aFecha[2] + '/' + aFecha[1] + '/' + aFecha[0];
-    fecha = new Date(fecha);
-    fecha.setDate(fecha.getDate() + parseInt(d));
-    var anno = fecha.getFullYear();
-    var mes = fecha.getMonth() + 1;
-    var dia = fecha.getDate();
-    mes = (mes < 10) ? ("0" + mes) : mes;
-    dia = (dia < 10) ? ("0" + dia) : dia;
-    var fechaFinal = anno + "-" + mes + "-" + dia;
-    document.getElementById('id_vencimiento').value = fechaFinal;
-} // fin poner vencimiento
-function esFechaValida(fecha) {
-    var fechaObj = new Date(fecha);
-    return fechaObj instanceof Date && !isNaN(fechaObj);
-}
+    
+
 </script>
 {% endblock Scripts_Adicionales %}

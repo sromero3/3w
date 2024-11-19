@@ -68,10 +68,11 @@ M1 | Cobranza
                     <div class="row">
                         <div class="mt-1 pb-2 col-lg-3 col-sm-12">
                             <span id="enlaces" hidden>
-                                <a id="url_cuenta">Pago a cuenta<br>
-                                    <a id="url_documento">Pago a documentos<a /><br>
-                                        <a id="url_estado">Estado de cuenta<a />
+                                <a id="url_pago_cuenta">Abono a cuenta<br>
+                                <a id="url_pago_documento">Abono a documentos<a/><br>
+                                <a id="url_estado">Estado de cuenta<a />
                             </span>
+                            <input type="text" id="xDoc_encontrados" value="{{xDoc_encontrados}}" hidden>
                         </div>
                     </div>
                 </form>
@@ -85,37 +86,41 @@ M1 | Cobranza
                             <th style="width:200px">Cliente</th>
                             <th>Monto</th>
                             <th>Abonado</th>
-                            <th>Saldo</th>
-                            <th>Ciudad</th>
+                            <th>Pendiente</th>
+                            <!-- <th>Ciudad</th> -->
                             <th>Vendedor</th>
                             <th>Iva</th>
-                            <th>Control</th>
+                            <th>Condición</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for xDocumento in xDocumentos %}
                         <tr>
-                            <td>{{xDocumento.numero}}
-                                <a href="#"> <i class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
-                                        data-bs-html="true" data-bs-title="{{xDocumento.observacion}}<br>"></i>
-                                    </i></a>
-                            </td>
+                            {% if xDocumento.observacion == "" %}
+                                <td>{{xDocumento.numero}}</td>
+                            {% else %}
+                                <td>{{xDocumento.numero}}
+                                    <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                            data-bs-html="true" data-bs-title="{{xDocumento.observacion}}<br>"></i>
+                                        </i></a>
+                                </td>
+                            {% endif %}
                             <td>{{xDocumento.fecha|date:"d/m/y"}}<a href="javascript:abrir_modal( '{{xDocumento.fecha|date:"Y-m-d"}}','{{xDocumento.vencimiento|date:"Y-m-d"}}','{{xDocumento.id}}' )"> <i style="font-size: small;" class="bi bi-pencil"></a></i></td>
                             <td>{{xDocumento.vencimiento|date:"d/m/y"}}</td>
                             <td align="center">{{xDocumento.dias_v}}</td>
-                            <td>{{xDocumento.cliente__nombre|truncatechars:25}}</td>
+                            <td>{{xDocumento.cliente__nombre|truncatechars:30}}</td>
                             <td align="right">{{xDocumento.monto|darFormato}}</td>
                             <td align="right">{{xDocumento.abonado|darFormato}}</td>
                             <td align="right">{{xDocumento.saldo|darFormato}}</td>
-                            <td>{{xDocumento.cliente_id__ciudad__ciudad}}</td>
+                            <!-- <td>{{xDocumento.cliente_id__ciudad__ciudad}}</td> -->
                             <td>{{xDocumento.cliente_id__vendedor__nombre}}</td>
-                            <td>{{xDocumento.iva__iva}}</td>
-                            <td style="width:30px; color: rgb(90, 91, 92);">{{xDocumento.id|rellenar}}</td>
-                            <!-- <td class="text-center" style="width:50px">
-                                <a href="#">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                            </td> -->
+                            {% if xDocumento.iva__iva == "-" %}
+                                 <td  align="center">{{xDocumento.iva__iva}}</td>
+                            {% else %}
+                                 <td>{{xDocumento.iva__iva}}</td>
+                            {% endif %}
+                            <!-- <td style="width:30px; color: rgb(90, 91, 92);">{{xDocumento.id|rellenar}}</td> -->
+                            <td>{{xDocumento.condicion__condicion}} ({{xDocumento.credito}})</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -130,13 +135,12 @@ M1 | Cobranza
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes izquierda">T. Pagina:</td>
                             <td id="pt" class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
+                            <!-- <td class="sin-bordes"></td> -->
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
                         </tr>
                         <tr>
-
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
@@ -145,7 +149,7 @@ M1 | Cobranza
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes izquierda">T. Consulta:</td>
                             <td id="t" class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
+                            <!-- <td class="sin-bordes"></td> -->
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
@@ -226,10 +230,13 @@ M1 | Cobranza
                         return intVal(a) + intVal(b)
                     }, 0)
                 // Update footer
+               
                 let pt = darFormato(pageTotal)
                 let t = darFormato(total)
+                    
                 $('#pt').html('<span style="font-size: 15px">$' + pt + '</span>')
                 $('#t').html('<span style="font-size: 15px">$' + t + '</span>')
+
             },
             language: {
                 "sProcessing": "Procesando...",
@@ -293,24 +300,26 @@ M1 | Cobranza
     // cargar pagina
     document.addEventListener('DOMContentLoaded', function () {
         // mostrar enelaces
-        console.log(document.getElementById('cliente').value)
-        if (document.getElementById('cliente').value != "0") {
-            console.log("entro a mostrar enlaces")
-            var cliente_select = document.getElementById("cliente")
-            var id_cliente = cliente_select.options[cliente_select.selectedIndex].value
-            var texto_cliente = cliente_select.options[cliente_select.selectedIndex].text
-            var anchor = document.getElementById('url_cuenta')
-            anchor.href = `/pagos/${id_cliente}/${texto_cliente}`
-            // var anchor2 = document.getElementById('url_documento')
-            // anchor2.href = `/pagos/${id_cliente}/${texto_cliente}`
-            var anchor3 = document.getElementById('url_estado')
-            anchor3.href = `/estado_cuentas/${id_cliente}/${texto_cliente}/'documentos'`
-            document.getElementById('enlaces').removeAttribute('hidden')
-        } else {
-            document.getElementById('enlaces').hidden = true
-        } // fin mostrar enelaces
+        if(Number(document.getElementById("xDoc_encontrados").value) > 0 ){
+            if (document.getElementById('cliente').value != "0") {
+                let cliente_select = document.getElementById("cliente")
+                let id_cliente = cliente_select.options[cliente_select.selectedIndex].value
+                let texto_cliente = cliente_select.options[cliente_select.selectedIndex].text
+                // construir el url para pago a cuenta
+                let anchor = document.getElementById('url_pago_cuenta')
+                anchor.href = `/pagos/${id_cliente}/${texto_cliente}`
+                // construir el url para estado de cuenta
+                let anchor3 = document.getElementById('url_estado')
+                anchor3.href = `/estado_cuentas/${id_cliente}/cobranza/' '/' '/`
+                // mostrar
+                document.getElementById('enlaces').removeAttribute('hidden')
+            } else {
+                // ocultar
+                document.getElementById('enlaces').hidden = true
+            } // fin mostrar enelaces
+        }
     }) // fin pagina
-
+ 
     function abrir_modal(f,v,i) {
         document.getElementById('modal_f').value = f
         document.getElementById('modal_v').value = v

@@ -72,17 +72,18 @@
       </a>
     </li>
     <li class="nav-item">
+      <a class="nav-link" href="{% url 'cobranza' 0 0 0 0 %}">
+        <i class="bi bi-cash-coin" style="font-size: large;"></i>
+        <span>&nbsp;&nbsp;Cobranza</span>
+      </a>
+    </li>
+    <li class="nav-item">
       <a class="nav-link" href="{% url 'documentos' 0 1 %}">
         <i class="bi bi-stickies"></i>
         <span>&nbsp;&nbsp;Docuementos</span>
       </a>
     </li>
-    <li class="nav-item">
-      <a class="nav-link" href="{% url 'cobranza' 0 0 0 0 %}">
-        <i class="bi bi-cash"></i>
-        <span>&nbsp;&nbsp;Cobranza</span>
-      </a>
-    </li>
+
     <!-- 
     <li class="nav-item">
       <a class="nav-link" href="#">
@@ -91,9 +92,15 @@
       </a>
     </li> -->
     <li class="nav-item">
-      <a class="nav-link" href="{% url 'clientes' %}">
+      <a class="nav-link" href="{% url 'clientes' 1 0 %}">
         <i class="bi bi-people"></i>
         <span>&nbsp;&nbsp;Clientes</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'vendedores' 1  %}">
+        <i class="bi bi-person-badge"></i>
+        <span>&nbsp;&nbsp;Vendedores</span>
       </a>
     </li>
     <li class="nav-item">
@@ -103,22 +110,22 @@
       </a>
       <ul id="components-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
         <li>
-          <a href="{% url 'estado_cuenta' 0 ' ' 'menu' %}">
+          <a href="{% url 'estado_cuenta' 0 'menu' ' ' ' ' %}">
             <i class="bi bi-circle"></i><span>Estado de cuenta</span>
           </a>
         </li>
         <li>
-          <a href="{% url 'estado_cuenta' 0 ' ' 'menu' %}">
+          <a href="#">
             <i class="bi bi-circle"></i><span>Historial cliente</span>
           </a>
         </li>
         <li>
-          <a href="{% url 'estado_cuenta' 0 ' ' 'menu' %}">
+          <a href="#">
             <i class="bi bi-circle"></i><span>Ranking clientes</span>
           </a>
         </li>
         <li>
-          <a href="{% url 'estado_cuenta' 0 ' ' 'menu' %}">
+          <a href="">
             <i class="bi bi-circle"></i><span>Auditoria de transac.</span>
           </a>
         </li>
@@ -142,18 +149,18 @@
       </ul>
     </li><!-- fin corregir Nav -->
     <li class="nav-item">
-      <a class="nav-link collapsed" data-bs-target="#icons-nav" data-bs-toggle="collapse" href="#">
+      <a class="nav-link collapsed" data-bs-target="#icons2-nav" data-bs-toggle="collapse" href="#">
         <i class="bi bi-gear"></i><span>&nbsp;&nbsp;Configuración</span><i class="bi bi-chevron-down ms-auto"></i>
       </a>
-      <ul id="icons-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+      <ul id="icons2-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
         <li>
-          <a href="icons-bootstrap.html">
-            <i class="bi bi-circle"></i><span>Vendedores</span>
+          <a href="#">
+            <span>Otro</span>
           </a>
         </li>
         <li>
-          <a href="icons-remix.html">
-            <i class="bi bi-circle"></i><span>Ciudades</span>
+          <a href="#">
+            <span>Ciudades</span>
           </a>
         </li>
       </ul>

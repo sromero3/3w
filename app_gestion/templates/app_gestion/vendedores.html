@@ -1,0 +1,145 @@
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+{% block title %}
+M1 | Vendedores
+{% endblock %}
+{% block styles %}
+{% endblock styles %}
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Vendedores<a href="{% url 'inicio'%}" class="float-end"><i class="bi bi-x-circle" title='Cerrar'></i></a></h5>
+                
+                <form id="filtros" action="" method="post" class="mb-4">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-lg-3 col-sm-12 d-flex">
+                            <label id="m" class="titulos d-flex me-2 mt-1">Status</label>
+                            <select name="f_status" id="f_status" class="form-control d-flex alto" required
+                                onChange="obtener_clientes()">
+                                <option value="0" selected>Todos</option>
+                                {% for xStatu in xStatus_select %}
+                                <option value={{xStatu.id}} {% if xStatu.id == xStatu_seleccionado %} selected
+                                    {%endif %}>
+                                    {{xStatu.statu}}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-sm-12 d-flex">
+                            <label class="titulos d-flex ms-2 me-2 mt-1">Ciudad</label>
+                            <select name="f_ciudad" id="f_ciudad" class="form-control d-flex alto" required
+                                onChange="obtener_clientes()">
+                                <option value="0" selected>Todos</option>
+                                {% for xCiudad in xCiudades %}
+                                <option value={{xCiudad.id}} {% if xCiudad.id == xCiudad_seleccionado %} selected
+                                    {%endif %}>
+                                    {{xCiudad.ciudad}}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                </form>
+
+                <div class="row">
+                    <div class="col-lg-12" style="text-align: center;margin-top: 10px;">
+                        <h6 > <a href="{% url 'add_vendedor' %}" ><i class="bi bi-person-badge" title='Agregar un Vendedor'></i><span>+</span></a></h6>
+
+                    </div>
+                </div>
+                
+                <table id="clientes" class="table table-hover table-bordered " style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Cédula</th>
+                            <th style="width:300px">Nombre</th>
+                            <th>Ciudad</th>
+                            <th>Status</th>
+                            <th>Opcion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for xVendedor in xVendedores %}
+                        <tr>
+                            <td>{{xVendedor.cedula}}</td>
+                            <td>{{xVendedor.nombre|truncatechars:22}}</td>
+                            <td>{{xVendedor.ciudad__ciudad}}</td>
+                            <td>{{xVendedor.status__statu}}</td>
+                            <td class="text-center" style="width:50px">
+                                <a href="{% url 'editar_cliente' xVendedor.id %}">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</main><!-- End #main -->
+{% endblock content %}
+{% block Scripts_Adicionales %}
+<script>
+ 
+    $(function () {
+        $("#clientes").DataTable({
+  
+            language: {
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ registros",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "*** No se encontró información ***",
+                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                "sInfoPostFix": "",
+                "sSearch": "Buscar:",
+                "sUrl": "",
+                "sInfoThousands": ",",
+                "sLoadingRecords": "Cargando...",
+                "oPaginate": {
+                    "sFirst": "Primero",
+                    "sLast": "Último",
+                    "sNext": "Siguiente",
+                    "sPrevious": "Anterior"
+                },
+                "oAria": {
+                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                },
+                "buttons": {
+                    "copy": "Copiar",
+                    "colvis": "Visibilidad"
+                }
+            },
+            "ordering": true,
+            "responsive": true,
+            "lengthChange": true,
+            "autoWidth": true,
+            "pageLength": 50,
+            "scrollX": true,
+            "order": [[1, "asc"]],
+            "columnDefs": [{
+                "targets": [0, 4],
+                "orderable": false
+            }]
+        })
+    })
+
+    // tool tip
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
+    // obtener docuemntos
+    function obtener_clientes() {
+        filtros.action = `/clientes/${f_status.value}/${f_vendedor.value}/`
+        filtros.submit()
+    } // fin obtener docuemntos  
+  
+</script>
+{% endblock Scripts_Adicionales %}

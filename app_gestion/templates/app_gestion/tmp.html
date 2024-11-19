@@ -1,9 +1,128 @@
 // var forma_select = document.getElementById("forma")
 // var id_forma = forma_select.options[forma_select.selectedIndex].value
 
-ALTER SEQUENCE app_gestion_pagos_id_seq RESTART
+ALTER SEQUENCE app_gestion_pago_detalle_id_seq RESTART
 
 <td><a href="javascript:abrir_modal()">{{xDocumento.fecha|date:"d/m/y"}} </a></i></td>
 
-
 ^$\n
+
+
+<option value={{xCredito.id}} data-dias_credito="{{xCredito.dia}}">
+    {{xCredito.dia}}
+</option>
+
+// var hoy = new Date() 
+
+// // Extraer el año, mes y día
+// var año = hoy.getFullYear();
+// var mes = ('0' + (hoy.getMonth() + 1)).slice(-2); // Meses empiezan en 0
+// var dia = ('0' + hoy.getDate()).slice(-2);
+// // Formatear la fecha como YYYY-MM-DD
+// var fecha_hoy = `${año}-${mes}-${dia}`;
+
+// credito_select = document.getElementById('credito');
+// d = credito_select.options[credito_select.selectedIndex].dataset.dias_credito
+
+
+
+
+<button id="openModal2" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#vendedorModal"
+    hiddenn>AGREGAR
+</button>
+<!-- modal -->
+<div class="modal fade" id="vendedorModal" tabindex="-1" style="margin-top: 100px" role="dialog"
+    aria-labelledby="exampleModalLabel" aria-hiddenn="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="card-title">Agregar vendedor</h5>
+            </div>
+            <form id="vendedor-form" action="" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div> 
+                        <span class="titulos">Numero de cedula</span>
+                        <input type="text" id="m_cedula" name="m_cedula" class="form-control alto" required
+                        onkeypress="return soloNumeros(event)" maxlength="8" minlength="7"/>
+                    </div>
+                    <div>
+                        <span class="titulos">Nombre</span>
+                        <input type="text" id="m_nombre" name="m_nombre" class="form-control alto" required/>
+                    </div>
+                    <div>
+                        <span class="titulos">
+                            Ciudad</span>
+                        <select name="m_ciudad" id="m_ciudad" class="form-control d-flex alto" required>
+                            <option selected></option>
+                            {% for xCiudad in xCiudades %}
+                            <option value={{xCiudad.id}}>
+                                {{xCiudad.ciudad}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="submit" class="btn btn-primary" id="gurdar_vendedor"
+                        onclick="agregar_vendedor(event)">Guardar</button>
+                    <button type="button" class="btn btn-secondary" id="cerrar_vendedor"
+                        data-bs-dismiss="modal">Descartar</button>
+                </div>
+            </form>
+        </div> <!-- fin modal content -->
+    </div> <!-- fin modal-dialog -->
+</div><!-- fin modal-->
+
+
+// agregar una ciudad
+const form = document.getElementById('ciudad-form') // tomo el nombre del formulario
+function agregar_ciudad(e) {
+    if (form.checkValidity()) { // Si es valido //
+        $.ajax({
+            url: "{% url 'agregar_ciudad_desde_agregar_cliente' %}",
+            type: 'POST',
+            async: false,
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                'ciudad': $('#m_ciudad').val(),
+            },
+            datatype: 'json',
+            success: function(data) {
+                //console.log('RESULTADO', data.id)
+                form.reset()
+                cerrar.click()
+                obtener_ciudades(data.id) // cargar el cleinte agregado
+            },
+            error: function(xhr, status, error) {
+                console.log(xhr.responseText)
+            }
+        }) // fin ajax
+    } // fin de checkValidity()
+} // fin agregar ciudad
+
+// obtener las ciudades
+function obtener_ciudades(id) {
+    let options = '<option></option>'
+    $.ajaxSetup({
+        data: {
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+    })
+    $.ajax({
+        url: "{% url 'obtener_ciudades' %}",
+        type: 'POST',
+        datatype: 'json',
+        success: function(data) {
+            let select_ciudad = $('select[name="ciudad"]')
+            $.each(data, function(key, item) {
+                let selected = (id == item.id) ? "selected" : ""
+                options += `<option value="${item.id}" ${selected}> ${item.ciudad} </option>`
+            })
+            select_ciudad.html(options)
+        },
+        error: function(xhr, status, error) {
+            console.log(xhr.responseText)
+        }
+    })
+}

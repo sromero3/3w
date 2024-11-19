@@ -80,9 +80,20 @@ class Statu(models.Model):
         ordering = ["id"]  
 
 
+class Estado(models.Model):
+    estado = models.CharField(max_length=40)    
+    def __str__(self):
+        return str(self.estado)
+
+    class Meta:
+        db_table = "app_gestion_estados"
+        verbose_name = "Estado"
+        verbose_name_plural = "CiEstados"
+        ordering = ["estado"]  
+
 class Ciudad(models.Model):
     ciudad = models.CharField(max_length=40)
-
+    estado = models.ForeignKey(Estado, on_delete=models.CASCADE)    
     def __str__(self):
         return str(self.ciudad)
 
@@ -90,7 +101,7 @@ class Ciudad(models.Model):
         db_table = "app_gestion_ciudades"
         verbose_name = "Ciudad"
         verbose_name_plural = "Ciudades"
-        ordering = ["id"]  
+        ordering = ["ciudad"]  
 
 
 class Iva(models.Model):
@@ -105,10 +116,23 @@ class Iva(models.Model):
         verbose_name_plural = "Iva" # Nombre en Admin plural
         ordering = ["id"] 
 
+class Condicion(models.Model):
+    condicion = models.CharField(max_length=10)
+
+    def __str__(self):
+        return str(self.tipo) # que campo va a retornar al llamar el objeto
+
+    class Meta:
+        db_table = "app_gestion_condicion" # Nombre en PostgreSQL
+        verbose_name = "Condicion" # Nombre en Admin
+        verbose_name_plural = "Condicion" # Nombre en Admin plural
+        ordering = ["id"] 
+
 
 class Vendedor(models.Model):
-    cedula = models.CharField(max_length=9)
+    cedula = models.CharField(max_length=9, unique=True)
     nombre = models.CharField(max_length=40)
+    ciudad = models.ForeignKey(Ciudad, on_delete=models.CASCADE) 
     status = models.ForeignKey(Statu, on_delete=models.CASCADE, default=1)
 
     def __str__(self):
@@ -118,6 +142,7 @@ class Vendedor(models.Model):
         db_table = "app_gestion_vendedores"
         verbose_name = "Vendedor"
         verbose_name_plural = "Vendedores"
+        ordering = ["nombre"]  
 
 class Prefijo_ced_rif(models.Model):
     prefijo_r = models.CharField(max_length=1)
@@ -134,13 +159,12 @@ class Prefijo_telefono(models.Model):
 class Cliente(models.Model):
     ced_rif = models.CharField(max_length=10)
     nombre = models.CharField(max_length=40)
-    telefono = models.CharField(max_length=25)
-    correo = models.CharField(max_length=50,blank=True,null=True)
-    direccion = models.CharField(max_length=300)
-    ciudad = models.ForeignKey(Ciudad, on_delete=models.CASCADE) 
+    # telefono = models.CharField(max_length=25)
+    # correo = models.CharField(max_length=50,blank=True,null=True)
+    # direccion = models.CharField(max_length=300)
+    # ciudad = models.ForeignKey(Ciudad, on_delete=models.CASCADE) 
     vendedor = models.ForeignKey(Vendedor, on_delete=models.CASCADE)
     status = models.ForeignKey(Statu, on_delete=models.CASCADE, default=1)
-    observacion = models.TextField(max_length=1000,blank=True,null=True)
     creado = models.DateTimeField(auto_now_add=True, null=False)
     actualizado = models.DateTimeField(auto_now_add=True, null=False)
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -152,20 +176,23 @@ class Cliente(models.Model):
         db_table = "app_gestion_clientes"
         verbose_name = "Cliente"
         verbose_name_plural = "Clientes"
+        ordering = ["nombre"]  
 
 class Documento(models.Model):
-    numero = models.CharField(max_length=40)
+    numero = models.CharField(max_length=40, unique=True)
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     fecha = models.DateField()
     vencimiento = models.DateField()
     dias_v = models.IntegerField(default=0)
+    credito = models.IntegerField(default=0)
     monto = models.DecimalField(max_digits=8, decimal_places=2)
     abonado = models.DecimalField(max_digits=8, decimal_places=2,default=0)
-    observacion = models.TextField(max_length=1000,blank=True,null=True)
-    iva = models.ForeignKey(Iva, on_delete=models.CASCADE, default="Pendiente")
+    observacion = models.TextField(max_length=1000, blank=True,null=True)
+    iva = models.ForeignKey(Iva, on_delete=models.CASCADE)
     creado = models.DateTimeField(auto_now_add=True, null=False)
     actualizado = models.DateTimeField(auto_now_add=True, null=False)
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    condicion = models.ForeignKey(Condicion, on_delete=models.CASCADE)
   
     
     def __str__(self) -> str:
@@ -200,7 +227,6 @@ class BancoDestino(models.Model):
     def __str__(self):
         return str(self.nombre)
     
-
 class Pago(models.Model):
     fecha = models.DateField()
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
@@ -229,6 +255,19 @@ class Pago(models.Model):
         #    models.UniqueConstraint(fields=["banco", "referencia"], name='asiento_restriccion')
         #]
         # validar_facturaView es el ejemplo
+
+class Pago_detalle(models.Model):
+    pago = models.ForeignKey(Pago, on_delete=models.CASCADE)
+    monto_procesar = models.DecimalField(max_digits=8, decimal_places=2)
+    documento = models.ForeignKey(Documento, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.id)
+    
+    db_table = "app_gestion_pagos_detalles"
+    verbose_name = "Pagos_detalles"
+    verbose_name_plural = "Pagos_detalles"
+    ordering = ["id"]
 
 
 

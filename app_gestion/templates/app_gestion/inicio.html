@@ -5,7 +5,7 @@ Content: pagina inicio del sistema
 -->
 {% extends 'app_gestion/base_m1.html' %}
 {% load static %}
-
+{% load filtros %}
 {% block title %}
 M1 | Inicio
 {% endblock %}
@@ -48,16 +48,18 @@ M1 | Inicio
                         </div>
 
                         <div class="card-body">
-                            <h5 class="card-title">Sales <span>| Today</span></h5>
+                            <h5 class="card-title">Total CxC <span></span></h5>
 
                             <div class="d-flex align-items-center">
                                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                    <i class="bi bi-cart"></i>
+                                    <i class="bi bi-currency-dollar" style="color: red;"></i>
                                 </div>
                                 <div class="ps-3">
-                                    <h6>145</h6>
-                                    <span class="text-success small pt-1 fw-bold">12%</span> <span
-                                        class="text-muted small pt-2 ps-1">increase</span>
+                                    {% if total_cxc != None %}
+                                    <h6>{{total_cxc|darFormato}}</h6>
+                                    {% endif %}
+                                    <!-- <span class="text-success small pt-1 fw-bold">12%</span> <span -->
+                                        <!-- class="text-muted small pt-2 ps-1">increase</span> -->
 
                                 </div>
                             </div>
@@ -88,7 +90,7 @@ M1 | Inicio
 
                             <div class="d-flex align-items-center">
                                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                    <i class="bi bi-currency-dollar"></i>
+                                    <i class="bi bi-cup"></i>
                                 </div>
                                 <div class="ps-3">
                                     <h6>38,88 bs</h6>
@@ -121,7 +123,7 @@ M1 | Inicio
                         </div>
 
                         <div class="card-body">
-                            <h5 class="card-title">Customers <span>| This Year</span></h5>
+                            <h5 class="card-title">Otro<span>| This Year</span></h5>
 
                             <div class="d-flex align-items-center">
                                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">

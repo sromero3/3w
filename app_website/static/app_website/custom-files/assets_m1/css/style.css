@@ -740,8 +740,8 @@ h6 {
   display: flex;
   align-items: center;
   font-size: 14px;
-  font-weight: 600;
-  color: #012970;
+  /* font-weight: 600; */
+  color: #1c2833;
   transition: 0.3;
   padding: 10px 0 10px 40px;
   transition: 0.3s;
@@ -756,7 +756,8 @@ h6 {
 
 .sidebar-nav .nav-content a:hover,
 .sidebar-nav .nav-content a.active {
-  color: #4154f1;
+  color: #1977cc;
+  background: #e9e9eb;
 }
 
 .sidebar-nav .nav-content a.active i {
@@ -1223,7 +1224,7 @@ h6 {
   padding: 20px 0;
   font-size: 14px;
   transition: all 0.3s;
-  border-top: 1px solid #9cb3d7;
+  /* border-top: 1px solid #9cb3d7; */
   background-color: #f6f9ff;
 }
 

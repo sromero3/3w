@@ -1,0 +1,296 @@
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+{% block title %}
+M1 | Vendedores crud
+{% endblock %}
+{% block styles %}
+{% endblock styles %}
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ xOpcion }} un Vendedor<a href="{% url 'vendedores' 1  %}" class="float-end"><i
+                            class="bi bi-arrow-return-left" title='Regresar'></i></a></h5>
+                <form id="vendedor_form" action="" method="post" class="row g-3">
+                    {% csrf_token %}
+                    <!-- ------------------------------------ agregando ------------------------------------- -->
+                    {% if xOpcion == 'Agregando' %}
+                    <div class="col-md-6">
+                        <span class="titulos">Cédula</span><br>
+                        <div class="col-md-3 float-star t">
+                            <select name="prefijo_r" id="prefijo_r" class="form-control float-start alto"
+                                style="border-right: 0px" required>
+                                <option></option>
+                                {% for xPre_ced_rif in xPrefijos_ced_rif %}
+                                <option>
+                                    {{xPre_ced_rif}}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-9 float-start">
+                            {{form.cedula}}
+                            <input type="text" id="rNum_cedula" value="{{rNum_cedula}}" hidden>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">{{form.nombre.label}}</span>
+                        {{form.nombre}}
+                    </div>
+                    <div class="col-6 pb-4">
+                        <span class="titulos">
+                            Ciudad</span><span class="boton-ajustado-a-la-derecha" title="Agrgara una ciudad"
+                            onclick="javascript:openModal.click()">AGREGAR</span>
+                        <select name="ciudad" id="ciudad" class="form-control d-flex alto" required>
+                            <option selected></option>
+                            {% for xCiudad in xCiudades %}
+                            <option value={{xCiudad.id}}>
+                                {{xCiudad.ciudad}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+               
+                    {% endif %} <!-- fin agregando -->
+                    {% csrf_token %}
+                    <!-- ------------------------------------ editando ------------------------------------- -->
+                    {% if xOpcion == 'Editando' %}
+                    <div class="col-md-6">
+                        <span class="titulos">Cédula/Rif</span><br>
+                        <div class="col-md-3 float-star t">
+                            <select name="prefijo_r" id="prefijo_r" class="form-control float-start alto"
+                                style="border-right: 0px" required>
+                                <option></option>
+                                {% for xPre_ced_rif in xPrefijos_ced_rif %}
+                                <option  {% if xPre_ced_rif.prefijo_r == rPrer_Ced_rif %} selected {% endif %}>
+                                    {{xPre_ced_rif}}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-9 float-start">
+                            <input type="text" name="ced_rif" id="id_ced_rif" value={{rCed_rif}} maxlength="8" class="form-control alto"
+                            onkeypress="return soloNumeros(event)" required/>
+                            <input type="text" id="rNum_cedula" value="{{rNum_cedula}}" hidden>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">{{form.nombre.label}}</span>
+                        {{form.nombre}}
+                    </div>
+                  <div class="col-6">
+                        <span class="titulos">
+                            Vendedor</span>
+   
+                        <select name="vendedor" id="vendedor" class="form-control d-flex alto" required>
+                            <option selected></option>
+                            {% for xVendedor in xVendedores %}
+                            <option value="{{xVendedor.id}}" {% if xVendedor.id == rVendedor %} selected {% endif %}>
+                                {{xVendedor.nombre}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-6 pb-4">
+                        <span class="titulos">
+                            Status</span>
+                        <select name="status" id="status" class="form-control d-flex alto" required>
+                            <option selected></option>
+                            {% for xStatu in xStatus %}
+                            <option value="{{xStatu.id}}" {% if xStatu.id == rStatu %} selected {% endif %}>
+                                {{xStatu.statu}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <!-- fin editando -->
+                    {% endif %} 
+                    <!-- Botones -->
+                    <div class="text-center">
+                        <button type="submit" id="guardar" class="btn btn-primary"
+                            onclick="validar(event)">Guardar</button>
+                        <button type="button" class="btn btn-secondary"
+                            onclick="javascript:window.location='/clientes/1/0/'">Regresar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main><!-- End #main -->
+
+<button id="openModal" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ciudadModal"
+    hiddenn>AGREGAR
+</button>
+<!-- modal -->
+<div class="modal fade" id="ciudadModal" tabindex="-1" style="margin-top: 100px" role="dialog"
+    aria-labelledby="exampleModalLabel" aria-hiddenn="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="card-title">Agregar ciudad</h5>
+            </div>
+            <form id="ciudad-form" action="" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div>
+                        <span class="titulos">Ciudad</span>
+                        <input type="text" id="m_ciudad" name="m_nombre" class="form-control alto" required/>
+                    </div>
+                    <div>
+                        <span class="titulos">
+                            Estado</span>
+                        <select name="m_estado" id="m_estado" class="form-control d-flex alto" required>
+                            <option selected></option>
+                            {% for xEstado in xEstados %}
+                            <option value={{xEstado.id}}>
+                                {{xEstado.estado}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="submit" class="btn btn-primary" id="gurdar_ciudad"
+                        onclick="agregar_ciudad(event)">Guardar</button>
+                    <button type="button" class="btn btn-secondary" id="cerrar_ciudad"
+                        data-bs-dismiss="modal">Descartar</button>
+                </div>
+            </form>
+        </div> <!-- fin modal content -->
+    </div> <!-- fin modal-dialog -->
+</div><!-- fin modal-->
+{% endblock content %}
+
+{% block Scripts_Adicionales %}
+{% if otro %}
+<script>
+    Swal.fire({
+        title: "Su operación ha sido exitosa!",
+        //text: "",
+        icon: "success"
+    })
+</script>
+{% endif %}
+
+<script>
+    // validar formulario
+    function validar(e) {
+        const form = document.getElementById('vendedor_form') // tomo el nombre del formulario
+        // si validar
+        if (form.checkValidity()) {
+            e.preventDefault()
+            // Validar ced_rif 
+            let Var_rNum = document.getElementById('rNum_cedula').value
+            let Var_numero = document.getElementById('prefijo_r').value + document.getElementById('id_cedula').value
+            // if (Var_rNum != Var_numero) {
+                var existe = false
+                // console.log("******", '{{ xOpcion }}')
+                let campo = $('#prefijo_r').val() + $('#id_cedula').val()
+                $.ajax({
+                    url: "{% url 'validar_vendedor' %}",
+                    type: 'POST',
+                    async: false,
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                        'campo': campo,
+                    },
+                    datatype: 'json',
+                    success: function(data) {
+                        //console.log('RESULTADO', data.status, typeof data.status)
+                        existe = data.status
+                    },
+                    error: function(xhr, status, error) {
+                        // console.log("Error ocurrido: ", error)
+                        // console.log("Status: ", status)
+                    }
+                })
+                if (existe) {
+                    document.getElementById('id_cedula').focus()
+                    Swal.fire({
+                        position: 'center',
+                        icon: 'error',
+                        title: 'Esta Cedula ya esta rigistrada' + ' Verifique...!',
+                        showDenyButton: true,
+                        // showCancelButton: true,
+                        confirmButtonText: "Continuar",
+                        denyButtonText: `Descartar`
+                    })
+                    return
+                } else { // no existe
+                // Condirmar
+                Swal.fire({
+                    title: '¿ Esta seguro de Guardar ?',
+                    // html: `DOC: ${n}<br>DE: ${c_texto}<br><h1>${m}$</h1> `,
+                    showDenyButton: true,
+                    // showCancelButton: true,
+                    confirmButtonText: "Guardar",
+                    denyButtonText: `Descartar`
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit()
+                    } else {
+                        return false
+                    }
+                }) // fin Confirmar  
+        }     
+        } // fin de checkValidity()
+    } // fin validar formulario
+    
+    // agregar una ciudad
+    function agregar_ciudad(e) {
+        const form = document.getElementById('ciudad-form') // tomo el nombre del formulario
+        if (form.checkValidity()) { // Si es valido //
+            $.ajax({
+                url: "{% url 'agregar_ciudad_desde_agregar_vendedor' %}",
+                type: 'POST',
+                async: false,
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    'ciudad': $('#m_ciudad').val(),
+                    'estado': $('#m_estado').val(),
+                },
+                datatype: 'json',
+                success: function(data) {
+                    //console.log('RESULTADO', data.id)
+                    form.reset()
+                    cerrar_ciudad.click()
+                    obtener_ciudades(data.id) // cargar el cleinte agregado
+                },
+                error: function(xhr, status, error) {
+                    console.log(xhr.responseText)
+                }
+            }) // fin ajax
+        } // fin de checkValidity()
+    } // fin agregar ciudad
+    
+    // obtener las ciudades
+    function obtener_ciudades(id) {
+        let options = '<option></option>'
+        $.ajaxSetup({
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+        })
+        $.ajax({
+            url: "{% url 'obtener_ciudades' %}",
+            type: 'POST',
+            datatype: 'json',
+            success: function(data) {
+                let select_ciudad = $('select[name="ciudad"]')
+                $.each(data, function(key, item) {
+                    let selected = (id == item.id) ? "selected" : ""
+                    options += `<option value="${item.id}" ${selected}> ${item.ciudad} </option>`
+                })
+                select_ciudad.html(options)
+            },
+            error: function(xhr, status, error) {
+                console.log(xhr.responseText)
+            }
+        })
+    }
+    
+    
+    </script>
+{% endblock Scripts_Adicionales %}

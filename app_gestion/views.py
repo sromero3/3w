@@ -20,7 +20,9 @@ from decimal import Decimal
 from django.http import JsonResponse
 from operator import itemgetter
 from datetime import datetime, timedelta
-
+from django.db.models import Q
+from decimal import *
+import os
 
 # Create your views here.
 def Index_gestion(request):
@@ -51,27 +53,54 @@ def InicioView(request):
                xControl.save()
     #else
     #print("Ya esta actualizado")
+
+    qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0)
+    qTotal = qDocumentos.aggregate(total=Sum("saldo")).get('total')
+    total_cxc = qTotal
+        
+    
+    context = {
+      'total_cxc': total_cxc,
   
-    return render(request, 'app_gestion/inicio.html')
+    }
+  
+    return render(request, 'app_gestion/inicio.html', context)
 
 @login_required
-def ClientesView(request):
+def ClientesView(request, xStatus, xVendedor):
     xUsuario = request.user
     # print("--------- Parametros recibidos GET ----------")
-    # if xStatu != 0:
-    #     xCliente_seleccionado = xCliente
-    # else:
-    #     xCliente_seleccionado  = 0
-    xStatu_seleccionado = 1 
-    xStatus_select = Statu.objects.all()
+  
+    xStatu_seleccionado = xStatus
+    xVendedor_seleccionado = xVendedor
+    xExcluidos = [2, 4]
+    xStatus_select = Statu.objects.exclude(id__in=xExcluidos)
+    xVendedores = Vendedor.objects.all()
 
-    xClientes = Cliente.objects.values('id','ced_rif','nombre','telefono','ciudad__ciudad','status__statu')
+    if request.method == 'POST':
+        # print("--------- Parametros recibidos POST ----------")
+        xStatu_seleccionado  = request.POST.get('f_status')
+        xVendedor_seleccionado = request.POST.get('f_vendedor')
+
+    qClientes = Cliente.objects.values('id','ced_rif','nombre','vendedor__nombre','status__statu').order_by("nombre")
+
+    if xStatus == 0  and xVendedor == 0:
+        xClientes=qClientes
+    elif xStatus != 0 and xVendedor != 0:
+        xClientes=qClientes.filter(status_id=xStatus, vendedor_id = xVendedor)
+    elif xStatus != 0 and xVendedor == 0:
+        xClientes=qClientes.filter(status_id=xStatus)
+    elif xStatus == 0 and xVendedor != 0:
+        xClientes=qClientes.filter(vendedor_id = xVendedor)
+
    
     context = {
         'xUsuario': xUsuario,
         'xClientes': xClientes,
         'xStatus_select':xStatus_select,
         'xStatu_seleccionado': int(xStatu_seleccionado),
+        'xVendedor_seleccionado': int(xVendedor_seleccionado),
+        'xVendedores': xVendedores 
 
     }
     return render(request, 'app_gestion/clientes.html', context)
@@ -84,10 +113,8 @@ def add_clienteView(request):
     xOpcion = "Agregando"
       
     xPrefijos_ced_rif = Prefijo_ced_rif.objects.all()
-    xPrefijos = Prefijo_telefono.objects.all()
     xVendedores = Vendedor.objects.all()
     xCiudades = Ciudad.objects.all()
-    # xStatus = Statu.objects.all()
        
     form = agregar_clienteForm()
 
@@ -102,9 +129,6 @@ def add_clienteView(request):
     
         if form.is_valid():
             cliente = form.save(commit=False)
-            cliente.sciudad_id = request.POST.get('ciudad')
-            cliente.ced_rif = request.POST.get('prefijo_r') + request.POST.get('ced_rif')
-            cliente.telefono = request.POST.get('prefijo') + request.POST.get('telefono')
             cliente.usuario_id = request.user.id
 
             cliente.save()
@@ -115,10 +139,9 @@ def add_clienteView(request):
                'form': form,
                'xOpcion': xOpcion,
                'xPrefijos_ced_rif':xPrefijos_ced_rif,
-               'xPrefijos':xPrefijos,
                'xVendedores': xVendedores,
                'xCiudades': xCiudades,
-            #  'xStatus': xStatus,
+               'rNum_cedula': "",
                'otro': True,
             }
 
@@ -131,13 +154,69 @@ def add_clienteView(request):
       'form': form,
       'xOpcion': xOpcion,
       'xPrefijos_ced_rif':xPrefijos_ced_rif,
-      'xPrefijos':xPrefijos,
       'xVendedores': xVendedores,
       'xCiudades': xCiudades,
-    #   'xStatus': xStatus,
-      'otro': False,  
+      'rNum_cedula': "",
+      'otro': False  
     }
     return render(request, 'app_gestion/clientes_crud.html', context)
+
+
+
+#  editar cliente
+@login_required
+def Editar_clienteView(request, id):
+    xUsuario = request.user
+    xOpcion = "Editando"
+   
+    xPrefijos_ced_rif = Prefijo_ced_rif.objects.all()
+    xPrefijos = Prefijo_telefono.objects.all()
+    xCiudades = Ciudad.objects.all()
+    xVendedores = Vendedor.objects.all()
+    xStatus = Statu.objects.all()
+    
+    # Obtengo el registro a editar
+    xCliente = Cliente.objects.get(id=id)
+    rPrer_Ced_rif = xCliente.ced_rif[0:1]
+    rCed_rif = xCliente.ced_rif[1:]
+    rVendedor = xCliente.vendedor.id
+    rStatu = xCliente.status.id
+    rNum_cedula = xCliente.ced_rif
+  
+    form = agregar_clienteForm(instance=xCliente)
+
+    if request.method == 'POST':
+        form = agregar_clienteForm(request.POST, instance=xCliente)
+        # request.POST._mutable = True
+    
+        # for field in form:
+        #      print("Field:", field.name, "-> ", field.errors)
+        
+        if form.is_valid():
+            cliente = form.save(commit=False)
+            cliente.ced_rif = request.POST.get('prefijo_r') + request.POST.get('ced_rif')
+            cliente.save()
+            return redirect('clientes',1, 0)
+        else:
+            messages.error(
+                request, "Su operación no se puedo efectuar debido a problemas en el Servidor. El formulario no es válido")
+
+    context = {
+        'form': form,
+        'xOpcion': xOpcion,
+        'xPrefijos_ced_rif': xPrefijos_ced_rif,
+        'rPrer_Ced_rif': rPrer_Ced_rif,
+        'rCed_rif': rCed_rif,
+        'xPrefijos': xPrefijos,
+        'xCiudades': xCiudades,
+        'xVendedores': xVendedores,
+        'rVendedor': rVendedor,
+        'xStatus': xStatus,
+        'rStatu': rStatu,
+        'rNum_cedula': rNum_cedula
+    }
+    return render(request, 'app_gestion/clientes_crud.html', context)
+
 
 
 
@@ -163,7 +242,7 @@ def docuementosView(request, xCliente, xDias):
         xCliente_seleccionado  = request.POST.get('cliente')
         xDia_seleccionado  = request.POST.get('dias')
 
-    qDocumentos = Documento.objects.values('id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','cliente_id__ciudad__ciudad','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado', 'dias_v').order_by('-id')
+    qDocumentos = Documento.objects.values('id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','condicion__condicion','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado', 'dias_v','credito').order_by('-id')
    
     if xCliente == 0 and xDias == 0:
         #  print("1 sin filtros")
@@ -202,7 +281,12 @@ def add_documentoView(request):
        
     xClientes = Cliente.objects.all()
     xIvas = Iva.objects.all()
+    xCondiciones = Condicion.objects.all()
     xCredito = Credito.objects.all()
+
+    # para agregar cleinte desde documento
+    xPrefijos_ced_rif = Prefijo_ced_rif.objects.all()
+    xVendedores = Vendedor.objects.all()
        
     form = agregar_documentoForm()
 
@@ -222,6 +306,7 @@ def add_documentoView(request):
             documento.usuario_id = request.user.id
             diferencia = request.POST['vencimiento'] - fecha_actual
             documento.dias_v = diferencia.days + 1
+            documento.credito = request.POST['credito']
             documento.save()
 
             # Limpiara formulario para otro gasto
@@ -231,7 +316,11 @@ def add_documentoView(request):
                'xOpcion': xOpcion,
                'xClientes': xClientes,
                'xIvas': xIvas,
-               'otro': True,
+               'rNum': "",
+               'xCondiciones': xCondiciones,
+               'xPrefijos_ced_rif': xPrefijos_ced_rif,
+               'xVendedores': xVendedores,
+               'otro': True
             }
 
             return render(request, 'app_gestion/documentos_crud.html', context)
@@ -245,13 +334,16 @@ def add_documentoView(request):
      'xClientes': xClientes,
      'xCreditos': xCredito,
      'xIvas': xIvas,
+     'xCondiciones': xCondiciones,
      'rNum': "",
-     'otro': False,  
+     'xPrefijos_ced_rif': xPrefijos_ced_rif,
+     'xVendedores': xVendedores,
+     'otro': False  
     }
     return render(request, 'app_gestion/documentos_crud.html', context)
 
 
-#  editar docuemnto
+#  editar documento
 @login_required
 def Editar_documentoView(request, id):
     xUsuario = request.user
@@ -259,12 +351,15 @@ def Editar_documentoView(request, id):
    
     xClientes =  Cliente.objects.all()
     xIvas =  Iva.objects.all()
+    xCondiciones = Condicion.objects.all()
     
     # Obtengo el registro a editar
     xDocumento = Documento.objects.get(id=id)
     rClienteId = xDocumento.cliente.id
     rIvaId = xDocumento.iva.id
+    rCondicionId = xDocumento.condicion.id
     rNum = xDocumento.numero
+  
    
     form = agregar_documentoForm(instance=xDocumento)
 
@@ -272,11 +367,11 @@ def Editar_documentoView(request, id):
         form = agregar_documentoForm(request.POST, instance=xDocumento)
 
         request.POST._mutable = True
-        print(request.POST['monto'])
+        # print(request.POST['monto'])
         request.POST['monto'] = quitarFormato(request.POST['monto'])
-        print(request.POST['monto'])
+        # print(request.POST['monto'])
         request.POST['vencimiento'] = datetime.strptime(request.POST['vencimiento'], '%Y-%m-%d')
-
+        request.POST['fecha'] = datetime.strptime(request.POST['fecha'], '%Y-%m-%d')
         for field in form:
              print("Field:", field.name, "-> ", field.errors)
         
@@ -285,6 +380,9 @@ def Editar_documentoView(request, id):
             documento = form.save(commit=False)
             diferencia = request.POST['vencimiento'] - fecha_actual 
             documento.dias_v = diferencia.days + 1
+            dias_credito =  request.POST['vencimiento'] - request.POST['fecha']
+            documento.credito = dias_credito.days
+
             documento.save()
             return redirect('documentos',0, 1)
         else:
@@ -297,10 +395,12 @@ def Editar_documentoView(request, id):
         'xClientes': xClientes,
         'rClienteId': rClienteId,
         'xIvas': xIvas,
+        'xCondiciones': xCondiciones,
         'rIvaId': rIvaId,
+        'rCondicionId':rCondicionId,
         'rNum': rNum,
-       
     }
+
     return render(request, 'app_gestion/documentos_crud.html', context)
 
 
@@ -334,9 +434,9 @@ def cobranzaView(request, xCliente, xVendedor, xIva, xVencido):
             xVencido_seleccionado = 0
         
     if xVencido_seleccionado == 1:
-       qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','cliente_id__ciudad__ciudad','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado','saldo','dias_v').filter(dias_v__lte=0)
+       qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado','saldo','dias_v','condicion__condicion','credito').filter(dias_v__lte=0)
     else: 
-       qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','cliente_id__ciudad__ciudad','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado','saldo','dias_v')
+       qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado','saldo','dias_v','condicion__condicion','credito')
  
     if xCliente == 0 and xVendedor == 0 and xIva == 0:
        xDocumentos=qDocumentos
@@ -370,6 +470,8 @@ def cobranzaView(request, xCliente, xVendedor, xIva, xVencido):
 
     elif xCliente != 0 and xVendedor != 0 and xIva != 0:
          xDocumentos=qDocumentos.filter(cliente_id__vendedor_id=xVendedor_seleccionado, iva_id=xIva_seleccionado, cliente_id=xCliente_seleccionado)
+    
+    xDoc_encontrados = xDocumentos.count()
  
     context = {
         'xUsuario': xUsuario,
@@ -381,6 +483,7 @@ def cobranzaView(request, xCliente, xVendedor, xIva, xVencido):
         'xVendedores': xVendedores,
         'xVendedor_seleccionado': int(xVendedor_seleccionado),
         'xVencido_seleccionado': xVencido_seleccionado,
+        'xDoc_encontrados': xDoc_encontrados 
     }
     
     return render(request, 'app_gestion/cobranza.html', context)
@@ -403,7 +506,7 @@ def Asentar_pagosView(request, id, cliente):
         return redirect('inicio')
 
     form = asentar_pagoForm(request.POST)
-    print(request.POST)
+    # print(request.POST)
     if request.method == 'POST':
  
         # preparando los campos numericos
@@ -430,12 +533,17 @@ def Asentar_pagosView(request, id, cliente):
             pago = form.save(commit=False)
             pago.cliente_id = id
             pago.usuario_id = request.user.id
+            
+         
             form.save()
-
-            # Actualizar el campo abono en los Asientos 
+            xPago_id = pago.id
+            print("====================",xPago_id)
+            # Buscar los docuemntos con saldo del cliente 
             xDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).filter(cliente=id)
+            # Preparar monto a procesar
             xMonto_procesar = round(Decimal((request.POST['monto_procesar'])),2)
-                  
+
+            # Actualizar el campo abonado en los docuemntos   
             for xDocumento in xDocumentos:
                 # El monto cubre el saldo del Doc
                 if xMonto_procesar >= xDocumento.saldo:
@@ -446,7 +554,11 @@ def Asentar_pagosView(request, id, cliente):
                 # El monto no cubre el saldo del Doc
                    xAbono = xMonto_procesar  
                    xDocumento.abonado = xDocumento.abonado + xAbono
-                   xAbono = xMonto_procesar  
+                   xAbono = xMonto_procesar
+                
+                # Guardar detelle del pago
+                detalle = Pago_detalle(pago_id = xPago_id, documento_id =  xDocumento.id, monto_procesar = xAbono)  
+                detalle.save()
 
                 xDocumento.save()
 
@@ -466,7 +578,13 @@ def Asentar_pagosView(request, id, cliente):
                 xAbono = xMonto_procesar  
                 xDocumento.abonado = xDocumento.abonado + xAbono
                 xDocumento.pago = pago.id
+                
+                # Guardar detelle del pago
+                detalle = Pago_detalle(pago_id = xPago_id, documento_id =  xDocumento.id, monto_procesar = xAbono)  
+                detalle.save()
+
                 xDocumento.save()
+
                 print("xMonto_procesar: " ,xMonto_procesar)
                 print("Saldo: " ,xDocumento.saldo)
                 xMonto_procesar = xMonto_procesar - xAbono
@@ -496,13 +614,18 @@ def Asentar_pagosView(request, id, cliente):
     return render(request, 'app_gestion/asentar_pago.html', context)
 
    
-# validar si un documento ced_rif estste en un condominio
+# validar referencia de pago
 def Validar_referenciaView(request):
+    data = {'status': True}
     # print('Dato: ',request.POST.get('campo'))
-    data = {'status': False}
-    Registro = Pago.objects.filter(referencia=request.POST.get('campo'))
-    if Registro.exists():
-        data = {'status': True}
+   
+    # para campos repetidos
+    xRegistros = Pago.objects.filter(referencia=request.POST.get('campo'))
+    if xRegistros.exists():
+        for xRegistro in xRegistros:
+            print("Resgistros encontados: ", xRegistros.count())
+    else:
+        data = {'status': False}
     
     return JsonResponse(data, safe=False)
 
@@ -513,25 +636,49 @@ def Cargar_bancosView(request):
     data = list(xBancosdestino)
     return JsonResponse(data, safe=False)
 
+
 # estado de cuenta
 @login_required
-def Estado_cuentaView(request, id, cliente, desde):
+def Estado_cuentaView(request, id, desde, fecha_ini, fecha_fin):
     xUsuario = request.user
-    xCliente = cliente
-    xId = id
 
     xClientes = Cliente.objects.all()
-    
-    # obtengo los docuemntos
-    qDocumentos = Documento.objects.filter(cliente=id).values('id','numero','fecha','monto','creado')
+
+    if desde == 'cobranza':
+        xCliente = Cliente.objects.get(id=id)
+        xCliente_nombre = xCliente.nombre
+    else:
+        xCliente_nombre = ""
+    xId = id
+
+    if request.method == 'GET':
+        print("--------- Parametros recibidos GET ----------") 
+        fecha_ini  = date.today() - timedelta(days=30)
+        fecha_fin  = date.today() 
+        # print(Id)
+        # print(desde)
+        # print(fecha_ini)
+        # print(fecha_fin)
+        xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
+        xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
+    else:  
+        print("--------- Parametros recibidos POST ----------")
+        xFecha_ini = fecha_ini
+        xFecha_fin = fecha_fin 
+        # print(Id)
+        # print(desde)
+        # print(fecha_ini)
+        # print(fecha_fin)
+           
+    # obtengo los documentos
+    qDocumentos = Documento.objects.filter(cliente=id).filter(fecha__range=(fecha_ini, fecha_fin)).values('id','numero','fecha','monto','creado','abonado')
     # obtengo los pagos
-    qPagos = Pago.objects.filter(cliente=id).values('id','fecha','monto_procesar', 'forma__forma','referencia','creado')
+    qPagos = Pago.objects.filter(cliente=id).filter(fecha__range=(fecha_ini, fecha_fin)).values('id','fecha','monto_procesar', 'forma__forma','referencia','creado')
     
-    xTotal = 0
     # Prepara lista de datos    
+    xTotal = 0
     balance = xTotal
     data_lista = []
-    # data_lista.append({"fecha": fecha_i,"balance": xTotal})
     # data_lista.append({"balance": xTotal, "fecha": fecha_dt, "tipo__tipo": "Cierre", "concepto__concepto": "Saldo mes anterior "+xMes_nombre+" "+str(xAno) })
     for xAsiento in qDocumentos:
         xAsiento["documento"] = xAsiento['numero']
@@ -549,8 +696,10 @@ def Estado_cuentaView(request, id, cliente, desde):
         xAsiento["hora"] = xAsiento['creado'].time()
         data_lista.append(xAsiento) # Se agrega cada registro a la lista
   
+    # Ordeno la lista obtenida
     data_lista_ordenada = sorted(data_lista, key=itemgetter('fecha','hora'))
-        
+
+    # Calculo el saldo balance    
     for key in data_lista_ordenada:
          if key['dc'] == "-":
             balance = balance - key['monto_m']
@@ -561,27 +710,31 @@ def Estado_cuentaView(request, id, cliente, desde):
          
     context = {
         'xUsuario': xUsuario,
-        'xCliente': xCliente,
+        'xCliente_nombre': xCliente_nombre ,
         'xClientes': xClientes,
         'xId':xId,
         'xDesde': desde,
+        'xFecha_ini':xFecha_ini,
+        'xFecha_fin': xFecha_fin,
         'xAsientos': data_lista_ordenada
     }
-    
+ 
     return render(request, 'app_gestion/estado_de_cuenta.html', context)
 
-# validar si un mumero de documento
+# validar mumero de documento
 def Validar_numeroView(request):
     # print('campo: ',request.POST.get('campo'))
-
+    
+    # para campos unicos
     data = {'status': True}
     try:
-        buscar_doc = Documento.objects.get(numero=request.POST.get('campo'))
-        # print("Encontrado el Documento: ",buscar_doc)
+        xRegistro = Documento.objects.get(numero=request.POST.get('campo'))
+        print("Encontrado el Documento: ",xRegistro)
     except Documento.DoesNotExist:
         data = {'status': False}
     
     return JsonResponse(data, safe=False)
+
 
 #  actualizar fechas
 @login_required
@@ -607,29 +760,35 @@ def Actualizar_fechasView(request):
     # Resto la fecha de veneciemto de la fecha actual
     diferencia = fecha_v - fecha_actual 
     documento.dias_v = diferencia.days  + 1
+    # Actualizo dias de credito
+    fecha_f = datetime.strptime(f, '%Y-%m-%d')
+    dias_creito  =  fecha_v - fecha_f
+    documento.credito = dias_creito.days 
           
     documento.save()
     
     return JsonResponse(data, safe=False)
     
-# validar si un cliente ced_rif estste
-def validar_clienteView(request):
-    xUsuario = request.user
-    # print('Cedu_rif: ',request.POST.get('ced_rif'))
-
+# validar ced_rif del cliente
+def Validar_clienteView(request):
     data = {'status': True}
-    try:
-        buscar_cliente = Cliente.objects.get(ced_rif=request.POST.get('ced_rif'))
-        print("Encontrado el Proveedor: ",buscar_cliente)
-    except Cliente.DoesNotExist:
+    print('Dato: ',request.POST.get('campo'))
+   
+    # para campos repetidos
+    xRegistros = Cliente.objects.filter(ced_rif=request.POST.get('campo'))
+    if xRegistros.exists():
+        for xRegistro in xRegistros:
+            print("Resgistros encontados: ", xRegistros.count())
+    else:
         data = {'status': False}
     
     return JsonResponse(data, safe=False)
 
+
 # agregar ciudad desde agregar cliente
-def agregar_ciudad_desde_agregar_clienteView(request):
+def agregar_ciudad_desde_agregar_vendedorView(request):
     xUsuario = request.user
-    xR = Ciudad(ciudad = request.POST.get('ciudad'))
+    xR = Ciudad(ciudad = request.POST.get('ciudad'), estado_id = request.POST.get('estado') )
     xR.save()
     data = {'id': xR.id}
     return JsonResponse(data, safe=False)
@@ -653,7 +812,8 @@ def agregar_vendedor_desde_agregar_clienteView(request):
         buscar_vendedor = Vendedor.objects.get(cedula=xCedula)
         print("Encontrado el Vendedor: ", buscar_vendedor)
     except Vendedor.DoesNotExist:
-        xR = Vendedor(cedula = xCedula, nombre = request.POST.get('m_nombre'))
+        # print("==========================",request.POST.get('m_ciudad'))
+        xR = Vendedor(cedula = xCedula, nombre = request.POST.get('m_nombre'), ciudad_id = request.POST.get('m_ciudad'))
         xR.save()
         data = {'id': xR.id}
 
@@ -668,5 +828,210 @@ def obtener_vendedoresView(request):
     return JsonResponse(data, safe=False)
 
 
+# detalles de estado de cuenta
+@login_required
+def estado_cuentas_detalle_docView(request, id, xDoc, xMonto):
+    xUsuario = request.user
+
+    xDoc = xDoc
+    xMonto = Decimal(xMonto)
+  
+    print(xMonto)
+    xPagos_detalle = Pago_detalle.objects.filter(documento_id = id).values('documento__fecha','pago__fecha', 'monto_procesar','pago__referencia','pago__forma__forma')
+   
+    xFecha = xPagos_detalle[0]["documento__fecha"]
+    data_lista = []
+    data_lista.append({"fecha":xFecha, "referencia": xDoc, "forma": "-", "pago": 0, "monto": "-","balance": xMonto })
+    # print("----------- Encabezado ------------------")
+    # print(data_lista)
+    primero = True
+    balance = xMonto
+    for xDetalle in xPagos_detalle:
+        # print("----------- Detalle ------------------")
+        # print(data_lista)
+              
+        xDetalle["fecha"] = xDetalle["pago__fecha"] 
+        xDetalle["referencia"] = xDetalle["pago__referencia"]
+        xDetalle["forma"] = xDetalle["pago__forma__forma"]
+        xDetalle["monto"] = xDetalle["monto_procesar"]
+      
+        balance -= xDetalle["monto_procesar"]
+        xDetalle["balance"] = balance
+        data_lista.append(xDetalle) # Se agrega cada registro a la lista
+        
+
+    # print(data_lista)
+        
+    context = {
+        'xUsuario': xUsuario,
+        'xPagos_detalle': data_lista,
+        'xDoc': xDoc,
+    }
+    
+    return render(request, 'app_gestion/estado_cuentas_detalle_doc.html', context)
+
+# agregar cliente desde agregar docuemnto
+def agregar_cliente_desde_agregar_documentoView(request):
+    xR = Cliente(ced_rif = request.POST.get('ced_rif'), nombre = request.POST.get('nombre'), vendedor_id = request.POST.get('vendedor_id'), usuario_id=request.user.id)
+    xR.save()
+    data = {'id': xR.id}
+    return JsonResponse(data, safe=False)
+
+# obtener clientes- ajax para obtener los clientes -
+def obtener_clientesView(request):
+    xUsuario = request.user
+    #provee_id = request.POST.get('id')
+    qClientes = Cliente.objects.all()
+    xClientes = qClientes.values('id','nombre')
+    data = list(xClientes)
+    return JsonResponse(data, safe=False)
+
+
+@login_required
+def VendedoresView(request, xStatus):
+    xUsuario = request.user
+    # print("--------- Parametros recibidos GET ----------")
+  
+    xStatu_seleccionado = xStatus
+    # xVendedor_seleccionado = xVendedor
+    xExcluidos = [2, 4]
+    xStatus_select = Statu.objects.exclude(id__in=xExcluidos)
+    xCiudades = Ciudad.objects.all()
+
+    if request.method == 'POST':
+        # print("--------- Parametros recibidos POST ----------")
+        xStatu_seleccionado  = request.POST.get('f_status')
+        # xVendedor_seleccionado = request.POST.get('f_vendedor')
+
+    qVendedores= Vendedor.objects.values('id','cedula','nombre','ciudad__ciudad','status__statu').order_by("nombre")
+
+    # if xStatus == 0  and xVendedor == 0:
+    xVendedores=qVendedores
+    # elif xStatus != 0 and xVendedor != 0:
+        # xVendedores=qVendedores.filter(status_id=xStatus, vendedor_id = xVendedor)
+    # elif xStatus != 0 and xVendedor == 0:
+    #     xClientes=qClientes.filter(status_id=xStatus)
+    # elif xStatus == 0 and xVendedor != 0:
+    #     xClientes=qClientes.filter(vendedor_id = xVendedor)
+
+   
+    context = {
+        'xUsuario': xUsuario,
+        'xVendedores': xVendedores,
+        'xStatus_select':xStatus_select,
+        'xStatu_seleccionado': int(xStatu_seleccionado),
+        'xCiudades': xCiudades,
+        # 'xVendedor_seleccionado': int(xVendedor_seleccionado),
+   
+    }
+    return render(request, 'app_gestion/vendedores.html', context)
+
+#  add vendedor
+@login_required
+def add_vendedorView(request):
+    # xUsuario = request.user
+    xOpcion = "Agregando"
+      
+    xPrefijos_ced_rif = Prefijo_ced_rif.objects.all()
+    xCiudades = Ciudad.objects.all()
+    xEstados = Estado.objects.all()
+       
+    form = agregar_vendedorForm()
+
+    if request.method == 'POST':
+        form = agregar_vendedorForm(request.POST)
+
+        request.POST._mutable = True
+        request.POST['status'] = 1
+        request.POST['cedula'] = request.POST['prefijo_r'] + request.POST['cedula'] 
+       
+        # for field in form:
+        #       print("Field:", field.name, "-> ", field.errors)
+    
+        if form.is_valid():
+            vendedor = form.save(commit=False)
+            vendedor.usuario_id = request.user.id
+        
+
+            vendedor.save()
+
+            # Limpiara formulario para otro gasto
+            form = agregar_vendedorForm()
+            context = {
+               'form': form,
+               'xOpcion': xOpcion,
+               'xPrefijos_ced_rif':xPrefijos_ced_rif,
+            #    'xVendedores': xVendedores,
+               'xCiudades': xCiudades,
+               'xEstados': xEstados,
+               'rNum_cedula': "",
+               'otro': True,
+            }
+
+            return render(request, 'app_gestion/vendedores_crud.html', context)
+        else:
+            messages.error(
+                request, "Su operación no se puedo efectuar debido a problemas en el Servidor. El formulario no es válido")
+    
+    context = {
+      'form': form,
+      'xOpcion': xOpcion,
+      'xPrefijos_ced_rif':xPrefijos_ced_rif,
+      'xCiudades': xCiudades,
+      'xEstados': xEstados,
+      'rNum_cedula': "",
+      'otro': False  
+    }
+    return render(request, 'app_gestion/vendedores_crud.html', context)
+
+
+
+# validar mumero de documento
+def Validar_vendedorView(request):
+    # print('campo: ',request.POST.get('campo'))
+    
+    # para campos unicos
+    data = {'status': True}
+    try:
+        xRegistro = Vendedor.objects.get(cedula=request.POST.get('campo'))
+        print("Encontrado el registro: ",xRegistro)
+    except Vendedor.DoesNotExist:
+        print("NO Encontrado el registro")
+        data = {'status': False}
+    
+    return JsonResponse(data, safe=False)
+
+def MigrarView(request):
+    xUsuario = request.user
+
+    if request.method == 'POST':
+   
+        csv_file = request.FILES['file']
+        registros = []
+        with open("C:/Users/sandr/Downloads/"+str(csv_file), "r") as csv_file:
+            data = list(csv.reader(csv_file, delimiter=";"))
+            
+            for row in data[1:]:
+                 registros.append(
+                     Ciudad(
+                         ciudad = row[0],
+                         estado_id = row[1],
+                    
+                     )
+                 )
+
+        if len(registros) > 0:
+            Ciudad.objects.bulk_create(registros)
+           
+            if not csv_file.name.endswith('.csv'):
+                messages.error(request, 'El archivo no es válido')
+
+        return redirect('inicio')
+    
+    context = {
+    'xUsuario': xUsuario,
+    }
+
+    return render(request, 'app_gestion/migrar.html', context)
 
 
