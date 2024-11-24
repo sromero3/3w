@@ -513,3 +513,8 @@ div.table-responsive > div.dataTables_wrapper > div.row > div[class^=col-]:last-
   background-color:  #1977cc;
   border-color: var(--bs-pagination-active-border-color);
 }
+
+table.dataTable tr.dtrg-group.dtrg-end th {
+  text-align: right;
+  font-weight:bold;
+}

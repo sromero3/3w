@@ -18,15 +18,18 @@ urlpatterns = [
      path('clientes/<int:xStatus>/<int:xVendedor>/', views.ClientesView, name='clientes'),
      path('add_cliente/', views.add_clienteView, name='add_cliente'),
      path('editar_cliente/<int:id>/', views.Editar_clienteView, name='editar_cliente'),
-     path('vendedores/<int:xStatus>/', views.VendedoresView, name='vendedores'),
+     path('vendedores/<int:xStatus>/<int:xCiudad>/', views.VendedoresView, name='vendedores'),
      path('add_vendedor/', views.add_vendedorView, name='add_vendedor'),
+     path('editar_vendedor/<int:id>/', views.Editar_vendedorView, name='editar_vendedor'),
      path('cobranza/<int:xCliente>/<int:xVendedor>/<int:xIva>/<int:xVencido>/', views.cobranzaView, name='cobranza'),
      path('pagos/<int:id>/<cliente>/', views.Asentar_pagosView, name='pagos'),
+    
+     
 
      # Consultas
      path('estado_cuentas/<int:id>/<desde>/<fecha_ini>/<fecha_fin>/', views.Estado_cuentaView, name='estado_cuenta'),
      path('estado_cuentas_detalle_doc/<int:id>/<xDoc>/<xMonto>/', views.estado_cuentas_detalle_docView, name='estado_cuentas_detalle_doc'),
-
+     path('cobranza_vendedor/<int:xVendedor>/<fecha_ini>/<fecha_fin>/', views.Cobranza_vendedorView, name='cobranza_vendedor'),
 
      # ajax
      path('validar_numero/', views.Validar_numeroView, name='validar_numero'), 

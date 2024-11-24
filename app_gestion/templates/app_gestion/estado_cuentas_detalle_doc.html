@@ -26,8 +26,8 @@ M1 | estado_cuentas_detalle_doc
                             <th>Fecha</th>
                             <th>Referencia</th>
                             <th>Forma de pago</th>
-                            <th>Pago</th>
-                            <th>Saldo</th>
+                            <th>Abono</th>
+                            <th>Saldo Doc.</th>
                          
                         </tr>
                     </thead>
@@ -36,11 +36,16 @@ M1 | estado_cuentas_detalle_doc
                         {% for xDetalle in xPagos_detalle %}
                         <tr>
                             <td>{{xDetalle.fecha|date:"d/m/y"}}</td>
-                         
+                            
                             {% if xDetalle.referencia == "-" %}
                                 <td align="center">-</td>
                             {% else %}
-                                <td >{{xDetalle.referencia}}</td>
+                                {% if xDetalle.monto == "-" %}
+                                  <td >Doc: {{xDetalle.referencia}}</td>
+                                {% else %}
+                                 <td >Ref: {{xDetalle.referencia}}</td>
+                                {% endif %}
+
                             {% endif %}
 
                             <td align="center">{{xDetalle.forma}}</td>

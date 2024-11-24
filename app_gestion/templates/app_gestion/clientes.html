@@ -11,7 +11,7 @@ M1 | Cobranza
     <div class="col-lg-12">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Clientes<a href="{% url 'inicio'%}" class="float-end"><i class="bi bi-x-circle" title='Cerrar'></i></a></h5>
+                <h5 class="card-title">Clientes<a href="{% url 'inicio'%}" class="float-end"><i class="bi bi-house-door" title='Cerrar'></i></a></h5>
                 
                 <form id="filtros" action="" method="post" class="mb-4">
                     {% csrf_token %}
@@ -65,7 +65,7 @@ M1 | Cobranza
                         {% for xCliente in xClientes %}
                         <tr>
                             <td>{{xCliente.ced_rif}}</td>
-                            <td>{{xCliente.nombre|truncatechars:22}}</td>
+                            <td>{{xCliente.nombre|truncatechars:32}}</td>
                             <td>{{xCliente.vendedor__nombre}}</td>
                             <td>{{xCliente.status__statu}}</td>
                             <td class="text-center" style="width:50px">

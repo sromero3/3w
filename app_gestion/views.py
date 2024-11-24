@@ -51,20 +51,18 @@ def InicioView(request):
                xDocumento.save()
                xControl.fecha_control = hoy
                xControl.save()
-    #else
-    #print("Ya esta actualizado")
-
+    
+    # calcualar tolal 
     qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0)
     qTotal = qDocumentos.aggregate(total=Sum("saldo")).get('total')
     total_cxc = qTotal
-        
     
     context = {
       'total_cxc': total_cxc,
-  
     }
   
     return render(request, 'app_gestion/inicio.html', context)
+
 
 @login_required
 def ClientesView(request, xStatus, xVendedor):
@@ -75,7 +73,7 @@ def ClientesView(request, xStatus, xVendedor):
     xVendedor_seleccionado = xVendedor
     xExcluidos = [2, 4]
     xStatus_select = Statu.objects.exclude(id__in=xExcluidos)
-    xVendedores = Vendedor.objects.all()
+    xVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
 
     if request.method == 'POST':
         # print("--------- Parametros recibidos POST ----------")
@@ -106,14 +104,13 @@ def ClientesView(request, xStatus, xVendedor):
     return render(request, 'app_gestion/clientes.html', context)
 
 
-#  add cliente
 @login_required
 def add_clienteView(request):
     # xUsuario = request.user
     xOpcion = "Agregando"
       
     xPrefijos_ced_rif = Prefijo_ced_rif.objects.all()
-    xVendedores = Vendedor.objects.all()
+    xVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
     xCiudades = Ciudad.objects.all()
        
     form = agregar_clienteForm()
@@ -123,6 +120,7 @@ def add_clienteView(request):
 
         request.POST._mutable = True
         request.POST['status'] = 1
+        request.POST['ced_rif'] =  request.POST['prefijo_r'] + request.POST['ced_rif'] 
        
         # for field in form:
         #       print("Field:", field.name, "-> ", field.errors)
@@ -162,8 +160,6 @@ def add_clienteView(request):
     return render(request, 'app_gestion/clientes_crud.html', context)
 
 
-
-#  editar cliente
 @login_required
 def Editar_clienteView(request, id):
     xUsuario = request.user
@@ -172,7 +168,7 @@ def Editar_clienteView(request, id):
     xPrefijos_ced_rif = Prefijo_ced_rif.objects.all()
     xPrefijos = Prefijo_telefono.objects.all()
     xCiudades = Ciudad.objects.all()
-    xVendedores = Vendedor.objects.all()
+    xVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
     xStatus = Statu.objects.all()
     
     # Obtengo el registro a editar
@@ -216,8 +212,6 @@ def Editar_clienteView(request, id):
         'rNum_cedula': rNum_cedula
     }
     return render(request, 'app_gestion/clientes_crud.html', context)
-
-
 
 
 @login_required
@@ -273,7 +267,6 @@ def docuementosView(request, xCliente, xDias):
     return render(request, 'app_gestion/documentos.html', context)
 
 
-#  add documento
 @login_required
 def add_documentoView(request):
     # xUsuario = request.user
@@ -286,7 +279,7 @@ def add_documentoView(request):
 
     # para agregar cleinte desde documento
     xPrefijos_ced_rif = Prefijo_ced_rif.objects.all()
-    xVendedores = Vendedor.objects.all()
+    xVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
        
     form = agregar_documentoForm()
 
@@ -309,12 +302,39 @@ def add_documentoView(request):
             documento.credito = request.POST['credito']
             documento.save()
 
+            # Buscar en excedentes
+            xExcedente = Excedente.objects.filter(cli_id=request.POST.get('cliente'), saldo__gt=0).values('doc_id__numero','saldo')
+            if xExcedente.exists(): # si el cliente tiene Excedente
+                xNumero = xExcedente[0]['doc_id__numero']
+                if xExcedente[0]['saldo'] > Decimal(request.POST.get('monto')):
+                    xE = request.POST.get('monto')
+                    xS = xExcedente[0]['saldo']
+                else:
+                    xE = xExcedente[0]['saldo']
+                    xS = xExcedente[0]['saldo']
+                # guardar pago
+                pago = Pago(fecha = request.POST.get('fecha'), cliente_id = request.POST.get('cliente'), referencia = "Abono excedente Doc: "+xNumero,
+                            monto = 0, monto_procesar = Decimal(xE), forma_id = 5, tasa = 0, banco_destino_id = 6, usuario_id = request.user.id
+                            )
+                pago.save() 
+                xPago_id = pago.id     
+                # guardar detelle del pago
+                detalle = Pago_detalle(pago_id = xPago_id, documento_id =  documento.id, monto_procesar = xE)  
+                detalle.save()
+                # actualizo abonado en Documento
+                documento.abonado = xE
+                documento.save()
+                # actualizo el saldo en excedente
+                xS = xS - Decimal(xE)
+                xExcedente.update(saldo=xS)
+
             # Limpiara formulario para otro gasto
             form = agregar_documentoForm()
             context = {
                'form': form,
                'xOpcion': xOpcion,
                'xClientes': xClientes,
+               'xCreditos': xCredito,
                'xIvas': xIvas,
                'rNum': "",
                'xCondiciones': xCondiciones,
@@ -343,7 +363,6 @@ def add_documentoView(request):
     return render(request, 'app_gestion/documentos_crud.html', context)
 
 
-#  editar documento
 @login_required
 def Editar_documentoView(request, id):
     xUsuario = request.user
@@ -417,7 +436,7 @@ def cobranzaView(request, xCliente, xVendedor, xIva, xVencido):
     xIva_seleccionado  = 0
     xIvas = Iva.objects.all()
     xVendedor_seleccionado  = 0
-    xVendedores = Vendedor.objects.all()
+    xVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
     
     xVencido_seleccionado = 0
 
@@ -488,6 +507,7 @@ def cobranzaView(request, xCliente, xVendedor, xIva, xVencido):
     
     return render(request, 'app_gestion/cobranza.html', context)
 
+
 @login_required
 def Asentar_pagosView(request, id, cliente):
     xUsuario = request.user
@@ -506,7 +526,6 @@ def Asentar_pagosView(request, id, cliente):
         return redirect('inicio')
 
     form = asentar_pagoForm(request.POST)
-    # print(request.POST)
     if request.method == 'POST':
  
         # preparando los campos numericos
@@ -523,45 +542,39 @@ def Asentar_pagosView(request, id, cliente):
         request.POST['monto'] = quitarFormato(request.POST['monto'])
         request.POST['tasa'] = quitarFormato(request.POST['tasa'])
         request.POST['monto_procesar'] = quitarFormato(request.POST['monto_procesar'])
-   
-        
-        # for field in form:
-        #     print("Field:", field.name, "-> ", field.errors)
-        
+       
         if form.is_valid():
-
             pago = form.save(commit=False)
             pago.cliente_id = id
             pago.usuario_id = request.user.id
-            
-         
+            # guardar el pago
             form.save()
+            # asignar el id del pago guardado
             xPago_id = pago.id
-            print("====================",xPago_id)
+
             # Buscar los docuemntos con saldo del cliente 
             xDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).filter(cliente=id)
             # Preparar monto a procesar
             xMonto_procesar = round(Decimal((request.POST['monto_procesar'])),2)
 
-            # Actualizar el campo abonado en los docuemntos   
+            # actualizar los documentos afectadis, campo abonado en los docuemntos   
             for xDocumento in xDocumentos:
-                # El monto cubre el saldo del Doc
+                # si monto a procesar cubre el saldo del docuemnto
                 if xMonto_procesar >= xDocumento.saldo:
                    xAbono = xDocumento.saldo
                    xDocumento.abonado = xDocumento.abonado + xAbono 
-       
+                # el monto a procesar no cubre el saldo del documento
                 else:
-                # El monto no cubre el saldo del Doc
                    xAbono = xMonto_procesar  
                    xDocumento.abonado = xDocumento.abonado + xAbono
                    xAbono = xMonto_procesar
                 
-                # Guardar detelle del pago
+                # guardar detelle del pago
                 detalle = Pago_detalle(pago_id = xPago_id, documento_id =  xDocumento.id, monto_procesar = xAbono)  
                 detalle.save()
-
+                # actualizar el abonado del documento
                 xDocumento.save()
-
+             
                 print("-------------Fac: " ,xDocumento.numero,"----------------")
                 print("xMonto_procesar: " ,xMonto_procesar)
                 print("Saldo: " ,xDocumento.saldo)
@@ -572,7 +585,8 @@ def Asentar_pagosView(request, id, cliente):
                 if xMonto_procesar == 0: 
                    print("no hay mas monto_procesar")
                    break
-                
+            
+            # si hay excedente 
             if xMonto_procesar > 0:
                 print("-------------Fac: " ,xDocumento.numero,"----------------")
                 xAbono = xMonto_procesar  
@@ -582,9 +596,21 @@ def Asentar_pagosView(request, id, cliente):
                 # Guardar detelle del pago
                 detalle = Pago_detalle(pago_id = xPago_id, documento_id =  xDocumento.id, monto_procesar = xAbono)  
                 detalle.save()
-
+                
                 xDocumento.save()
-
+               
+                # guardar el excedente
+                xExcedente = (xDocumento.monto - xDocumento.abonado) * -1
+                xE = Excedente(
+                            cli_id = xDocumento.cliente_id,
+                            doc_id= xDocumento.id,
+                            concepto = "Excedente ",
+                            monto=xExcedente,
+                            saldo=xExcedente,
+                            usuario_id=request.user.id
+                        )
+                xE.save()
+   
                 print("xMonto_procesar: " ,xMonto_procesar)
                 print("Saldo: " ,xDocumento.saldo)
                 xMonto_procesar = xMonto_procesar - xAbono
@@ -598,9 +624,8 @@ def Asentar_pagosView(request, id, cliente):
      #    if xUsuario.profile.rango == "Usuario":  
      #        return redirect('inicio2')
         else:
-           
-           return redirect('inicio')
-
+            messages.error(
+                request, "Su operación no se puedo efectuar debido a problemas en el Servidor. El formulario no es válido")
     
     context = {
         'xUsuario':xUsuario,
@@ -637,7 +662,6 @@ def Cargar_bancosView(request):
     return JsonResponse(data, safe=False)
 
 
-# estado de cuenta
 @login_required
 def Estado_cuentaView(request, id, desde, fecha_ini, fecha_fin):
     xUsuario = request.user
@@ -694,20 +718,22 @@ def Estado_cuentaView(request, id, desde, fecha_ini, fecha_fin):
         xAsiento["dc"] = "-"
         xAsiento["monto_m"] = xAsiento['monto_procesar']
         xAsiento["hora"] = xAsiento['creado'].time()
-        data_lista.append(xAsiento) # Se agrega cada registro a la lista
+        print(xAsiento["documento"][0:20])
+        if xAsiento["documento"][0:20] != "Abono excedente Doc:": # si la referencia del abono es automatica
+            data_lista.append(xAsiento) # Se agrega cada registro a la lista
   
     # Ordeno la lista obtenida
     data_lista_ordenada = sorted(data_lista, key=itemgetter('fecha','hora'))
 
     # Calculo el saldo balance    
     for key in data_lista_ordenada:
-         if key['dc'] == "-":
-            balance = balance - key['monto_m']
-         else:
+         if key['dc'] == "+":
             balance = balance + key['monto_m']
+         else:
+            balance = balance - key['monto_m']
          
          key['balance'] = balance
-         
+        #  print("balance:",key['balance'])
     context = {
         'xUsuario': xUsuario,
         'xCliente_nombre': xCliente_nombre ,
@@ -736,7 +762,6 @@ def Validar_numeroView(request):
     return JsonResponse(data, safe=False)
 
 
-#  actualizar fechas
 @login_required
 def Actualizar_fechasView(request):
     # parametros
@@ -822,13 +847,12 @@ def agregar_vendedor_desde_agregar_clienteView(request):
 # obtener vendedor - ajax para obtener las vendedores -
 def obtener_vendedoresView(request):
     xUsuario = request.user
-    qVendedores = Vendedor.objects.all()
+    qVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
     xVendedores = qVendedores.values('id','nombre')
     data = list(xVendedores)
     return JsonResponse(data, safe=False)
 
 
-# detalles de estado de cuenta
 @login_required
 def estado_cuentas_detalle_docView(request, id, xDoc, xMonto):
     xUsuario = request.user
@@ -888,12 +912,12 @@ def obtener_clientesView(request):
 
 
 @login_required
-def VendedoresView(request, xStatus):
+def VendedoresView(request, xStatus, xCiudad):
     xUsuario = request.user
     # print("--------- Parametros recibidos GET ----------")
   
     xStatu_seleccionado = xStatus
-    # xVendedor_seleccionado = xVendedor
+    xCiudad_seleccionado  = xCiudad
     xExcluidos = [2, 4]
     xStatus_select = Statu.objects.exclude(id__in=xExcluidos)
     xCiudades = Ciudad.objects.all()
@@ -901,18 +925,18 @@ def VendedoresView(request, xStatus):
     if request.method == 'POST':
         # print("--------- Parametros recibidos POST ----------")
         xStatu_seleccionado  = request.POST.get('f_status')
-        # xVendedor_seleccionado = request.POST.get('f_vendedor')
+        xCiudad_seleccionado = request.POST.get('f_ciudad')
 
     qVendedores= Vendedor.objects.values('id','cedula','nombre','ciudad__ciudad','status__statu').order_by("nombre")
 
-    # if xStatus == 0  and xVendedor == 0:
-    xVendedores=qVendedores
-    # elif xStatus != 0 and xVendedor != 0:
-        # xVendedores=qVendedores.filter(status_id=xStatus, vendedor_id = xVendedor)
-    # elif xStatus != 0 and xVendedor == 0:
-    #     xClientes=qClientes.filter(status_id=xStatus)
-    # elif xStatus == 0 and xVendedor != 0:
-    #     xClientes=qClientes.filter(vendedor_id = xVendedor)
+    if xStatus == 0  and xCiudad == 0:
+        xVendedores=qVendedores
+    elif xStatus != 0 and xCiudad != 0:
+        xVendedores=qVendedores.filter(status_id=xStatus, ciudad_id = xCiudad)
+    elif xStatus != 0 and xCiudad == 0:
+        xVendedores=qVendedores.filter(status_id=xStatus)
+    elif xStatus == 0 and xCiudad != 0:
+        xVendedores=qVendedores.filter(ciudad_id = xCiudad)
 
    
     context = {
@@ -921,18 +945,18 @@ def VendedoresView(request, xStatus):
         'xStatus_select':xStatus_select,
         'xStatu_seleccionado': int(xStatu_seleccionado),
         'xCiudades': xCiudades,
-        # 'xVendedor_seleccionado': int(xVendedor_seleccionado),
+        'xCiudad_seleccionado': int(xCiudad_seleccionado),
    
     }
     return render(request, 'app_gestion/vendedores.html', context)
 
-#  add vendedor
+
 @login_required
 def add_vendedorView(request):
     # xUsuario = request.user
     xOpcion = "Agregando"
-      
-    xPrefijos_ced_rif = Prefijo_ced_rif.objects.all()
+     
+    xPrefijos_cedula = Prefijo_ced_rif.objects.all()
     xCiudades = Ciudad.objects.all()
     xEstados = Estado.objects.all()
        
@@ -951,17 +975,14 @@ def add_vendedorView(request):
         if form.is_valid():
             vendedor = form.save(commit=False)
             vendedor.usuario_id = request.user.id
-        
-
             vendedor.save()
 
-            # Limpiara formulario para otro gasto
+            # Limpiara formulario para otro
             form = agregar_vendedorForm()
             context = {
                'form': form,
                'xOpcion': xOpcion,
-               'xPrefijos_ced_rif':xPrefijos_ced_rif,
-            #    'xVendedores': xVendedores,
+               'xPrefijos_cedula':xPrefijos_cedula,
                'xCiudades': xCiudades,
                'xEstados': xEstados,
                'rNum_cedula': "",
@@ -976,11 +997,62 @@ def add_vendedorView(request):
     context = {
       'form': form,
       'xOpcion': xOpcion,
-      'xPrefijos_ced_rif':xPrefijos_ced_rif,
+      'xPrefijos_cedula':xPrefijos_cedula,
       'xCiudades': xCiudades,
       'xEstados': xEstados,
       'rNum_cedula': "",
       'otro': False  
+    }
+    return render(request, 'app_gestion/vendedores_crud.html', context)
+
+
+@login_required
+def Editar_vendedorView(request, id):
+    xUsuario = request.user
+    xOpcion = "Editando"
+   
+    xPrefijos_cedula = Prefijo_ced_rif.objects.all()
+    xCiudades = Ciudad.objects.all()
+    xExcluidos = [2, 4]
+    xStatus = Statu.objects.exclude(id__in=xExcluidos)
+    
+    # Obtengo el registro a editar
+    xVendedor = Vendedor.objects.get(id=id)
+    rPre_Cedula = xVendedor.cedula[0:1]
+    rCedula = xVendedor.cedula[1:]
+    rCiudad = xVendedor.ciudad.id
+    rStatu = xVendedor.status.id
+    rNum_cedula = xVendedor.cedula
+  
+    form = agregar_vendedorForm(instance=xVendedor)
+
+    if request.method == 'POST':
+        form = agregar_vendedorForm(request.POST, instance=xVendedor)
+        # request.POST._mutable = True
+    
+        # for field in form:
+        #      print("Field:", field.name, "-> ", field.errors)
+        
+        if form.is_valid():
+            vendedor = form.save(commit=False)
+            vendedor.cedula = request.POST.get('prefijo_r') + request.POST.get('cedula')
+            vendedor.save()
+            return redirect('vendedores',1,0)
+        else:
+            messages.error(
+                request, "Su operación no se puedo efectuar debido a problemas en el Servidor. El formulario no es válido")
+
+    context = {
+        'form': form,
+        'xOpcion': xOpcion,
+        'xPrefijos_cedula': xPrefijos_cedula,
+        'rPre_Cedula': rPre_Cedula,
+        'rCedula': rCedula,
+        'xCiudades': xCiudades,
+        'rCiudad': rCiudad,
+        'xStatus': xStatus,
+        'rStatu': rStatu,
+        'rNum_cedula': rNum_cedula
     }
     return render(request, 'app_gestion/vendedores_crud.html', context)
 
@@ -1033,5 +1105,47 @@ def MigrarView(request):
     }
 
     return render(request, 'app_gestion/migrar.html', context)
+
+
+@login_required
+def Cobranza_vendedorView(request, xVendedor, fecha_ini, fecha_fin):
+    xUsuario = request.user
+    if xVendedor != 0:
+         xVendedor_seleccionado = xVendedor
+    else:
+        xVendedor_seleccionado   = 0
+
+    xVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
+    
+    if request.method == 'GET':
+        # print("--------- Parametros recibidos GET ----------") 
+        fecha_ini  = date.today() - timedelta(days=30)
+        fecha_fin  = date.today() 
+        xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
+        xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
+    else:  
+        # print("--------- Parametros recibidos POST ----------")
+        xFecha_ini = fecha_ini
+        xFecha_fin = fecha_fin 
+    
+    # El query
+    qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','cliente_id','numero','fecha','dias_v','vencimiento','monto','cliente_id__vendedor__id','abonado','saldo','cliente__nombre').order_by('cliente__nombre')
+   
+
+    # if xVendedor  == 0:
+    #     xDocumentos=qDocumentos.filter(fecha__range=(fecha_ini, fecha_fin))
+    # else:
+    xDocumentos=qDocumentos.filter(cliente_id__vendedor__id=xVendedor).filter(fecha__range=(fecha_ini, fecha_fin))
+
+    context = {
+        'xUsuario': xUsuario,
+        'xDocumentos': xDocumentos,
+        'xVendedores': xVendedores,
+        'xVendedor_seleccionado': int(xVendedor_seleccionado),
+        'xFecha_ini': xFecha_ini,
+        'xFecha_fin': xFecha_fin,
+     }
+ 
+    return render(request, 'app_gestion/cobranza_vendedor.html', context)
 
 

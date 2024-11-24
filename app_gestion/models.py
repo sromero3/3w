@@ -134,6 +134,9 @@ class Vendedor(models.Model):
     nombre = models.CharField(max_length=40)
     ciudad = models.ForeignKey(Ciudad, on_delete=models.CASCADE) 
     status = models.ForeignKey(Statu, on_delete=models.CASCADE, default=1)
+    creado = models.DateTimeField(auto_now_add=True, null=False)
+    actualizado = models.DateTimeField(auto_now_add=True, null=False)
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return str(self.nombre) 
@@ -268,6 +271,16 @@ class Pago_detalle(models.Model):
     verbose_name = "Pagos_detalles"
     verbose_name_plural = "Pagos_detalles"
     ordering = ["id"]
+
+class Excedente(models.Model):
+    cli = models.ForeignKey(Cliente, on_delete=models.CASCADE)
+    doc = models.ForeignKey(Documento, on_delete=models.CASCADE)
+    concepto = models.CharField(max_length=50, null=True, blank=True)
+    monto = models.DecimalField(max_digits=9, decimal_places=2)
+    saldo = models.DecimalField(max_digits=9, decimal_places=2)
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    creado = models.DateTimeField(auto_now_add=True, null=False)
+    actualizado = models.DateTimeField(auto_now_add=True, null=False)
 
 
 

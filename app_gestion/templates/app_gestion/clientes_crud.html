@@ -52,9 +52,7 @@ M1 | Clientes crud
                             {% endfor %}
                         </select>
                     </div>
-               
                     {% endif %} <!-- fin agregando -->
-                    {% csrf_token %}
                     <!-- ------------------------------------ editando ------------------------------------- -->
                     {% if xOpcion == 'Editando' %}
                     <div class="col-md-6">
@@ -220,11 +218,11 @@ M1 | Clientes crud
                         // showCancelButton: true,
                         confirmButtonText: "Continuar",
                         denyButtonText: `Descartar`
-                    }).then((result) => {
+                        }).then((result) => {
                         if (result.isConfirmed) {
                             // Condirmar
                             Swal.fire({
-                                title: '¿ Esta seguro de abonar ?',
+                                title: '¿ Esta seguro de guardar ?',
                                 // html: `<h1>${m}$</h1><br>A ${c} `,
                                 showDenyButton: true,
                                 // showCancelButton: true,
@@ -232,7 +230,7 @@ M1 | Clientes crud
                                 denyButtonText: `Descartar`
                             }).then((result) => {
                                 if (result.isConfirmed) {
-                                    document.getElementById('asentar_pago_global').submit()
+                                    form.submit()
                                 } else {
                                     return false
                                 }
@@ -241,25 +239,42 @@ M1 | Clientes crud
                             return false
                         }
                     })
-                }
-        } else {
-            // Condirmar
-            // let c = document.getElementById('cliente').value
-            Swal.fire({
-                title: '¿ Esta seguro de Guardar ?',
-                // html: `DOC: ${n}<br>DE: ${c_texto}<br><h1>${m}$</h1> `,
-                showDenyButton: true,
-                // showCancelButton: true,
-                confirmButtonText: "Guardar",
-                denyButtonText: `Descartar`
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById('cliente_form').submit()
-                } else {
-                    return false
-                }
-            }) // fin Confirmar   
-        }     
+                } else { // no existe
+                    // Condirmar
+                    Swal.fire({
+                        title: '¿ Esta seguro de guardar ?',
+                        // html: `DOC: ${n}<br>DE: ${c_texto}<br><h1>${m}$</h1> `,
+                        showDenyButton: true,
+                        // showCancelButton: true,
+                        confirmButtonText: "Guardar",
+                        denyButtonText: `Descartar`
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit()
+                        } else {
+                            return false
+                        }
+                    })
+
+
+                } // fin existe  
+            } else {
+                // Condirmar
+                Swal.fire({
+                    title: '¿ Esta seguro de guardar ?',
+                    // html: `DOC: ${n}<br>DE: ${c_texto}<br><h1>${m}$</h1> `,
+                    showDenyButton: true,
+                    // showCancelButton: true,
+                    confirmButtonText: "Guardar",
+                    denyButtonText: `Descartar`
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit()
+                    } else {
+                        return false
+                    }
+                }) // fin Confirmar   
+            } // fin Var_rNum != Var_numero  
         } // fin de checkValidity()
     } // fin validar formulario
     

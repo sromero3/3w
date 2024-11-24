@@ -94,7 +94,6 @@ M1 | Documentos crud
                         {{form.observacion}}
                     </div>
                     {% endif %} <!-- fin agregando -->
-                    {% csrf_token %}
                     <!-- ------------------------------------ editando ------------------------------------- -->
                     {% if xOpcion == 'Editando' %}
                     <div class="col-6">
@@ -231,14 +230,6 @@ M1 | Documentos crud
                             data-bs-dismiss="modal">Descartar</button>
                     </div>
                 </form>  <!-- fin Modal form-->
-
-
-                
-
-
-
-
-
             </div>   <!-- fin modal body-->
         </div> <!-- fin modal content -->
     </div> <!-- fin modal-dialog -->
@@ -360,7 +351,7 @@ M1 | Documentos crud
             let m = document.getElementById('id_monto').value
             let n = document.getElementById('id_numero').value
             Swal.fire({
-                title: '¿ Esta seguro de Guardar ?',
+                title: '¿ Esta seguro de guardar ?',
                 html: `DOC: ${n}<br>DE: ${c_texto}<br><h1>${m}$</h1> `,
                 showDenyButton: true,
                 // showCancelButton: true,
@@ -457,7 +448,7 @@ M1 | Documentos crud
                     if (result.isConfirmed) {
                         // Confirmar
                         Swal.fire({
-                            title: '¿ Esta seguro de grabar ?',
+                            title: '¿ Esta seguro de guardar ?',
                             // html: `<h1>${m}$</h1><br>A ${c} `,
                             showDenyButton: true,
                             // showCancelButton: true,
@@ -477,7 +468,7 @@ M1 | Documentos crud
             } else { // no existe
                 // Condirmar
                 Swal.fire({
-                    title: '¿ Esta seguro de Guardar ?',
+                    title: '¿ Esta seguro de guardar ?',
                     // html: `DOC: ${n}<br>DE: ${c_texto}<br><h1>${m}$</h1> `,
                     showDenyButton: true,
                     // showCancelButton: true,

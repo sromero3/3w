@@ -66,7 +66,7 @@
   <h6 align="center"><span id="h" class="clockf"></h6>
   <ul class="sidebar-nav" id="sidebar-nav" style="min-height: 900px; margin-top: 20px;">
     <li class="nav-item">
-      <a class="nav-link" href="{% url 'inicio' %}">
+      <a id="inicio_link" class="nav-link" href="{% url 'inicio' %}">
         <i class="bi bi-house-door"></i>
         <span>&nbsp;&nbsp;Inicio</span>
       </a>
@@ -98,7 +98,7 @@
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="{% url 'vendedores' 1  %}">
+      <a class="nav-link" href="{% url 'vendedores' 1 0 %}">
         <i class="bi bi-person-badge"></i>
         <span>&nbsp;&nbsp;Vendedores</span>
       </a>
@@ -112,6 +112,11 @@
         <li>
           <a href="{% url 'estado_cuenta' 0 'menu' ' ' ' ' %}">
             <i class="bi bi-circle"></i><span>Estado de cuenta</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'cobranza_vendedor' 0  ' ' ' ' %}">
+            <i class="bi bi-circle"></i><span>Cobranza x vendedor</span>
           </a>
         </li>
         <li>
@@ -190,6 +195,31 @@
       var min = hoy.getMinutes();
     }
     let hora = hoy.getHours() + ':' + min;
+    // if (hoy.getHours() == 1){
+
+      // $.ajax({
+      //     url: "{% url 'inicio' %}",
+      //     type: 'POST',
+      //     async: false,
+      //     data: {
+      //         csrfmiddlewaretoken: '{{ csrf_token }}',
+             
+      //     },
+      //     datatype: 'json',
+      //     success: function(data) {
+      //         //console.log('RESULTADO', data.status, typeof data.status)
+      //         existe = data.status
+      //     },
+      //     error: function(xhr, status, error) {
+      //         // console.log("Error ocurrido: ", error)
+      //         // console.log("Status: ", status)
+      //     }
+      // })
+    
+     
+ 
+
+    // }
     let ho = hoy.getHours()
     h.innerHTML = hora;
     f.innerHTML = fecha;
@@ -207,5 +237,6 @@
     identificadorIntervaloDeTiempo = setInterval(() => {
       mostrar_hora();
     }, 60 * 1000);
+    //  window.location='/inicio'
   }
 </script>

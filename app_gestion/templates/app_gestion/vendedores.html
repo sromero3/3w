@@ -11,7 +11,7 @@ M1 | Vendedores
     <div class="col-lg-12">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Vendedores<a href="{% url 'inicio'%}" class="float-end"><i class="bi bi-x-circle" title='Cerrar'></i></a></h5>
+                <h5 class="card-title">Vendedores<a href="{% url 'inicio'%}" class="float-end"><i class="bi bi-house-door" title='Cerrar'></i></a></h5>
                 
                 <form id="filtros" action="" method="post" class="mb-4">
                     {% csrf_token %}
@@ -19,7 +19,7 @@ M1 | Vendedores
                         <div class="col-lg-3 col-sm-12 d-flex">
                             <label id="m" class="titulos d-flex me-2 mt-1">Status</label>
                             <select name="f_status" id="f_status" class="form-control d-flex alto" required
-                                onChange="obtener_clientes()">
+                                onChange="obtener_vendedores()">
                                 <option value="0" selected>Todos</option>
                                 {% for xStatu in xStatus_select %}
                                 <option value={{xStatu.id}} {% if xStatu.id == xStatu_seleccionado %} selected
@@ -32,7 +32,7 @@ M1 | Vendedores
                         <div class="col-lg-3 col-sm-12 d-flex">
                             <label class="titulos d-flex ms-2 me-2 mt-1">Ciudad</label>
                             <select name="f_ciudad" id="f_ciudad" class="form-control d-flex alto" required
-                                onChange="obtener_clientes()">
+                                onChange="obtener_vendedores()">
                                 <option value="0" selected>Todos</option>
                                 {% for xCiudad in xCiudades %}
                                 <option value={{xCiudad.id}} {% if xCiudad.id == xCiudad_seleccionado %} selected
@@ -51,7 +51,7 @@ M1 | Vendedores
                     </div>
                 </div>
                 
-                <table id="clientes" class="table table-hover table-bordered " style="width:100%">
+                <table id="vendedores" class="table table-hover table-bordered " style="width:100%">
                     <thead>
                         <tr>
                             <th>Cédula</th>
@@ -69,7 +69,7 @@ M1 | Vendedores
                             <td>{{xVendedor.ciudad__ciudad}}</td>
                             <td>{{xVendedor.status__statu}}</td>
                             <td class="text-center" style="width:50px">
-                                <a href="{% url 'editar_cliente' xVendedor.id %}">
+                                <a href="{% url 'editar_vendedor' xVendedor.id %}">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                             </td>
@@ -87,7 +87,7 @@ M1 | Vendedores
 <script>
  
     $(function () {
-        $("#clientes").DataTable({
+        $("#vendedores").DataTable({
   
             language: {
                 "sProcessing": "Procesando...",
@@ -136,8 +136,8 @@ M1 | Vendedores
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
     // obtener docuemntos
-    function obtener_clientes() {
-        filtros.action = `/clientes/${f_status.value}/${f_vendedor.value}/`
+    function obtener_vendedores() {
+        filtros.action = `/vendedores/${f_status.value}/${f_ciudad.value}/`
         filtros.submit()
     } // fin obtener docuemntos  
   
