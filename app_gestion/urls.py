@@ -22,8 +22,8 @@ urlpatterns = [
      path('add_vendedor/', views.add_vendedorView, name='add_vendedor'),
      path('editar_vendedor/<int:id>/', views.Editar_vendedorView, name='editar_vendedor'),
      path('cobranza/<int:xCliente>/<int:xVendedor>/<int:xIva>/<int:xVencido>/', views.cobranzaView, name='cobranza'),
-     path('pagos/<int:id>/<cliente>/', views.Asentar_pagosView, name='pagos'),
-    
+     path('pago_cuenta/<int:id>/<cliente>/', views.Pago_cuentaView, name='pago_cuenta'),
+     path('pago_documentos/<int:id>/<cliente>/', views.Pago_documentosView, name='pago_documentos'),
      
 
      # Consultas

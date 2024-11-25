@@ -68,9 +68,9 @@ M1 | Cobranza
                     <div class="row">
                         <div class="mt-1 pb-2 col-lg-3 col-sm-12">
                             <span id="enlaces" hidden>
-                                <a id="url_pago_cuenta">Abono a cuenta<br>
-                                <a id="url_pago_documento">Abono a documentos<a/><br>
-                                <a id="url_estado">Estado de cuenta<a />
+                                <a id="url_pago_cuenta">Pago a cuenta<a/><br>
+                                <a id="url_pago_documentos">Pago a documentos<a/><br>
+                                <a id="url_estado">Estado de cuenta<a/>
                             </span>
                             <input type="text" id="xDoc_encontrados" value="{{xDoc_encontrados}}" hidden>
                         </div>
@@ -307,7 +307,10 @@ M1 | Cobranza
                 let texto_cliente = cliente_select.options[cliente_select.selectedIndex].text
                 // construir el url para pago a cuenta
                 let anchor = document.getElementById('url_pago_cuenta')
-                anchor.href = `/pagos/${id_cliente}/${texto_cliente}`
+                anchor.href = `/pago_cuenta/${id_cliente}/${texto_cliente}`
+                // construir el url para pago a documentos
+                let anchor2 = document.getElementById('url_pago_documentos')
+                anchor2.href = `/pago_documentos/${id_cliente}/${texto_cliente}`
                 // construir el url para estado de cuenta
                 let anchor3 = document.getElementById('url_estado')
                 anchor3.href = `/estado_cuentas/${id_cliente}/cobranza/' '/' '/`

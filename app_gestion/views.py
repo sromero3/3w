@@ -497,7 +497,7 @@ def cobranzaView(request, xCliente, xVendedor, xIva, xVencido):
 
 
 @login_required
-def Asentar_pagosView(request, id, cliente):
+def Pago_cuentaView(request, id, cliente):
     xUsuario = request.user
     xCliente = cliente
     xId = id
@@ -624,7 +624,7 @@ def Asentar_pagosView(request, id, cliente):
         'xCliente': xCliente,
         'xBancosdestino': xBancosdestino
     }
-    return render(request, 'app_gestion/asentar_pago.html', context)
+    return render(request, 'app_gestion/pago_cuenta.html', context)
 
    
 # validar referencia de pago
@@ -1177,3 +1177,134 @@ def Historial_pagosView(request, xCliente, fecha_ini, fecha_fin):
      }
  
     return render(request, 'app_gestion/historial_pagos.html', context)
+
+
+@login_required
+def Pago_documentosView(request, id, cliente):
+    xUsuario = request.user
+    xCliente = cliente
+    xId = id
+ 
+    xFormas = PagoForma.objects.order_by('orden').exclude(id=5)
+    xBancosdestino = BancoDestino.objects.exclude(id=6)
+  
+    xTasas = Tasa.objects.all()
+    if xTasas.exists():
+        xTasa = str(xTasas[0].monto)
+    else:
+        messages.error(
+            request, "No ha fijado ninguna tasa de cambio")
+        return redirect('inicio')
+
+    form = asentar_pagoForm(request.POST)
+    if request.method == 'POST':
+ 
+        # preparando los campos numericos
+        request.POST._mutable = True
+        if request.POST['monto'] == "":
+            request.POST['monto'] = "0,00"
+
+        if request.POST['banco_destino'] == "":
+            request.POST['banco_destino'] = "6"
+      
+        if request.POST['referencia'] == "":
+            request.POST['referencia'] = "-"
+
+        request.POST['monto'] = quitarFormato(request.POST['monto'])
+        request.POST['tasa'] = quitarFormato(request.POST['tasa'])
+        request.POST['monto_procesar'] = quitarFormato(request.POST['monto_procesar'])
+       
+        if form.is_valid():
+            pago = form.save(commit=False)
+            pago.cliente_id = id
+            pago.usuario_id = request.user.id
+            # guardar el pago
+            form.save()
+            # asignar el id del pago guardado
+            xPago_id = pago.id
+
+            # Buscar los docuemntos con saldo del cliente 
+            xDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).filter(cliente=id)
+            # Preparar monto a procesar
+            xMonto_procesar = round(Decimal((request.POST['monto_procesar'])),2)
+
+            # actualizar los documentos afectadis, campo abonado en los docuemntos   
+            for xDocumento in xDocumentos:
+                # si monto a procesar cubre el saldo del docuemnto
+                if xMonto_procesar >= xDocumento.saldo:
+                   xAbono = xDocumento.saldo
+                   xDocumento.abonado = xDocumento.abonado + xAbono 
+                # el monto a procesar no cubre el saldo del documento
+                else:
+                   xAbono = xMonto_procesar  
+                   xDocumento.abonado = xDocumento.abonado + xAbono
+                   xAbono = xMonto_procesar
+                
+                # guardar detelle del pago
+                detalle = Pago_detalle(pago_id = xPago_id, documento_id =  xDocumento.id, monto_procesar = xAbono)  
+                detalle.save()
+                # actualizar el abonado del documento
+                xDocumento.save()
+             
+                print("-------------Fac: " ,xDocumento.numero,"----------------")
+                print("xMonto_procesar: " ,xMonto_procesar)
+                print("Saldo: " ,xDocumento.saldo)
+                xMonto_procesar = xMonto_procesar - xAbono
+                print("xAbono: " ,xAbono)
+                print("Monto restante",  xMonto_procesar )
+               
+                if xMonto_procesar == 0: 
+                   print("no hay mas monto_procesar")
+                   break
+            
+            # si hay excedente 
+            if xMonto_procesar > 0:
+                print("-------------Fac: " ,xDocumento.numero,"----------------")
+                xAbono = xMonto_procesar  
+                xDocumento.abonado = xDocumento.abonado + xAbono
+                xDocumento.pago = pago.id
+                
+                # Guardar detelle del pago
+                detalle = Pago_detalle(pago_id = xPago_id, documento_id =  xDocumento.id, monto_procesar = xAbono)  
+                detalle.save()
+                
+                xDocumento.save()
+               
+                # guardar el excedente
+                xExcedente = (xDocumento.monto - xDocumento.abonado) * -1
+                xE = Excedente(
+                            cli_id = xDocumento.cliente_id,
+                            doc_id= xDocumento.id,
+                            concepto = "Excedente ",
+                            monto=xExcedente,
+                            saldo=xExcedente,
+                            usuario_id=request.user.id
+                        )
+                xE.save()
+   
+                print("xMonto_procesar: " ,xMonto_procesar)
+                print("Saldo: " ,xDocumento.saldo)
+                xMonto_procesar = xMonto_procesar - xAbono
+                print("xAbono: " ,xAbono)
+                print("Monto restante",  xMonto_procesar )
+                print("--------- Sobro monto_procesar ----------")
+            
+            return redirect('cobranza', id, 0, 0, 0)
+        
+        # redirect
+     #    if xUsuario.profile.rango == "Usuario":  
+     #        return redirect('inicio2')
+        else:
+            messages.error(
+                request, "Su operación no se puedo efectuar debido a problemas en el Servidor. El formulario no es válido")
+    
+    context = {
+        'xUsuario':xUsuario,
+        'form': form,
+        'xFormas': xFormas,
+        'xTasa': xTasa,
+        'xId': xId,
+        'xCliente': xCliente,
+        'xBancosdestino': xBancosdestino
+    }
+    return render(request, 'app_gestion/pago_documentos.html', context)
