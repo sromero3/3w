@@ -57,7 +57,7 @@ M1 | Cobranza
                             <th>Documento</th>
                             <th>Fecha</th>
                             <th>Vence</th>
-                            <th>D.</th>
+                            <th>DV</th>
                             <th style="width:200px">Cliente</th>
                             <th>Monto</th>
                             <!-- <th>Abonado</th> -->
@@ -72,9 +72,9 @@ M1 | Cobranza
                         {% for xDocumento in xDocumentos %}
                         <tr>
                             {% if xDocumento.observacion == "" %}
-                                <td>{{xDocumento.numero}}</td>
+                                <td>{{xDocumento.numero|rellenar}}</td>
                             {% else %}
-                                <td>{{xDocumento.numero}}
+                                <td>{{xDocumento.numero|rellenar}}
                                     <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
                                             data-bs-html="true" data-bs-title="{{xDocumento.observacion}}<br>"></i>
                                         </i></a>

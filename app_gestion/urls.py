@@ -30,6 +30,7 @@ urlpatterns = [
      path('estado_cuentas/<int:id>/<desde>/<fecha_ini>/<fecha_fin>/', views.Estado_cuentaView, name='estado_cuenta'),
      path('estado_cuentas_detalle_doc/<int:id>/<xDoc>/<xMonto>/', views.estado_cuentas_detalle_docView, name='estado_cuentas_detalle_doc'),
      path('cobranza_vendedor/<int:xVendedor>/<fecha_ini>/<fecha_fin>/', views.Cobranza_vendedorView, name='cobranza_vendedor'),
+     path('historial_pagos/<int:xCliente>/<fecha_ini>/<fecha_fin>/', views.Historial_pagosView, name='historial_pagos'),
 
      # ajax
      path('validar_numero/', views.Validar_numeroView, name='validar_numero'), 

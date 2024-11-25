@@ -70,22 +70,27 @@ M1 | Documentos
                         {% for xAsiento in xAsientos %}
                         <tr>
                             <td>{{xAsiento.fecha|date:"d/m/y"}}</td>
-                            {% if xAsiento.abonado != null %}
-                            <td>Doc: <a href="{% url 'estado_cuentas_detalle_doc' xAsiento.id xAsiento.numero xAsiento.monto_m %}"
-                                title='Click para más información'> 
-                                {{xAsiento.documento}}</a>
-                            </td>
-                            
-                            {% else %}
-                            <!-- <td>Ref: <a href="#"
-                                title='Click para más información'>
-                                {{xAsiento.documento}}</a>
-                            </td> -->
-                            <td>
-                                {{xAsiento.documento}} 
-                   
-                            </td>
-                            
+                            {% if xAsiento.dc == "+" %}
+                                {% if xAsiento.abonado != 0 %}
+                                    <td>Doc: <a href="{% url 'estado_cuentas_detalle_doc' xAsiento.id xAsiento.documento xAsiento.monto_m %}"
+                                        title='Click para más información'> 
+                                        {{xAsiento.documento|rellenar}}</a>
+                                    </td>
+                                {% else %}
+                                    <td>
+                                        {{xAsiento.documento|rellenar}}
+                                    </td>
+                                {% endif %}                            
+                            {% else %}  
+                                {% if xAsiento.documento == "-" %}
+                                    <td>
+                                        Ref: &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;{{xAsiento.documento}}
+                                    </td>
+                                {% else %}
+                                    <td>
+                                        Ref: {{xAsiento.documento|rellenar}}
+                                    </td>
+                                {% endif %}
                             {% endif %}
                             <td align="center">{{xAsiento.forma}}</td>
                             <td align="center">{{xAsiento.dc}}</td>

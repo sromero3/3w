@@ -1,0 +1,137 @@
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+{% block title %}
+M1 | Historial de pagos
+{% endblock %}
+{% block styles %}
+{% endblock styles %}
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px;">
+    <div class="col-lg-12" >
+        <div class="card">
+            <div class="card-body" >
+                    <h5 class="card-title">Historial de pagos<a href="{% url 'inicio' %}" class="float-end"><i class="bi bi-house-door" title='Cerrar'></i></a></h5>
+                                 
+                <form id="filtros" action="" method="post" class="mb-4" style="width:90%;margin-bottom: 8px !important;">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-4" style="margin-bottom: 12px;">
+                            <span class="titulos">
+                                Cliente</span>
+                                <select name="cliente" id="cliente" class="form-control d-flex alto" required
+                                onChange="obtener_pagos()">
+                                <option value="0" selected>Todos</option>
+                                {% for xCliente in xClientes %}
+                                <option value={{xCliente.id}} {% if xCliente.id == xCliente_seleccionado %} selected {%endif %}>
+                                    {{xCliente.nombre}}
+                                </option>
+                                {% endfor %}
+                            </select>
+                      
+                        </div>
+                        <div class="col-md-4">
+                            <span class="titulos">
+                                Desde</span>
+                            <input type="date" id="fecha_ini" name="fecha_ini" value="{{xFecha_ini}}" class="form-control alto" onChange="obtener_pagos()"/>
+                        </div>
+                        <div class="col-md-4">
+                            <span class=" titulos">
+                                Hasta</span>
+                            <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}" class="form-control alto" onChange="obtener_pagos()"/>
+                        </div>
+                    </div>
+                </form>
+                <table id="pagos" class="table table-hover table-bordered" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Referencia</th>
+                            <th>Fecha</th>
+                            <th>Forma</th>
+                            <th>Monto Bs</th>
+                            <th>Tasa</th>
+                            <th>Monto $</th>
+                        </tr>  
+                    </thead>
+                    <tbody>
+                        {% for xPago in xPagos %}
+                        <tr>
+                            <td>{{xPago.cliente__nombre}}</td>
+                            <td>{{xPago.referencia}}</td>
+                            <td>{{xPago.fecha|date:"d/m/y"}}</td>
+                            <td>{{xPago.forma__forma}}</td>
+                            <td align="right">{{xPago.monto|darFormato}}</td>
+                            {% if xPago.forma__forma == "Transferencia Bancos Nacionales" or xPago.forma__forma == "Bolivares en Efectivo" %}
+                                <td align="right">{{xPago.tasa|darFormato}}</td>
+                            {% else %}
+                                <td align="center">-</td>
+                            {% endif %}
+                            <td align="right">{{xPago.monto_procesar|darFormato}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+         
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</main><!-- End #main -->
+{% endblock content %}
+{% block Scripts_Adicionales %}
+<script>
+  $(function () {
+        $("#pagos").DataTable({
+  
+            language: {
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ registros",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "*** No se encontró información ***",
+                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                "sInfoPostFix": "",
+                "sSearch": "Buscar:",
+                "sUrl": "",
+                "sInfoThousands": ",",
+                "sLoadingRecords": "Cargando...",
+                "oPaginate": {
+                    "sFirst": "Primero",
+                    "sLast": "Último",
+                    "sNext": "Siguiente",
+                    "sPrevious": "Anterior"
+                },
+                "oAria": {
+                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                },
+                "buttons": {
+                    "copy": "Copiar",
+                    "colvis": "Visibilidad"
+                }
+            },
+            "ordering": true,
+            "responsive": true,
+            "lengthChange": true,
+            "autoWidth": true,
+            "pageLength": 50,
+            "scrollX": true,
+            "order": [[2, "desc"]],
+            "columnDefs": [{
+                "targets": [1,5, ],
+                "orderable": false
+            }]
+        })
+    })
+
+    // obtener docuemntos
+    function obtener_pagos() {
+        // console.log(document.getElementById('cliente').value)
+        filtros.action = `/historial_pagos/${cliente.value}/${fecha_ini.value}/${fecha_fin.value}/`
+        filtros.submit()
+    } // fin obtener docuemntos
+</script>
+{% endblock Scripts_Adicionales %}

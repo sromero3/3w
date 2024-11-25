@@ -33,24 +33,7 @@ def InicioView(request):
     xUsuario = request.user
 
     # Actauliza los dias de vencimiento 
-    hoy = date.today()
-    xControl =  Control.objects.get(id=1)
-    fecha_actual = datetime.now()
-    if xControl.fecha_control != hoy:    
-          # print("fechas dif voy a actaualzar")
-          xDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0)
-          for xDocumento in xDocumentos:
-               fecha_str = xDocumento.vencimiento.strftime('%d/%m/%Y')
-               # Convierte la cadena de texto a un objeto de fecha
-               fecha_v = datetime.strptime(fecha_str, "%d/%m/%Y")
-               # Resta la fecha dada de la fecha actual
-           
-               diferencia = fecha_v - fecha_actual
-            #    print("Vence ",fecha_v, "diferencia =======",diferencia)
-               xDocumento.dias_v = diferencia.days + 1
-               xDocumento.save()
-               xControl.fecha_control = hoy
-               xControl.save()
+    actualizar_dias_vencido()
     
     # calcualar tolal 
     qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0)
@@ -236,7 +219,9 @@ def docuementosView(request, xCliente, xDias):
         xCliente_seleccionado  = request.POST.get('cliente')
         xDia_seleccionado  = request.POST.get('dias')
 
+    actualizar_dias_vencido()
     qDocumentos = Documento.objects.values('id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','condicion__condicion','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado', 'dias_v','credito').order_by('-id')
+
    
     if xCliente == 0 and xDias == 0:
         #  print("1 sin filtros")
@@ -272,7 +257,7 @@ def add_documentoView(request):
     # xUsuario = request.user
     xOpcion = "Agregando"
        
-    xClientes = Cliente.objects.all()
+    xClientes = Cliente.objects.filter(status_id=1)
     xIvas = Iva.objects.all()
     xCondiciones = Condicion.objects.all()
     xCredito = Credito.objects.all()
@@ -368,7 +353,7 @@ def Editar_documentoView(request, id):
     xUsuario = request.user
     xOpcion = "Editando"
    
-    xClientes =  Cliente.objects.all()
+    xClientes = Cliente.objects.filter(status_id=1)
     xIvas =  Iva.objects.all()
     xCondiciones = Condicion.objects.all()
     
@@ -427,12 +412,13 @@ def Editar_documentoView(request, id):
 def cobranzaView(request, xCliente, xVendedor, xIva, xVencido):
     xUsuario = request.user
     # print("--------- Parametros recibidos GET ----------")
+
     if xCliente != 0:
-         xCliente_seleccionado = xCliente
+        xCliente_seleccionado = xCliente
     else:
         xCliente_seleccionado  = 0
     
-    xClientes = Cliente.objects.all()
+    xClientes = Cliente.objects.filter(Q( status_id=1) | Q(status_id=2))
     xIva_seleccionado  = 0
     xIvas = Iva.objects.all()
     xVendedor_seleccionado  = 0
@@ -451,7 +437,9 @@ def cobranzaView(request, xCliente, xVendedor, xIva, xVencido):
         else:
           #   xVencido = 0
             xVencido_seleccionado = 0
-        
+
+
+    actualizar_dias_vencido()
     if xVencido_seleccionado == 1:
        qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado','saldo','dias_v','condicion__condicion','credito').filter(dias_v__lte=0)
     else: 
@@ -1128,8 +1116,8 @@ def Cobranza_vendedorView(request, xVendedor, fecha_ini, fecha_fin):
         xFecha_ini = fecha_ini
         xFecha_fin = fecha_fin 
     
-    # El query
-    qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','cliente_id','numero','fecha','dias_v','vencimiento','monto','cliente_id__vendedor__id','abonado','saldo','cliente__nombre').order_by('cliente__nombre')
+    actualizar_dias_vencido()
+    qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','cliente_id','numero','credito','fecha','dias_v','vencimiento','monto','cliente_id__vendedor__id','abonado','saldo','cliente__nombre').order_by('cliente__nombre')
    
 
     # if xVendedor  == 0:
@@ -1149,3 +1137,43 @@ def Cobranza_vendedorView(request, xVendedor, fecha_ini, fecha_fin):
     return render(request, 'app_gestion/cobranza_vendedor.html', context)
 
 
+
+
+@login_required
+def Historial_pagosView(request, xCliente, fecha_ini, fecha_fin):
+    xUsuario = request.user
+    if xCliente != 0:
+         xCliente_seleccionado = xCliente
+    else:
+        xCliente_seleccionado   = 0
+    
+    xClientes = Cliente.objects.all()
+    
+    if request.method == 'GET':
+        # print("--------- Parametros recibidos GET ----------") 
+        fecha_ini  = date.today() - timedelta(days=30)
+        fecha_fin  = date.today() 
+        xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
+        xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
+    else:  
+        # print("--------- Parametros recibidos POST ----------")
+        xFecha_ini = fecha_ini
+        xFecha_fin = fecha_fin 
+    
+    qPagos=Pago.objects.filter(fecha__range=(fecha_ini, fecha_fin)).values('cliente_id','referencia','fecha','monto','monto_procesar','forma__forma', 'tasa','cliente__nombre' )
+
+    if xCliente == 0 :
+       xPagos=qPagos.all()
+    else:
+        xPagos=qPagos.filter(cliente_id=xCliente)
+
+    context = {
+        'xUsuario': xUsuario,
+        'xPagos': xPagos,
+        'xClientes': xClientes,
+        'xCliente_seleccionado': int(xCliente_seleccionado),
+        'xFecha_ini': xFecha_ini,
+        'xFecha_fin': xFecha_fin,
+     }
+ 
+    return render(request, 'app_gestion/historial_pagos.html', context)

@@ -83,14 +83,6 @@
         <span>&nbsp;&nbsp;Docuementos</span>
       </a>
     </li>
-
-    <!-- 
-    <li class="nav-item">
-      <a class="nav-link" href="#">
-        <i class="bi bi-cash-coin"></i>
-        <span>&nbsp;&nbsp;Asentar pago</span>
-      </a>
-    </li> -->
     <li class="nav-item">
       <a class="nav-link" href="{% url 'clientes' 1 0 %}">
         <i class="bi bi-people"></i>
@@ -111,27 +103,17 @@
       <ul id="components-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
         <li>
           <a href="{% url 'estado_cuenta' 0 'menu' ' ' ' ' %}">
-            <i class="bi bi-circle"></i><span>Estado de cuenta</span>
+            <span>Estado de cuenta</span>
           </a>
         </li>
         <li>
           <a href="{% url 'cobranza_vendedor' 0  ' ' ' ' %}">
-            <i class="bi bi-circle"></i><span>Cobranza x vendedor</span>
+           <span>Cobranza x vendedor</span>
           </a>
         </li>
         <li>
-          <a href="#">
-            <i class="bi bi-circle"></i><span>Historial cliente</span>
-          </a>
-        </li>
-        <li>
-          <a href="#">
-            <i class="bi bi-circle"></i><span>Ranking clientes</span>
-          </a>
-        </li>
-        <li>
-          <a href="">
-            <i class="bi bi-circle"></i><span>Auditoria de transac.</span>
+          <a href="{% url 'historial_pagos' 0  ' ' ' ' %}">
+           <span>Historial de pagos</span>
           </a>
         </li>
       </ul>
@@ -237,6 +219,5 @@
     identificadorIntervaloDeTiempo = setInterval(() => {
       mostrar_hora();
     }, 60 * 1000);
-    //  window.location='/inicio'
   }
 </script>

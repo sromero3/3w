@@ -197,7 +197,6 @@ class Documento(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     condicion = models.ForeignKey(Condicion, on_delete=models.CASCADE)
   
-    
     def __str__(self) -> str:
         return self.numero
     
@@ -253,7 +252,7 @@ class Pago(models.Model):
         db_table = "app_gestion_pagos"
         verbose_name = "Pago"
         verbose_name_plural = "Pagos"
-        ordering = ["fecha", "id"]
+        ordering = ["fecha", "-id"]
         #constraints = [
         #    models.UniqueConstraint(fields=["banco", "referencia"], name='asiento_restriccion')
         #]
