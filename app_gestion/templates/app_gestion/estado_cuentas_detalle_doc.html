@@ -16,7 +16,7 @@ M1 | estado_cuentas_detalle_doc
                         <i class="bi bi-arrow-return-left" title='Regresar'></i>
                     </a></h5>
 
-                <h5>Doc: {{xDoc}} </h5>
+                <h5>Doc: {{xDoc|rellenar}} </h5>
            
 
                 
@@ -41,9 +41,9 @@ M1 | estado_cuentas_detalle_doc
                                 <td align="center">-</td>
                             {% else %}
                                 {% if xDetalle.monto == "-" %}
-                                  <td >Doc: {{xDetalle.referencia}}</td>
+                                  <td >Doc: {{xDetalle.referencia|rellenar}}</td>
                                 {% else %}
-                                 <td >Ref: {{xDetalle.referencia}}</td>
+                                 <td >Ref: {{xDetalle.referencia|rellenar}}</td>
                                 {% endif %}
 
                             {% endif %}

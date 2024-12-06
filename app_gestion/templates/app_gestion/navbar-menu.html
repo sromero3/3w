@@ -80,7 +80,7 @@
     <li class="nav-item">
       <a class="nav-link" href="{% url 'documentos' 0 1 %}">
         <i class="bi bi-stickies"></i>
-        <span>&nbsp;&nbsp;Docuementos</span>
+        <span>&nbsp;&nbsp;Documentos</span>
       </a>
     </li>
     <li class="nav-item">
@@ -107,7 +107,7 @@
           </a>
         </li>
         <li>
-          <a href="{% url 'cobranza_vendedor' 0  ' ' ' ' %}">
+          <a href="{% url 'cobranza_vendedor' 0  ' ' %}">
            <span>Cobranza x vendedor</span>
           </a>
         </li>
@@ -141,14 +141,14 @@
       </a>
       <ul id="icons2-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
         <li>
-          <a href="#">
-            <span>Otro</span>
+          <a href="{% url 'tasas' %}">
+            <span>Tasas</span>
           </a>
         </li>
         <li>
-          <a href="#">
+          <!-- <a href="#">
             <span>Ciudades</span>
-          </a>
+          </a> -->
         </li>
       </ul>
     </li><!-- fin configuracion Nav -->

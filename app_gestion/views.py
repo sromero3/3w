@@ -39,9 +39,21 @@ def InicioView(request):
     qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0)
     qTotal = qDocumentos.aggregate(total=Sum("saldo")).get('total')
     total_cxc = qTotal
+
+    # Busca la tasa catual
+    xTasas = Tasa.objects.all()
+    if xTasas.exists():
+        xTasa = xTasas[0].monto
+        xActual = xTasas[0].actualizado
+    else:
+        messages.error(
+            request, "No ha fijado ninguna tasa de cambio")
+        return redirect('inicio')
     
     context = {
       'total_cxc': total_cxc,
+      'xTasa': xTasa,
+      'xActual': xActual
     }
   
     return render(request, 'app_gestion/inicio.html', context)
@@ -198,7 +210,7 @@ def Editar_clienteView(request, id):
 
 
 @login_required
-def docuementosView(request, xCliente, xDias):
+def documentosView(request, xCliente, xDias):
     xUsuario = request.user
     # print("--------- Parametros recibidos GET ----------")
     if xCliente != 0:
@@ -545,7 +557,7 @@ def Pago_cuentaView(request, id, cliente):
             # Preparar monto a procesar
             xMonto_procesar = round(Decimal((request.POST['monto_procesar'])),2)
 
-            # actualizar los documentos afectadis, campo abonado en los docuemntos   
+            # actualizar los documentos afectados, campo abonado en los docuemntos   
             for xDocumento in xDocumentos:
                 # si monto a procesar cubre el saldo del docuemnto
                 if xMonto_procesar >= xDocumento.saldo:
@@ -665,33 +677,72 @@ def Estado_cuentaView(request, id, desde, fecha_ini, fecha_fin):
 
     if request.method == 'GET':
         print("--------- Parametros recibidos GET ----------") 
-        fecha_ini  = date.today() - timedelta(days=30)
+        fecha_ini  = date.today() - timedelta(days=15)
         fecha_fin  = date.today() 
-        # print(Id)
-        # print(desde)
-        # print(fecha_ini)
-        # print(fecha_fin)
+   
         xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
         xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
+        xFecha_corte_ini  = fecha_ini - timedelta(days=1)
     else:  
         print("--------- Parametros recibidos POST ----------")
         xFecha_ini = fecha_ini
         xFecha_fin = fecha_fin 
-        # print(Id)
-        # print(desde)
-        # print(fecha_ini)
-        # print(fecha_fin)
-           
-    # obtengo los documentos
+
+        xFecha_corte_ini = datetime.strptime(fecha_ini, '%Y-%m-%d') - timedelta(days=1)
+        
+    # Buscar saldo del corte
+    print("******* buscando todos desde el inicio los documentos con fecha menor o igaul ka fecha Hasta ******** ", xFecha_corte_ini)
+    qD= Documento.objects.filter(cliente=id).filter(fecha__lte=xFecha_corte_ini).values('id','numero','fecha','monto','creado')
+    qP = Pago.objects.filter(cliente=id).filter(fecha__lte=xFecha_corte_ini).values('id','referencia','fecha','monto_procesar', 'forma__forma','creado')
+    # Prepara lista de datos    
+    xSaldo_final = Decimal(0) # reiniciar saldo
+    balance = round(xSaldo_final, 2)
+    data_lista1 = []
+    for xAsiento in qD:
+        xAsiento["documento"] = xAsiento['numero']
+        xAsiento["forma"] = "-"
+        xAsiento["dc"] = "+"
+        xAsiento["monto_m"] = xAsiento['monto']
+        xAsiento["hora"] = xAsiento['creado'].time()
+        data_lista1.append(xAsiento) # Se agrega cada registro a la lista
+
+    for xAsiento in qP:
+        xAsiento["documento"] = xAsiento['referencia']
+        xAsiento["forma"] = xAsiento['forma__forma']
+        xAsiento["dc"] = "-"
+        xAsiento["monto_m"] = xAsiento['monto_procesar']
+        xAsiento["hora"] = xAsiento['creado'].time()
+        # print(xAsiento["documento"][0:20])
+        if xAsiento["documento"][0:20] != "Abono excedente Doc:": # si la referencia del abono no es excedente
+            data_lista1.append(xAsiento) # Se agrega cada registro a la lista
+
+    # Ordeno la lista obtenida
+    data_lista_ordenada1 = sorted(data_lista1, key=itemgetter('fecha','hora'))
+
+    # Calculo el saldo balance    
+    for key in data_lista_ordenada1:
+        if key['dc'] == "+":
+            balance = balance + key['monto_m']
+        else:
+            balance = balance - key['monto_m']
+        
+        key['balance'] = balance
+        print(key['balance'])
+ 
+    xSaldo_final = balance
+    print("Saldo final del corte es  ====================>", xSaldo_final)
+ 
+
+
+
+     # ahora si obtengo los documentos a mostrar
     qDocumentos = Documento.objects.filter(cliente=id).filter(fecha__range=(fecha_ini, fecha_fin)).values('id','numero','fecha','monto','creado','abonado')
     # obtengo los pagos
     qPagos = Pago.objects.filter(cliente=id).filter(fecha__range=(fecha_ini, fecha_fin)).values('id','fecha','monto_procesar', 'forma__forma','referencia','creado')
-    
-    # Prepara lista de datos    
-    xTotal = 0
-    balance = xTotal
+  
+    balance = round(xSaldo_final, 2)
     data_lista = []
-    # data_lista.append({"balance": xTotal, "fecha": fecha_dt, "tipo__tipo": "Cierre", "concepto__concepto": "Saldo mes anterior "+xMes_nombre+" "+str(xAno) })
+    # data_lista.append({"fecha": fecha_ini, "hora": date_object, "documento": "Saldo incial del periodo", "forma": "", "dc":"", "monto_m":0})
     for xAsiento in qDocumentos:
         xAsiento["documento"] = xAsiento['numero']
         xAsiento["forma"] = "-"
@@ -706,10 +757,10 @@ def Estado_cuentaView(request, id, desde, fecha_ini, fecha_fin):
         xAsiento["dc"] = "-"
         xAsiento["monto_m"] = xAsiento['monto_procesar']
         xAsiento["hora"] = xAsiento['creado'].time()
-        print(xAsiento["documento"][0:20])
-        if xAsiento["documento"][0:20] != "Abono excedente Doc:": # si la referencia del abono es automatica
+        # print(xAsiento["documento"][0:20])
+        if xAsiento["documento"][0:20] != "Abono excedente Doc:": # si la referencia del abono no es excedente
             data_lista.append(xAsiento) # Se agrega cada registro a la lista
-  
+    
     # Ordeno la lista obtenida
     data_lista_ordenada = sorted(data_lista, key=itemgetter('fecha','hora'))
 
@@ -722,6 +773,8 @@ def Estado_cuentaView(request, id, desde, fecha_ini, fecha_fin):
          
          key['balance'] = balance
         #  print("balance:",key['balance'])
+    
+
     context = {
         'xUsuario': xUsuario,
         'xCliente_nombre': xCliente_nombre ,
@@ -730,7 +783,9 @@ def Estado_cuentaView(request, id, desde, fecha_ini, fecha_fin):
         'xDesde': desde,
         'xFecha_ini':xFecha_ini,
         'xFecha_fin': xFecha_fin,
-        'xAsientos': data_lista_ordenada
+        'xAsientos': data_lista_ordenada,
+        'xSaldo_inicial': xSaldo_final
+
     }
  
     return render(request, 'app_gestion/estado_de_cuenta.html', context)
@@ -848,7 +903,7 @@ def estado_cuentas_detalle_docView(request, id, xDoc, xMonto):
     xDoc = xDoc
     xMonto = Decimal(xMonto)
   
-    print(xMonto)
+    # print(xMonto)
     xPagos_detalle = Pago_detalle.objects.filter(documento_id = id).values('documento__fecha','pago__fecha', 'monto_procesar','pago__referencia','pago__forma__forma')
    
     xFecha = xPagos_detalle[0]["documento__fecha"]
@@ -1096,7 +1151,7 @@ def MigrarView(request):
 
 
 @login_required
-def Cobranza_vendedorView(request, xVendedor, fecha_ini, fecha_fin):
+def Cobranza_vendedorView(request, xVendedor,  fecha_fin):
     xUsuario = request.user
     if xVendedor != 0:
          xVendedor_seleccionado = xVendedor
@@ -1104,39 +1159,45 @@ def Cobranza_vendedorView(request, xVendedor, fecha_ini, fecha_fin):
         xVendedor_seleccionado   = 0
 
     xVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
+
+    actualizar_dias_vencido()
     
     if request.method == 'GET':
         # print("--------- Parametros recibidos GET ----------") 
-        fecha_ini  = date.today() - timedelta(days=30)
-        fecha_fin  = date.today() 
-        xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
+        # fecha_ini  = date.today() 
+        # xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
+        fecha_fin  = date.today() + timedelta(days=5)
         xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
+        qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0)
+        
     else:  
         # print("--------- Parametros recibidos POST ----------")
-        xFecha_ini = fecha_ini
-        xFecha_fin = fecha_fin 
-    
-    actualizar_dias_vencido()
-    qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','cliente_id','numero','credito','fecha','dias_v','vencimiento','monto','cliente_id__vendedor__id','abonado','saldo','cliente__nombre').order_by('cliente__nombre')
-   
+        xFecha_fin = fecha_fin
+        qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).filter(cliente_id__vendedor__id=xVendedor, vencimiento__lte=xFecha_fin).values('id','cliente_id','numero','credito','fecha','dias_v','vencimiento','monto','cliente_id__vendedor__id','abonado','saldo','cliente__nombre').order_by('cliente__nombre').order_by('vencimiento')
+       
+        # for x in qDocumentos:
+        #  print("Documento ",x['numero'],x['vencimiento'])
+        #  print(qDocumentos[0]['vencimiento'])
+       
+        # if qDocumentos.exists():
+        #     fecha_ini = qDocumentos[0]['vencimiento'] # fecha de vencimento del docuemto mas viejo 
+        #     xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
+        # else:
+        #     fecha_ini  = date.today() 
+        #     xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
 
-    # if xVendedor  == 0:
-    #     xDocumentos=qDocumentos.filter(fecha__range=(fecha_ini, fecha_fin))
-    # else:
-    xDocumentos=qDocumentos.filter(cliente_id__vendedor__id=xVendedor).filter(fecha__range=(fecha_ini, fecha_fin))
+    xDocumentos=qDocumentos.filter(cliente_id__vendedor__id=xVendedor)
 
     context = {
         'xUsuario': xUsuario,
         'xDocumentos': xDocumentos,
         'xVendedores': xVendedores,
         'xVendedor_seleccionado': int(xVendedor_seleccionado),
-        'xFecha_ini': xFecha_ini,
+        # 'xFecha_ini': xFecha_ini,
         'xFecha_fin': xFecha_fin,
      }
  
     return render(request, 'app_gestion/cobranza_vendedor.html', context)
-
-
 
 
 @login_required
@@ -1199,7 +1260,7 @@ def Pago_documentosView(request, id, cliente):
     form = asentar_pagoForm(request.POST)
     if request.method == 'POST':
  
-        # preparando los campos numericos
+        # preparando los campos dependeindo de que forma de pago 
         request.POST._mutable = True
         if request.POST['monto'] == "":
             request.POST['monto'] = "0,00"
@@ -1215,85 +1276,31 @@ def Pago_documentosView(request, id, cliente):
         request.POST['monto_procesar'] = quitarFormato(request.POST['monto_procesar'])
        
         if form.is_valid():
-            pago = form.save(commit=False)
-            pago.cliente_id = id
-            pago.usuario_id = request.user.id
-            # guardar el pago
-            form.save()
-            # asignar el id del pago guardado
-            xPago_id = pago.id
-
-            # Buscar los docuemntos con saldo del cliente 
-            xDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).filter(cliente=id)
-            # Preparar monto a procesar
-            xMonto_procesar = round(Decimal((request.POST['monto_procesar'])),2)
-
-            # actualizar los documentos afectadis, campo abonado en los docuemntos   
-            for xDocumento in xDocumentos:
-                # si monto a procesar cubre el saldo del docuemnto
-                if xMonto_procesar >= xDocumento.saldo:
-                   xAbono = xDocumento.saldo
-                   xDocumento.abonado = xDocumento.abonado + xAbono 
-                # el monto a procesar no cubre el saldo del documento
-                else:
-                   xAbono = xMonto_procesar  
-                   xDocumento.abonado = xDocumento.abonado + xAbono
-                   xAbono = xMonto_procesar
-                
-                # guardar detelle del pago
-                detalle = Pago_detalle(pago_id = xPago_id, documento_id =  xDocumento.id, monto_procesar = xAbono)  
-                detalle.save()
-                # actualizar el abonado del documento
-                xDocumento.save()
-             
-                print("-------------Fac: " ,xDocumento.numero,"----------------")
-                print("xMonto_procesar: " ,xMonto_procesar)
-                print("Saldo: " ,xDocumento.saldo)
-                xMonto_procesar = xMonto_procesar - xAbono
-                print("xAbono: " ,xAbono)
-                print("Monto restante",  xMonto_procesar )
-               
-                if xMonto_procesar == 0: 
-                   print("no hay mas monto_procesar")
-                   break
-            
-            # si hay excedente 
-            if xMonto_procesar > 0:
-                print("-------------Fac: " ,xDocumento.numero,"----------------")
-                xAbono = xMonto_procesar  
-                xDocumento.abonado = xDocumento.abonado + xAbono
-                xDocumento.pago = pago.id
-                
-                # Guardar detelle del pago
-                detalle = Pago_detalle(pago_id = xPago_id, documento_id =  xDocumento.id, monto_procesar = xAbono)  
-                detalle.save()
-                
-                xDocumento.save()
-               
-                # guardar el excedente
-                xExcedente = (xDocumento.monto - xDocumento.abonado) * -1
-                xE = Excedente(
-                            cli_id = xDocumento.cliente_id,
-                            doc_id= xDocumento.id,
-                            concepto = "Excedente ",
-                            monto=xExcedente,
-                            saldo=xExcedente,
-                            usuario_id=request.user.id
-                        )
-                xE.save()
-   
-                print("xMonto_procesar: " ,xMonto_procesar)
-                print("Saldo: " ,xDocumento.saldo)
-                xMonto_procesar = xMonto_procesar - xAbono
-                print("xAbono: " ,xAbono)
-                print("Monto restante",  xMonto_procesar )
-                print("--------- Sobro monto_procesar ----------")
-            
+            # recorrer el post para ver que documentos traen abono 
+            for elemento in request.POST: # iterando todo el POST
+                if ((elemento[0:15]) == "monto_ingresado"): # si el elemento es un monto
+                     xDoc_Id = elemento[16:len(elemento)]
+                     xVal = request.POST['monto_ingresado-'+str(xDoc_Id)]
+                     if xVal != '' and xVal != '0,00': # Si el monto trae valor se procesa el pago
+                        xDoc_Id = elemento[16:len(elemento)]
+                        xMonto_ingresado = quitarFormato(request.POST['monto_ingresado-'+str(xDoc_Id)])
+                        # actualizo el abonado del documento
+                        documento = Documento.objects.get(id=xDoc_Id)
+                        documento.abonado = documento.abonado + Decimal(xMonto_ingresado)
+                        documento.save() 
+                        # guardar el pago
+                        pago = form.save(commit=False)
+                        pago.cliente_id = id
+                        pago.usuario_id = request.user.id
+                        form.save() 
+                        # asignar el id del pago guardado
+                        xPago_id = pago.id
+                        # guardar detelle del pago
+                        detalle = Pago_detalle(pago_id = xPago_id, documento_id = xDoc_Id, monto_procesar = Decimal(xMonto_ingresado))  
+                        detalle.save()
+                        
             return redirect('cobranza', id, 0, 0, 0)
-        
-        # redirect
-     #    if xUsuario.profile.rango == "Usuario":  
-     #        return redirect('inicio2')
+                    
         else:
             messages.error(
                 request, "Su operación no se puedo efectuar debido a problemas en el Servidor. El formulario no es válido")
@@ -1308,3 +1315,108 @@ def Pago_documentosView(request, id, cliente):
         'xBancosdestino': xBancosdestino
     }
     return render(request, 'app_gestion/pago_documentos.html', context)
+
+
+def obtener_saldosView(request):
+    xDocumentos = Documento.objects.filter(cliente_id=request.POST.get('id')).annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','numero','abonado', 'saldo','vencimiento').order_by('id')
+    data = list(xDocumentos)
+
+    return JsonResponse(data, safe=False)
+
+@login_required
+def Guardar_tasaView(request):
+    tasa = Tasa(fecha = date.today(), monto = Decimal(request.POST.get('tasa')), usuario_id = request.user.id)  
+    tasa.save()
+    return redirect('inicio')
+
+
+@login_required
+def tasasView(request):
+    xUsuario = request.user
+    xTasas = Tasa.objects.all()
+
+    context = {
+        'xUsuario': xUsuario,
+        'xTasas': xTasas,
+      
+    }
+    return render(request, 'app_gestion/tasas.html', context)
+
+
+@login_required
+def Add_tasaView(request):
+
+    xOpcion = "Agregando"
+    xUsuario = request.user
+
+    form = tasaForm()
+    if request.method == 'POST':
+        
+        # preparando los campos numericos
+        request.POST._mutable = True
+        request.POST['monto'] = quitarFormato(request.POST['monto'])
+        request.POST['fecha'] = date.today()
+        
+        form = tasaForm(request.POST)
+   
+        if form.is_valid():
+            tasa = form.save(commit=False)
+            tasa.monto = float(request.POST.get('monto'))
+            tasa.usuario_id = request.user.id
+
+            tasa.save()
+       
+            context = {
+                'otro': True,
+                'form': form,
+                'xOpcion': xOpcion
+            }
+            #return render(request, 'app_gestion/tasa_crud.html', context)
+            return redirect('tasas')
+        else:
+            messages.error(
+                request, "Su operación no se puedo efectuar debido a problemas en el Servidor. El formulario no es válido")
+
+    context = {
+        'form': form,
+        'otro': False,
+        'xOpcion': xOpcion
+    }
+    return render(request, 'app_gestion/tasas_crud.html', context)
+
+
+@login_required
+def Editar_tasaView(request, id):
+    
+    xOpcion = "Editando"
+
+    xTasa = Tasa.objects.get(id=id)
+
+    form = tasaForm(instance=xTasa)
+    if request.method == 'POST':
+
+        # preparando los campos numericos
+        request.POST._mutable = True
+        request.POST['monto'] = quitarFormato(request.POST['monto'])
+     
+        form = tasaForm(request.POST, instance=xTasa)
+        for field in form:
+            print("Field:", field.name, "-> ", field.errors)
+        if form.is_valid():
+            form.save()
+            return redirect('tasas')
+        else:
+            messages.error(
+                request, "Su operación no se puedo efectuar debido a problemas en el Servidor. El formulario no es válido")
+
+    context = {
+        'form': form,
+        'xOpcion': xOpcion,
+        'editando': True,
+    }
+    return render(request, 'app_gestion/tasas_crud.html', context)
+
+
+
+
+

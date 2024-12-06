@@ -46,11 +46,9 @@ M1 | Historial de pagos
                     <thead>
                         <tr>
                             <th>Cliente</th>
-                            <th>Referencia</th>
                             <th>Fecha</th>
+                            <th>Referencia</th>
                             <th>Forma</th>
-                            <th>Monto Bs</th>
-                            <th>Tasa</th>
                             <th>Monto $</th>
                         </tr>  
                     </thead>
@@ -58,17 +56,19 @@ M1 | Historial de pagos
                         {% for xPago in xPagos %}
                         <tr>
                             <td>{{xPago.cliente__nombre}}</td>
-                            <td>{{xPago.referencia}}</td>
                             <td>{{xPago.fecha|date:"d/m/y"}}</td>
-                            <td>{{xPago.forma__forma}}</td>
-                            <td align="right">{{xPago.monto|darFormato}}</td>
+                            <td>{{xPago.referencia}}</td>
+                           
                             {% if xPago.forma__forma == "Transferencia Bancos Nacionales" or xPago.forma__forma == "Bolivares en Efectivo" %}
-                                <td align="right">{{xPago.tasa|darFormato}}</td>
+                                <td>{{xPago.forma__forma}}
+                                    <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                            data-bs-html="true" data-bs-title="<b>Bs. {{xPago.monto}}</b> <br> (Tasa {{xPago.tasa}})"></i>
+                                        </i></a>
+                                </td>
                             {% else %}
-                                <td align="center">-</td>
+                                <td>{{xPago.forma__forma}}</td>
                             {% endif %}
-                            <td align="right">{{xPago.monto_procesar|darFormato}}</td>
-                        </tr>
+                            <td>{{xPago.monto_procesar}}</td>
                         {% endfor %}
                     </tbody>
                     <tfoot>
@@ -119,9 +119,9 @@ M1 | Historial de pagos
             "autoWidth": true,
             "pageLength": 50,
             "scrollX": true,
-            "order": [[2, "desc"]],
+            "order": [[1, "desc"]],
             "columnDefs": [{
-                "targets": [1,5, ],
+                "targets": [ ],
                 "orderable": false
             }]
         })

@@ -17,9 +17,10 @@ class Tasa(models.Model):
     fecha = models.DateField()
     monto = models.DecimalField(
         validators=[MinValueValidator(0.01), MaxValueValidator(10000.99)], max_digits=7, decimal_places=2)
-    fuente = models.CharField(max_length=30)
+    # fuente = models.CharField(max_length=30)
     createdo = models.DateTimeField(auto_now_add=True)
     actualizado = models.DateTimeField(auto_now=True)
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     
     def __str__(self):
         return self.fuente

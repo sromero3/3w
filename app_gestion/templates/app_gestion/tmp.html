@@ -11,6 +11,9 @@ ALTER SEQUENCE app_gestion_pago_detalle_id_seq RESTART
 <option value={{xCredito.id}} data-dias_credito="{{xCredito.dia}}">
     {{xCredito.dia}}
 </option>
+let id = document.getElementById('cliente').dataset.cliente_id
+
+
 
 // var hoy = new Date() 
 
@@ -126,3 +129,46 @@ function obtener_ciudades(id) {
         }
     })
 }
+
+
+
+                        
+xFecha  = datetime.strptime(fecha_fin, '%Y-%m-%d') - timedelta(days=1)
+qD= Documento.objects.filter(cliente=id).filter(fecha__range=(fecha_ini, xFecha)).values('id','numero','fecha','monto','creado','abonado')
+# 
+qP = Pago.objects.filter(cliente=id).filter(fecha__range=(fecha_ini, xFecha)).values('id','fecha','monto_procesar', 'forma__forma','referencia','creado')
+# Prepara lista de datos    
+xSaldo_inicial = Decimal(0) # tengo que conseguier esta valor
+balance = round(xSaldo_inicial, 2)
+data_lista1 = []
+for xAsiento in qD:
+    xAsiento["documento"] = xAsiento['numero']
+    xAsiento["forma"] = "-"
+    xAsiento["dc"] = "+"
+    xAsiento["monto_m"] = xAsiento['monto']
+    xAsiento["hora"] = xAsiento['creado'].time()
+    data_lista1.append(xAsiento) # Se agrega cada registro a la lista
+
+for xAsiento in qP:
+    xAsiento["documento"] = xAsiento['referencia']
+    xAsiento["forma"] = xAsiento['forma__forma']
+    xAsiento["dc"] = "-"
+    xAsiento["monto_m"] = xAsiento['monto_procesar']
+    xAsiento["hora"] = xAsiento['creado'].time()
+    # print(xAsiento["documento"][0:20])
+    if xAsiento["documento"][0:20] != "Abono excedente Doc:": # si la referencia del abono no es excedente
+        data_lista1.append(xAsiento) # Se agrega cada registro a la lista
+
+# Ordeno la lista obtenida
+data_lista_ordenada1 = sorted(data_lista1, key=itemgetter('fecha','hora'))
+
+# Calculo el saldo balance    
+for key in data_lista_ordenada1:
+     if key['dc'] == "+":
+        balance = balance + key['monto_m']
+     else:
+        balance = balance - key['monto_m']
+     
+        key['balance'] = balance
+    
+print("=====",balance)

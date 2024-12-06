@@ -33,11 +33,11 @@ M1 | Cobranza x vendedores
                             </select>
                       
                         </div>
-                        <div class="col-md-4">
+                        <!-- <div class="col-md-4">
                             <span class="titulos">
                                 Desde</span>
                             <input type="date" id="fecha_ini" name="fecha_ini" value="{{xFecha_ini}}" class="form-control alto" onChange="obtener_documentos()"/>
-                        </div>
+                        </div> -->
                         <div class="col-md-4">
                             <span class=" titulos">
                                 Hasta</span>
@@ -117,10 +117,10 @@ M1 | Cobranza x vendedores
                 "colvis": "Visibilidad"
             }
         },
-    ordering: false,    
-    order: [[2, 'asc']],
+    ordering: true,    
     paging: false,
     searching: false,
+    order: [[4, 'asc']],
     rowGroup: {
         dataSrc: 4,
         endRender: function (rows, group) {
@@ -147,8 +147,12 @@ M1 | Cobranza x vendedores
     // obtener docuemntos
     function obtener_documentos() {
         // console.log(document.getElementById('cliente').value)
-        filtros.action = `/cobranza_vendedor/${vendedor.value}/${fecha_ini.value}/${fecha_fin.value}/`
+        // filtros.action = `/cobranza_vendedor/${vendedor.value}/${fecha_ini.value}/${fecha_fin.value}/`
+        filtros.action = `/cobranza_vendedor/${vendedor.value}/${fecha_fin.value}/`
         filtros.submit()
     } // fin obtener docuemntos
+
+
+    
 </script>
 {% endblock Scripts_Adicionales %}

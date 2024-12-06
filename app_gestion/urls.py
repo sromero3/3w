@@ -12,7 +12,7 @@ urlpatterns = [
      ), name="login"), 
      #       url     -    vista     -    nombre_u
      path('inicio/', views.InicioView, name='inicio'),
-     path('documentos/<int:xCliente>/<int:xDias>/', views.docuementosView, name='documentos'),
+     path('documentos/<int:xCliente>/<int:xDias>/', views.documentosView, name='documentos'),
      path('add_documento/', views.add_documentoView, name='add_documento'),
      path('editar_documento/<int:id>/', views.Editar_documentoView, name='editar_documento'),
      path('clientes/<int:xStatus>/<int:xVendedor>/', views.ClientesView, name='clientes'),
@@ -24,12 +24,18 @@ urlpatterns = [
      path('cobranza/<int:xCliente>/<int:xVendedor>/<int:xIva>/<int:xVencido>/', views.cobranzaView, name='cobranza'),
      path('pago_cuenta/<int:id>/<cliente>/', views.Pago_cuentaView, name='pago_cuenta'),
      path('pago_documentos/<int:id>/<cliente>/', views.Pago_documentosView, name='pago_documentos'),
+     path('guardar_tasa/', views.Guardar_tasaView, name='guardar_tasa'),
+
+     path('tasas/', views.tasasView, name='tasas'),
+     path('add_tasa/', views.Add_tasaView, name='add_tasa'),
+     path('editar_tasa/<int:id>/', views.Editar_tasaView, name='editar_tasa'),
+    #  path('elimina_tasa/<int:id>/', views.Eliminar_tasaView, name='eliminar_tasa'),
      
 
      # Consultas
      path('estado_cuentas/<int:id>/<desde>/<fecha_ini>/<fecha_fin>/', views.Estado_cuentaView, name='estado_cuenta'),
      path('estado_cuentas_detalle_doc/<int:id>/<xDoc>/<xMonto>/', views.estado_cuentas_detalle_docView, name='estado_cuentas_detalle_doc'),
-     path('cobranza_vendedor/<int:xVendedor>/<fecha_ini>/<fecha_fin>/', views.Cobranza_vendedorView, name='cobranza_vendedor'),
+     path('cobranza_vendedor/<int:xVendedor>/<fecha_fin>/', views.Cobranza_vendedorView, name='cobranza_vendedor'),
      path('historial_pagos/<int:xCliente>/<fecha_ini>/<fecha_fin>/', views.Historial_pagosView, name='historial_pagos'),
 
      # ajax
@@ -45,6 +51,7 @@ urlpatterns = [
      path('agregar_cliente_desde_agregar_documento/', views.agregar_cliente_desde_agregar_documentoView, name='agregar_cliente_desde_agregar_documento'),
      path('obtener_clientes/', views.obtener_clientesView, name='obtener_clientes'),
      path('validar_vendedor/', views.Validar_vendedorView, name='validar_vendedor'),
+     path('obtener_saldos/', views.obtener_saldosView, name='obtener_saldos'),
 
      
      # Migrar

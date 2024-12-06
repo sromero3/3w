@@ -1,0 +1,119 @@
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+{% block title %}
+M1 | Documentos crud
+{% endblock %}
+{% block styles %}
+{% endblock styles %}
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ xOpcion }} un Tasa<a href="{% url 'tasas' %}"
+                        class="float-end"><i class="bi bi-arrow-return-left" title='Regresar'></i></a></h5>
+                <form id="tasa_form" action="" method="post" class="row g-3">
+                    {% csrf_token %}
+                    <!-- ------------------------------------ agregando ------------------------------------- -->
+                    {% if xOpcion == 'Agregando' %}
+                        <div id="div_ref" class="col-md-6">
+                            <span class="titulos"> {{form.monto.label}}</span>
+                            {{form.monto}}
+                        </div>
+                    {% endif %} <!-- fin agregando -->
+                    <!-- ------------------------------------ editando ------------------------------------- -->
+                    {% if xOpcion == 'Editando' %}
+                        <div class="col-6" hidden>
+                            <span class="titulos">
+                                {{form.fecha.label}}</span><span id="hoy" class="boton-ajustado-a-la-derecha"
+                                onclick="get_hoy(id_fecha)">HOY</span>
+                            {{form.fecha}}
+                        </div>
+                        <div class="col-md-6">
+                            <span class="titulos">{{form.monto.label}}</span>
+                            {{form.monto}}
+                        </div>
+                    {% endif %} <!-- fin editando -->
+                    <!-- Botones -->
+                    <div class="text-center">
+                        <button type="submit" id="guardar" class="btn btn-primary"
+                            onclick="validar(event)">Guardar</button>
+                        <button type="button" class="btn btn-secondary"
+                            onclick="javascript:window.location='/tasas'">Regresar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main><!-- End #main -->
+
+<
+
+
+{% endblock content %}
+
+{% block Scripts_Adicionales %}
+{% if otro %}
+<script>
+    Swal.fire({
+        title: "Su operación ha sido exitosa!",
+        //text: "",
+        icon: "success"
+    });
+</script>
+{% endif %}
+
+<script>
+    checkPattern("id_monto")
+    // Si editando dar formato
+    if (document.getElementById('id_monto').value != "") {
+        document.getElementById('id_monto').value = darFormato(document.getElementById('id_monto').value)
+    }
+
+    // formatear entrada
+    function checkPattern(e) {
+        $("#" + e).on({
+            "focus": function (event) {
+                $(event.target).select()
+            },
+            "keyup": function (event) {
+                $(event.target).val(function (index, value) {
+                    return value.replace(/\D/g, "")
+                        .replace(/([0-9])([0-9]{2})$/, '$1,$2')
+                        .replace(/\B(?=(\d{3})+(?!\d)\.?)/g, ".")
+                })
+            }
+        })
+    } // fin formatear entrada
+
+    // validar formulario
+    function validar(e) {
+        const form = document.getElementById('tasa_form') // tomo el nombre del formulario
+        // si validar
+        if (form.checkValidity()) {
+            e.preventDefault()
+   
+            // Condirmar
+         
+            Swal.fire({
+                title: '¿ Esta seguro de guardar ?',
+                // html: `DOC: ${n}<br>DE: ${c_texto}<br><h1>${m}$</h1> `,
+                showDenyButton: true,
+                // showCancelButton: true,
+                confirmButtonText: "Guardar",
+                denyButtonText: `Descartar`
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('tasa_form').submit()
+                } else {
+                    return false
+                }
+            }) // fin Confirmar        
+        } // fin de checkValidity()
+    } // fin validar formulario
+  
+
+
+</script>
+{% endblock Scripts_Adicionales %}

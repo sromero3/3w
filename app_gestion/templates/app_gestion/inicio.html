@@ -33,7 +33,7 @@ M1 | Inicio
                 <!-- Sales Card -->
                 <div class="col-xxl-4 col-md-6">
                     <div class="card info-card sales-card">
-
+<!-- 
                         <div class="filter">
                             <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
                             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
@@ -45,10 +45,10 @@ M1 | Inicio
                                 <li><a class="dropdown-item" href="#">This Month</a></li>
                                 <li><a class="dropdown-item" href="#">This Year</a></li>
                             </ul>
-                        </div>
+                        </div> -->
 
                         <div class="card-body">
-                            <h5 class="card-title">Total CxC <span></span></h5>
+                            <h5 class="card-title">Total cuentas por cobrar <span></span></h5>
 
                             <div class="d-flex align-items-center">
                                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
@@ -72,7 +72,7 @@ M1 | Inicio
                 <div class="col-xxl-4 col-md-6">
                     <div class="card info-card revenue-card">
 
-                        <div class="filter">
+                        <!-- <div class="filter">
                             <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
                             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
                                 <li class="dropdown-header text-start">
@@ -83,20 +83,16 @@ M1 | Inicio
                                 <li><a class="dropdown-item" href="#">This Month</a></li>
                                 <li><a class="dropdown-item" href="#">This Year</a></li>
                             </ul>
-                        </div>
+                        </div> -->
 
                         <div class="card-body">
-                            <h5 class="card-title">Tasa <span>| This Month</span></h5>
-
+                            <h5 class="card-title">Tasa <span>|</span><span style="color: rgb(88, 87, 87);"> {{xActual}}</span></h5>
                             <div class="d-flex align-items-center">
                                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                    <i class="bi bi-cup"></i>
+                                    <a href="javascript:abrir_modal()"> <i class="bi bi-cup"></i></a>
                                 </div>
                                 <div class="ps-3">
-                                    <h6>38,88 bs</h6>
-                                    <!-- <span class="text-success small pt-1 fw-bold">8%</span> <span
-                                        class="text-muted small pt-2 ps-1">increase</span> -->
-
+                                     <h6>{{xTasa|darFormato}} bs.</h6>
                                 </div>
                             </div>
                         </div>
@@ -109,7 +105,7 @@ M1 | Inicio
 
                     <div class="card info-card customers-card">
 
-                        <div class="filter">
+                        <!-- <div class="filter">
                             <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
                             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
                                 <li class="dropdown-header text-start">
@@ -120,19 +116,19 @@ M1 | Inicio
                                 <li><a class="dropdown-item" href="#">This Month</a></li>
                                 <li><a class="dropdown-item" href="#">This Year</a></li>
                             </ul>
-                        </div>
+                        </div> -->
 
                         <div class="card-body">
-                            <h5 class="card-title">Otro<span>| This Year</span></h5>
+                            <h5 class="card-title">Otro<span>| Otro</span></h5>
 
                             <div class="d-flex align-items-center">
                                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
                                     <i class="bi bi-people"></i>
                                 </div>
                                 <div class="ps-3">
-                                    <h6>1244</h6>
+                                    <!-- <h6>1244</h6>
                                     <span class="text-danger small pt-1 fw-bold">12%</span> <span
-                                        class="text-muted small pt-2 ps-1">decrease</span>
+                                        class="text-muted small pt-2 ps-1">decrease</span> -->
 
                                 </div>
                             </div>
@@ -148,4 +144,54 @@ M1 | Inicio
         </div>
     </section>
 </main>
+
+<button type="button" id="modal_tasa" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#smallModal"
+        hidden>
+        Small Modal
+    </button>
+    <!-- modal -->
+    <div class="modal fade" id="smallModal" tabindex="-1" style="margin-top: 100px;">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="card-title">Nueva tasa</h5>
+                </div>
+                <form  id="modal-form" action="{% url 'guardar_tasa' %}" method="post">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <span class="titulos">Tasa</span>
+                        <input id="tasa" name="tasa" class="form-control alto" required/>
+                        
+                     
+                        
+                        <input type="text" id="modal_i" hidden >
+                    </div>
+                    <div class="modal-footer justify-content-center">
+                        <!-- onclick="javascript:window.location='/clientes/1/0/'" -->
+                        <button type="submit"   class="btn btn-primary" id="gurdar_tasa" 
+                        onclick="validar(event)">Guardar</button>
+                        <button type="button" class="btn btn-secondary" id="cerrar" data-bs-dismiss="modal">Descartar</button>
+                        
+                    </div>
+                </form>
+            </div> <!-- fin modal content -->
+        </div> <!-- fin modal-dialog -->
+    </div><!-- fin modal-->
+
 {% endblock content %}
+{% block Scripts_Adicionales %}
+<script>
+
+    function abrir_modal() {
+        modal_tasa.click();
+    }
+
+    function validar(e) {
+        const form = document.getElementById('modal-form'); // tomo el nombre del formulario
+        // si validar
+            if (form.checkValidity()) {
+                 form.click()
+             }
+    }
+</script>
+{% endblock Scripts_Adicionales %}

@@ -21,6 +21,7 @@ M1 | Documentos
                     </a></h5>
                 {% endif %}
 
+
                 <form id="filtros" action="" method="post" class="mb-4">
                     {% csrf_token %}
                     <div class="row">
@@ -67,6 +68,15 @@ M1 | Documentos
                         </tr>
                     </thead>
                     <tbody>
+                        <tr>
+                            
+                            <td ></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>                              
+                            <td></td>
+                            <td align="right">{{xSaldo_inicial|darFormato}}</td>
+                        </tr>
                         {% for xAsiento in xAsientos %}
                         <tr>
                             <td>{{xAsiento.fecha|date:"d/m/y"}}</td>

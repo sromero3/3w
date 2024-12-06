@@ -2,7 +2,7 @@ from django import forms
 from django.forms import DateField, DateInput, FloatField, ModelForm
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from app_gestion.models import Pago, Documento, Cliente, Vendedor
+from app_gestion.models import Pago, Documento, Cliente, Vendedor, Tasa
 
 
 class DateInput(forms.DateInput):
@@ -107,6 +107,28 @@ class agregar_vendedorForm(ModelForm):
     class Meta:
         model = Vendedor
         fields = ('cedula','nombre','ciudad','status')
+
+
+
+class tasaForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(tasaForm, self).__init__(*args, **kwargs)
+        for visible in self.visible_fields():
+            visible.field.widget.attrs['class'] = 'form-control'
+
+        self.fields['monto'].widget.input_type = 'text' #Pasa el campo numerico a texto
+
+        self.fields['monto'].widget.attrs.update(
+          { 'maxlength': '6', 'class': 'form-control input-numero alto',
+             'onblur': "FormatearNumerosInputs(this)"
+            })
+      
+    class Meta:
+        model = Tasa
+        fields = ('fecha', 'monto')
+        widgets = {
+            'fecha': DateInput(format=('%Y-%m-%d'))
+        }
 
 
 

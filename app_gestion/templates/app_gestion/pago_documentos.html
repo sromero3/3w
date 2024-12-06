@@ -27,7 +27,7 @@ M1 | Pago a documentos
                         <span class="titulos">
                             Cliente</span>
                         <input type="text" class="form-control alto" id="cliente" name="cliente"
-                            value="{{xCliente}}" readonly>
+                            value="{{xCliente}}" data-cliente_id="{{xId}}" readonly>
                     </div>
                     <div class="col-6">
                         <span class="titulos">
@@ -77,9 +77,30 @@ M1 | Pago a documentos
                     <div id="div_monto_procesar" class="col-md-6" hidden>
                         <span class="titulos">{{form.monto_procesar.label}}</span>
                         <input id="monto_procesar" name="monto_procesar" class="form-control input-numero alto"
-                            readonly maxlength="10"></input>
+                            readonly maxlength="10" onChange="obtener_saldos()"></input>
                     </div>
                     <!-- fin Campos variables -->
+
+                    <!-- tabla de pagos -->
+                    <div id="nota" class="text-center m-2" style="display: none;">
+                        Distribuya el monto a pagar, hasta que el la casilla de Residuo <strong
+                            style="color: #1977cc"> azul</strong> quede en <span>0,00</span>
+                    </div>
+                    <!-- 5ta fila  -->
+                    <div class="mb-0">
+                        <table id="tabla_saldos" class="table table-hover table-bordered " style="width:100%; display: none;">
+                            <thead>
+                                <tr>
+                                    <th>Docuemnto</th>
+                                    <th>Vencimiento</th>
+                                    <th>Pendiente</th>
+                                    <th>Monto</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla_saldos-tbody">
+                            </tbody>
+                        </table>
+                    </div>
 
                     <div class="col-12 pb-4">
                         <span class="titulos">
@@ -105,8 +126,20 @@ M1 | Pago a documentos
 {% endblock content %}
 {% block Scripts_Adicionales %}
 <script>
+    new DataTable('#tabla_saldos', {
+    bInfo : false,
+    ordering: false,    
+    order: [[2, 'asc']],
+    paging: false,
+    searching: false,
+});
     // mostrar campos
     function mostrar_campos() {
+        if (document.getElementById("residuo")){
+            document.getElementById("residuo").value = ""
+           
+            document.getElementById('residuo').placeholder='0,00';
+        }
 
         if (document.getElementById('forma').value == 1) { // Transferencia Bancos Nacionales
             document.getElementById("div_ref").removeAttribute('hidden')
@@ -140,7 +173,7 @@ M1 | Pago a documentos
                     select_tipo.html(options)
                 },
                 error: function (xhr, txtStatus, error) {
-                    console.log(xhr, txtStatus, error);
+                    console.log(xhr, txtStatus, error)
                 }
             }) // cargar bancos destinos
         } // fin forma 1
@@ -194,7 +227,7 @@ M1 | Pago a documentos
                     select_tipo.html(options)
                 },
                 error: function (xhr, txtStatus, error) {
-                    console.log(xhr, txtStatus, error);
+                    console.log(xhr, txtStatus, error)
                 }
             }) // cargar bancos destinos
         } // fin forma 3
@@ -211,8 +244,11 @@ M1 | Pago a documentos
             document.getElementById("div_ban").hidden = true
             document.getElementById('banco_destino').removeAttribute("required")
         }
+
+        
     } // fin mostrar campos
 
+ 
 
     checkPattern("monto")
     checkPattern("monto_procesar")
@@ -249,7 +285,150 @@ M1 | Pago a documentos
             }
             document.getElementById('monto_procesar').value = darFormato(m_p)
         }
+        obtener_saldos()
     } // fin calculara monto en dolares
+
+
+    //  obtener los saldos 
+    function obtener_saldos() {
+        
+        // if (document.getElementById('monto_procesar')) {
+            // Muestro la tabla 
+            document.getElementById('nota').style.display = 'block'
+            document.getElementById('tabla_saldos').style.display = 'inline-table'
+            let id = document.getElementById('cliente').dataset.cliente_id
+        // }else{
+        //     document.getElementById('tabla_saldos').style.display = 'none'
+        //     document.getElementById('nota').style.display = 'none'
+        //     return
+        // }
+
+        $.ajaxSetup({
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+        })
+        $.ajax({
+            url: "{% url 'obtener_saldos' %}",
+            type: 'POST',
+            data: {
+                'id': id,
+            },
+            datatype: 'json',
+            success: function (data) {
+                html = ""
+                let S = 0
+                $.each(data, function (key, item) {
+                    saldo_monto = darFormato(item.saldo)
+                
+                    // id = (item.concepto)
+                    // id_concepto = id.toString().padStart(10, '0')
+                    num = item.numero.padStart(10, '0')
+                    html +=
+                        `<tr>
+                            <td style="width:50px">${num}
+                            </td>
+                            
+                            <td style="width:200px">
+                               ${item.vencimiento} 
+                            </td>
+                               
+                            <td style="width:70px">
+                                <input readonly id="saldodoc-${item.id}" name="saldodoc-${item.id}"
+                                value=${saldo_monto} class="form-control input-numero alto">
+                            </td>
+                            
+                            <td style="width:70px">
+                                <input id="monto${item.id}" placeholder="0,00" maxlength="9" 
+                                onChange="aplicarPago(${item.id})"
+                                name="monto_ingresado-${item.id}" data-saldo="${saldo_monto}" 
+                                class="form-control input-numero alto table-input">
+                            </td>
+                        </tr>`
+                    S += parseFloat(item.saldo) // Acumulador de total saldo
+                })
+                let sf = darFormato(S)
+                let v = document.getElementById("monto_procesar").value
+                
+                html +=
+                    `<tr>
+                        <td colspan="2">
+                        </td>
+                        <td>
+                            <input id="total-saldo" class="form-control input-numero alto" 
+                            value=${sf} readonly>
+                         </td>
+                        <td>
+                            <input id="residuo"  class="form-control input-numero alto"
+                            style="color: #1977cc" 
+                            value=${v} readonly>
+                        </td>
+                    </tr>`
+                // Pintando la tabla
+                $('#tabla_saldos-tbody').html(html)
+                $.each(data, function (key, item) {
+                    checkPattern(`monto${item.id}`)
+                })
+                // Verificando si hay excedente    
+                // var operarV = quitarFormato(v) * 1
+                // var operarSf = quitarFormato(sf) * 1
+                // if (operarV > operarSf) {
+                //     var exced = operarV - operarSf
+                //     $.each(data, function (key, item) {
+                //         document.getElementById(`monto${item.concepto}`).value = darFormato(item.saldo_monto)
+                //         if (key == (data.length - 1)) {  // Si es el ultimo
+                //             let operarS = item.saldo_monto * 1 + exced
+                //             document.getElementById(`monto${item.concepto}`).value = darFormato(operarS)
+                //             document.getElementById('residuo').value = darFormato(0)
+                //             document.getElementById('id_descripcion').focus()
+                //         }
+                //         document.getElementById(`monto${item.concepto}`).readOnly = true
+                //     })
+                // } else {
+                //     $.each(data, function (key, item) {
+                //         checkPattern(`monto${item.concepto}`)
+                //         //document.getElementById(`monto${data[0].concepto}`).focus()
+                //         document.getElementById('id_fecha').focus()
+                //     })
+                // }
+            },
+            error: function (xhr, status, error) {
+                console.log(xhr.responseText)
+            }
+        })
+    } //  fin obtener los saldos 
+
+    // funcion para aplicar los pagos
+    function aplicarPago(id) {
+        // console.log("id:",id)
+        FormatearNumerosInputs(document.getElementById('monto' + id));
+        let inputs = document.getElementsByClassName("table-input");
+        let ultimo = inputs.length
+        // console.log("Cantidad de inputs:", ultimo)
+        let totalinputs = 0.00;
+        let r = quitarFormato(document.getElementById("residuo").value) * 1;
+        //console.log("Disponible para abonar", r)
+        $.each(inputs, function (key, item) {
+            //console.log('Key del obj:', key, "Parametro", id, 'Input_id', item.id, "Valor", item.value)
+            //if (item.value != "") {
+            let tmpM = quitarFormato(item.value) * 1;
+            let tmpS = quitarFormato(item.dataset.saldo) * 1;
+            //  console.log(tmpM, "Monto posible", tmpS)
+            if (tmpM > tmpS) {
+                tmpM = tmpS
+                document.getElementById('monto' + id).value = darFormato(tmpM)
+            }
+
+            totalinputs += quitarFormato(item.value) * 1;
+            //console.log("Total ingresado", totalinputs)
+
+        })
+        let montoprocesar = quitarFormato(document.getElementById("monto_procesar").value) * 1;
+        let saldo_residuo = montoprocesar - totalinputs;
+        document.getElementById("residuo").value = darFormato(saldo_residuo);
+        //console.log("Disponible para abonar", saldo_residuo)
+    } // aplicar pagos
+
 
     // validar formulario
     function validar(e) {
@@ -329,8 +508,47 @@ M1 | Pago a documentos
                     }
                 })// fin Confirmar
             }//validar referencia 
+
+            // validar pendiente
+            let rTmp2 = quitarFormato(document.getElementById("total-saldo").value) * 1;
+            let rTmp3 = quitarFormato(document.getElementById("monto_procesar").value) * 1;
+            if (rTmp3 > rTmp2 ) {
+                // document.getElementById("residuo").focus();
+                Swal.fire({
+                    position: 'center',
+                    icon: 'error',
+                    title: 'El Monto a procesar debe ser menor que el pendiente. Verifique...!',
+                    showConfirmButton: true,
+                    //timer: 2500
+                })
+                return;
+            }  // fin validar pendiente
+
+             // validar residuo
+            let rTmp = quitarFormato(document.getElementById("residuo").value) * 1;
+            if (rTmp != 0) {
+                document.getElementById("residuo").focus();
+                Swal.fire({
+                    position: 'center',
+                    icon: 'error',
+                    title: 'El Monto residuo en azul debe quedar en 0,00. Verifique...!',
+                    showConfirmButton: true,
+                    //timer: 2500
+                })
+                return;
+            }  // fin validar residuo
+
+          
         }// fin de checkValidity()
+
+        
+
     } // fin validar formulario
+
+
+  
+       
+ 
 
 </script>
 {% endblock Scripts_Adicionales %}
