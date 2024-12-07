@@ -50,15 +50,15 @@ M1 | Historial de pagos
                             <th>Referencia</th>
                             <th>Forma</th>
                             <th>Monto $</th>
+                            <th>Opcion</th>
                         </tr>  
                     </thead>
                     <tbody>
                         {% for xPago in xPagos %}
                         <tr>
                             <td>{{xPago.cliente__nombre}}</td>
-                            <td>{{xPago.fecha|date:"d/m/y"}}</td>
+                            <td>{{xPago.fecha}}</td>
                             <td>{{xPago.referencia}}</td>
-                           
                             {% if xPago.forma__forma == "Transferencia Bancos Nacionales" or xPago.forma__forma == "Bolivares en Efectivo" %}
                                 <td>{{xPago.forma__forma}}
                                     <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
@@ -68,7 +68,12 @@ M1 | Historial de pagos
                             {% else %}
                                 <td>{{xPago.forma__forma}}</td>
                             {% endif %}
-                            <td>{{xPago.monto_procesar}}</td>
+                            <td align="right">{{xPago.monto_procesar|darFormato}}</td>
+                            <td class="text-center" style="width:50px">
+                                <a href="#">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </td>
                         {% endfor %}
                     </tbody>
                     <tfoot>
@@ -121,7 +126,7 @@ M1 | Historial de pagos
             "scrollX": true,
             "order": [[1, "desc"]],
             "columnDefs": [{
-                "targets": [ ],
+                "targets": [5 ],
                 "orderable": false
             }]
         })

@@ -160,7 +160,7 @@ M1 | Inicio
                     {% csrf_token %}
                     <div class="modal-body">
                         <span class="titulos">Tasa</span>
-                        <input id="tasa" name="tasa" class="form-control alto" required/>
+                        <input id="tasa" name="tasa" class="form-control input-numero alto" maxlength="6" required/>
                         
                      
                         
@@ -193,5 +193,23 @@ M1 | Inicio
                  form.click()
              }
     }
+
+    checkPattern("tasa")
+
+    // formatear entrada
+    function checkPattern(e) {
+    $("#" + e).on({
+        "focus": function (event) {
+            $(event.target).select()
+        },
+        "keyup": function (event) {
+            $(event.target).val(function (index, value) {
+                return value.replace(/\D/g, "")
+                    .replace(/([0-9])([0-9]{2})$/, '$1,$2')
+                    .replace(/\B(?=(\d{3})+(?!\d)\.?)/g, ".")
+            })
+        }
+    })
+    } // fin formatear entrada
 </script>
 {% endblock Scripts_Adicionales %}
