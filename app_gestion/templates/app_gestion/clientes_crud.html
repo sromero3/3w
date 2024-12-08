@@ -180,6 +180,7 @@ M1 | Clientes crud
     // validar formulario
     function validar(e) {
         const form = document.getElementById('cliente_form') // tomo el nombre del formulario
+        console.log("******", '{{ xOpcion }}')  
         // si validar
         if (form.checkValidity()) {
             e.preventDefault()
@@ -188,7 +189,6 @@ M1 | Clientes crud
             let Var_numero = document.getElementById('prefijo_r').value + document.getElementById('id_ced_rif').value
             if (Var_rNum != Var_numero) {
                 var existe = false
-                // console.log("******", '{{ xOpcion }}')
                 let campo = $('#prefijo_r').val() + $('#id_ced_rif').val()
                 $.ajax({
                     url: "{% url 'validar_cliente' %}",

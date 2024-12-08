@@ -58,7 +58,22 @@ M1 | Historial de pagos
                         <tr>
                             <td>{{xPago.cliente__nombre}}</td>
                             <td>{{xPago.fecha}}</td>
-                            <td>{{xPago.referencia}}</td>
+
+
+                            {% if xPago.observacion == "" %}
+                                <td>{{xPago.referencia}}</td>
+                            {% else %}
+                                <td>{{xPago.referencia}}
+                                    <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                            data-bs-html="true" data-bs-title="{{xPago.observacion}}<br>"></i>
+                                        </i></a>
+                                </td>
+                            {% endif %}
+                           
+
+
+
+                            
                             {% if xPago.forma__forma == "Transferencia Bancos Nacionales" or xPago.forma__forma == "Bolivares en Efectivo" %}
                                 <td>{{xPago.forma__forma}}
                                     <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
@@ -70,14 +85,13 @@ M1 | Historial de pagos
                             {% endif %}
                             <td align="right">{{xPago.monto_procesar|darFormato}}</td>
                             <td class="text-center" style="width:50px">
-                                <a href="#">
+                                <a href="{% url 'pago_cuenta_corregir' xPago.id %}">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                             </td>
                         {% endfor %}
                     </tbody>
                     <tfoot>
-         
                     </tfoot>
                 </table>
             </div>
@@ -138,5 +152,10 @@ M1 | Historial de pagos
         filtros.action = `/historial_pagos/${cliente.value}/${fecha_ini.value}/${fecha_fin.value}/`
         filtros.submit()
     } // fin obtener docuemntos
+
+    
+    // tool tip
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 </script>
 {% endblock Scripts_Adicionales %}

@@ -642,13 +642,12 @@ def Pago_cuentaView(request, id, cliente):
 # validar referencia de pago
 def Validar_referenciaView(request):
     data = {'status': True}
-    # print('Dato: ',request.POST.get('campo'))
+    print('Dato: ',request.POST.get('campo'))
    
     # para campos repetidos
     xRegistros = Pago.objects.filter(referencia=request.POST.get('campo'))
     if xRegistros.exists():
-        for xRegistro in xRegistros:
-            print("Resgistros encontados: ", xRegistros.count())
+        print("Resgistros encontados: ", xRegistros.count())
     else:
         data = {'status': False}
     
@@ -845,8 +844,7 @@ def Validar_clienteView(request):
     # para campos repetidos
     xRegistros = Cliente.objects.filter(ced_rif=request.POST.get('campo'))
     if xRegistros.exists():
-        for xRegistro in xRegistros:
-            print("Resgistros encontados: ", xRegistros.count())
+        print("Resgistros encontados: ", xRegistros.count())
     else:
         data = {'status': False}
     
@@ -1221,7 +1219,7 @@ def Historial_pagosView(request, xCliente, fecha_ini, fecha_fin):
         xFecha_ini = fecha_ini
         xFecha_fin = fecha_fin 
     
-    qPagos=Pago.objects.filter(fecha__range=(fecha_ini, fecha_fin)).values('cliente_id','referencia','fecha','monto','monto_procesar','forma__forma', 'tasa','cliente__nombre' )
+    qPagos=Pago.objects.filter(fecha__range=(fecha_ini, fecha_fin)).values('id','cliente_id','referencia','fecha','monto','monto_procesar','forma__forma', 'tasa','cliente__nombre','observacion' )
 
     if xCliente == 0 :
        xPagos=qPagos.all()
@@ -1415,6 +1413,73 @@ def Editar_tasaView(request, id):
         'editando': True,
     }
     return render(request, 'app_gestion/tasas_crud.html', context)
+
+
+@login_required
+def Pago_cuenta_corregirView(request, id):
+    xUsuario = request.user
+ 
+    xFormas = PagoForma.objects.order_by('orden').exclude(id=5)
+    xBancosdestino = BancoDestino.objects.exclude(id=6)
+
+    # Obtengo el registro a editar
+    xPago = Pago.objects.get(id=id)
+    xCliente = Cliente.objects.get(id=xPago.cliente.id)
+    rFormaId = xPago.forma.id
+    rMonto_procesar = xPago.monto_procesar 
+    
+    form = asentar_pagoForm(instance=xPago)
+    if request.method == 'POST':
+ 
+        # preparando los campos numericos
+        request.POST._mutable = True
+        if request.POST['monto'] == "":
+            request.POST['monto'] = "0,00"
+
+        if request.POST['banco_destino'] == "":
+            request.POST['banco_destino'] = "6"
+      
+        if request.POST['referencia'] == "":
+            request.POST['referencia'] = "-"
+
+        request.POST['monto'] = quitarFormato(request.POST['monto'])
+        request.POST['tasa'] = quitarFormato(request.POST['tasa'])
+        request.POST['monto_procesar'] = quitarFormato(request.POST['monto_procesar'])
+
+        form = asentar_pagoForm(request.POST, instance=xPago)
+      
+        if form.is_valid():
+            # Grabagrel pago viejo  para auditoria 
+            # ===================== borra todas los registos de este pago ================
+            pago = form.save(commit=False)
+            pago.cliente_id = xPago.cliente.id
+            pago.usuario_id = request.user.id
+            # guardar el pago
+            form.save()
+            # asignar el id del pago guardado
+            xPago_id = pago.id
+                    
+   
+            return redirect('historial_pagos', 0, ' ', ' ')
+        
+
+        else:
+            messages.error(
+                request, "Su operación no se puedo efectuar debido a problemas en el Servidor. El formulario no es válido")
+    
+    context = {
+        'xUsuario':xUsuario,
+        'form': form,
+        'xFormas': xFormas,
+        'rFormaId': rFormaId,
+        'rMonto_procesar': rMonto_procesar,
+        # 'xTasa': xTasa,
+        # 'xId': xId,
+        'xCliente': xCliente,
+        'xBancosdestino': xBancosdestino
+    }
+    return render(request, 'app_gestion/pago_cuenta_corregir.html', context)
+
 
 
 

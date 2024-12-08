@@ -41,8 +41,11 @@ class asentar_pagoForm(ModelForm):
         model = Pago
         fields = ('fecha', 'referencia', 'forma', 'monto','tasa',
                   'monto_procesar', 'banco_destino', 'observacion')
+        widgets = {
+            'fecha': DateInput(format=('%Y-%m-%d'))
+        }
 
-    fecha = forms.DateField(widget=DateInput)
+    # fecha = forms.DateField(widget=DateInput)
     
 
     # 

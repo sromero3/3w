@@ -23,6 +23,7 @@ urlpatterns = [
      path('editar_vendedor/<int:id>/', views.Editar_vendedorView, name='editar_vendedor'),
      path('cobranza/<int:xCliente>/<int:xVendedor>/<int:xIva>/<int:xVencido>/', views.cobranzaView, name='cobranza'),
      path('pago_cuenta/<int:id>/<cliente>/', views.Pago_cuentaView, name='pago_cuenta'),
+     path('pago_cuenta_corregir/<int:id>/', views.Pago_cuenta_corregirView, name='pago_cuenta_corregir'),
      path('pago_documentos/<int:id>/<cliente>/', views.Pago_documentosView, name='pago_documentos'),
      path('guardar_tasa/', views.Guardar_tasaView, name='guardar_tasa'),
 
