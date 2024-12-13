@@ -16,18 +16,18 @@ M1 | Pago a documentos
         <div class="card">
             <div class="card-body">
 
-                <h5 class="card-title">Pago a documentos<a href="javascript:history.back()" class="float-end">
+                <h5 class="card-title">Corregir pago a documentos<a href="javascript:history.back()" class="float-end">
                         <i class="bi bi-arrow-return-left" title='Regresar'></i>
                     </a></h5>
                 
-                <form id="pago_documentos" action="" method="post" class="row g-3">
+                <form id="pago_documentos_corregir" action="" method="post" class="row g-3">
                     {% csrf_token %}
                  
                     <div class="col-6">
                         <span class="titulos">
                             Cliente</span>
                         <input type="text" class="form-control alto" id="cliente" name="cliente"
-                            value="{{xCliente}}" data-cliente_id="{{xId}}" readonly>
+                            value="{{rCliente}}" data-cliente_id="{{xId}}" readonly style="background-color:#e5e8ed;">
                     </div>
                     <div class="col-6">
                         <span class="titulos">
@@ -37,15 +37,8 @@ M1 | Pago a documentos
                     </div>
                     <div class="col-6">
                         <span class="titulos">{{form.forma.label}}</span>
-                        <select name="forma" id="forma" class="form-control alto d-flex" required
-                            onChange="mostrar_campos()">
-                            <option value="" selected></option>
-                            {% for xForma in xFormas %}
-                            <option value={{xForma.id}}>
-                                {{xForma.forma}}
-                            </option>
-                            {% endfor %}
-                        </select>
+                        <input type="text" class="form-control alto" id="forma" name="forma"
+                            value="{{rForma}}" data-forma_id="{{rFormaId}}" readonly style="background-color:#e5e8ed;">
                     </div>
 
                     <!-- Campos variables -->
@@ -140,6 +133,8 @@ M1 | Pago a documentos
             document.getElementById('residuo').placeholder='0,00';
         }
 
+        xForma = document.getElementById('forma').dataset.forma_id
+        
         if (document.getElementById('forma').value == 1) { // Transferencia Bancos Nacionales
             document.getElementById("div_ref").removeAttribute('hidden')
             document.getElementById("div_monto").removeAttribute('hidden')
@@ -177,7 +172,7 @@ M1 | Pago a documentos
             }) // cargar bancos destinos
         } // fin forma 1
 
-        if (document.getElementById('forma').value == 2) { // Dolares en efectivo
+        if (xForma == 2) { // Dolares en efectivo
             document.getElementById("div_ref").hidden = true
             document.getElementById("div_monto").hidden = true
             document.getElementById("div_tasa").hidden = true
@@ -431,7 +426,7 @@ M1 | Pago a documentos
 
     // validar formulario
     function validar(e) {
-        const form = document.getElementById('pago_documentos') // tomo el nombre del formulario
+        const form = document.getElementById('pago_documentos_corregir') // tomo el nombre del formulario
 
         if (form.checkValidity()) {
 
@@ -479,7 +474,7 @@ M1 | Pago a documentos
                             denyButtonText: `Descartar`
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                document.getElementById('pago_documentos').submit()
+                                document.getElementById('pago_documentos_corregir').submit()
                             } else {
                                 return false
                             }
@@ -501,7 +496,7 @@ M1 | Pago a documentos
                     denyButtonText: `Descartar`
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        document.getElementById('pago_documentos').submit()
+                        document.getElementById('pago_documentos_corregir').submit()
                     } else {
                         return false
                     }
@@ -545,7 +540,10 @@ M1 | Pago a documentos
     } // fin validar formulario
 
 
-  
+    addEventListener("DOMContentLoaded", (event) => {
+
+        mostrar_campos()
+    });
        
  
 

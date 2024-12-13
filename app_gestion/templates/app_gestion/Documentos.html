@@ -60,8 +60,8 @@ M1 | Cobranza
                             <th>DV</th>
                             <th style="width:200px">Cliente</th>
                             <th>Monto</th>
-                            <!-- <th>Abonado</th> -->
-                            <!-- <th>Ciudad</th> -->
+                            <th>Abonado</th>
+                            <th>Saldo</th>
                             <th>Vendedor</th>
                             <th>Condición</th>
                             <th>Iva</th>
@@ -83,11 +83,16 @@ M1 | Cobranza
                             <td>{{xDocumento.fecha|date:"d/m/y"}}</td>
                             <td>{{xDocumento.vencimiento|date:"d/m/y"}}</td>
                             <td align="center">{{xDocumento.dias_v}}</td>
-                            <td>{{xDocumento.cliente__nombre|truncatechars:30}}</td>
+                        
+                            <td>{{xDocumento.cliente__nombre|truncatechars:25   }}
+                                <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                        data-bs-html="true" data-bs-title="{{xDocumento.cliente__nombre}}<br>"></i>
+                                    </i></a>
+                            </td>
                             <td align="right">{{xDocumento.monto|darFormato}}</td>
-                            <!-- <td align="right">{{xDocumento.abonado|darFormato}}</td> -->
-                            <!-- <td>{{xDocumento.cliente_id__ciudad__ciudad}}</td> -->
-                            <td>{{xDocumento.cliente_id__vendedor__nombre}}</td>
+                            <td align="right">{{xDocumento.abonado|darFormato}}</td>
+                            <td align="right">{{xDocumento.saldo|darFormato}}</td>
+                            <td>{{xDocumento.cliente_id__vendedor__nombre|truncatechars:25}}</td>
                             <td>{{xDocumento.condicion__condicion}} a {{xDocumento.credito}}</td>
                             {% if xDocumento.iva__iva == "-" %}
                                 <td  align="center">{{xDocumento.iva__iva}}</td>

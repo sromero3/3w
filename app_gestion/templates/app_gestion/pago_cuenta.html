@@ -20,7 +20,7 @@ M1 | Pago a cuenta
                         <i class="bi bi-arrow-return-left" title='Regresar'></i>
                     </a></h5>
                 
-                <form id="asentar_pago_global" action="" method="post" class="row g-3">
+                <form id="pago_cuenta" action="" method="post" class="row g-3">
                     {% csrf_token %}
                  
                     <div class="col-6">
@@ -55,7 +55,7 @@ M1 | Pago a cuenta
                     </div>
                     <div id="div_monto" class="col-md-6" hidden>
                         <span class="titulos">{{form.monto.label}}</span>
-                        <input id="monto" name="monto" class="form-control input-numero alto" value="" maxlength="12" onChange=" Calcular()"></input>
+                        <input id="monto" name="monto" class="form-control input-numero alto" value="" maxlength="12" onChange=" Calcular()" onblur="FormatearNumerosInputs(this)"></input>
                     </div>
                     <div id="div_tasa" class="col-md-6" hidden>
                         <span class="titulos">{{form.tasa.label}}</span>
@@ -77,7 +77,7 @@ M1 | Pago a cuenta
                     <div id="div_monto_procesar" class="col-md-6" hidden>
                         <span class="titulos">{{form.monto_procesar.label}}</span>
                         <input id="monto_procesar" name="monto_procesar" class="form-control input-numero alto"
-                            readonly maxlength="10"></input>
+                            readonly maxlength="10" onblur="FormatearNumerosInputs(this)"></input>
                     </div>
                     <!-- fin Campos variables -->
 
@@ -253,7 +253,7 @@ M1 | Pago a cuenta
 
     // validar formulario
     function validar(e) {
-        const form = document.getElementById('asentar_pago_global') // tomo el nombre del formulario
+        const form = document.getElementById('pago_cuenta') // tomo el nombre del formulario
 
         if (form.checkValidity()) {
 
@@ -301,7 +301,7 @@ M1 | Pago a cuenta
                             denyButtonText: `Descartar`
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                document.getElementById('asentar_pago_global').submit()
+                                document.getElementById('pago_cuenta').submit()
                             } else {
                                 return false
                             }
@@ -323,7 +323,7 @@ M1 | Pago a cuenta
                     denyButtonText: `Descartar`
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        document.getElementById('asentar_pago_global').submit()
+                        document.getElementById('pago_cuenta').submit()
                     } else {
                         return false
                     }

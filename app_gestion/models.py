@@ -19,8 +19,9 @@ class Tasa(models.Model):
         validators=[MinValueValidator(0.01), MaxValueValidator(10000.99)], max_digits=7, decimal_places=2)
     # fuente = models.CharField(max_length=30)
     createdo = models.DateTimeField(auto_now_add=True)
-    actualizado = models.DateTimeField(auto_now=True)
+    actualizado = models.DateTimeField(null=False)
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    seguimiento = models.TextField(blank=True, null=True)
     
     def __str__(self):
         return self.fuente
@@ -194,7 +195,7 @@ class Documento(models.Model):
     observacion = models.TextField(max_length=1000, blank=True,null=True)
     iva = models.ForeignKey(Iva, on_delete=models.CASCADE)
     creado = models.DateTimeField(auto_now_add=True, null=False)
-    actualizado = models.DateTimeField(auto_now_add=True, null=False)
+    actualizado = models.DateTimeField(null=False)
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     condicion = models.ForeignKey(Condicion, on_delete=models.CASCADE)
   
@@ -239,12 +240,14 @@ class Pago(models.Model):
     # validators=[MinValueValidator(0.00), MaxValueValidator(999999.99)], 
     monto_procesar = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Monto en $")
     observacion = models.TextField(max_length=250, blank=True)
+    seguimiento = models.TextField(blank=True)
     forma = models.ForeignKey(PagoForma, on_delete=models.CASCADE, verbose_name="Forma de pago")
     banco_destino = models.ForeignKey(BancoDestino, on_delete=models.CASCADE, verbose_name="Banco destino")
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     creado = models.DateTimeField(auto_now_add=True, null=False)
-    actualizado = models.DateTimeField(auto_now_add=True, null=False)
+    actualizado = models.DateTimeField(null=False)
     tasa = models.DecimalField(max_digits=5, decimal_places=2)
+    tipo = models.IntegerField() # 1 = cuenta 2 = documento
   
     def __str__(self):
          return self.id

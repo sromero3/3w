@@ -48,6 +48,7 @@ M1 | Historial de pagos
                             <th>Cliente</th>
                             <th>Fecha</th>
                             <th>Referencia</th>
+                            <th>Seguimiento</th>
                             <th>Forma</th>
                             <th>Monto $</th>
                             <th>Opcion</th>
@@ -58,22 +59,21 @@ M1 | Historial de pagos
                         <tr>
                             <td>{{xPago.cliente__nombre}}</td>
                             <td>{{xPago.fecha}}</td>
-
-
                             {% if xPago.observacion == "" %}
                                 <td>{{xPago.referencia}}</td>
                             {% else %}
-                                <td>{{xPago.referencia}}
+                                <td>{{xPago.referencia|rellenar}}
                                     <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
-                                            data-bs-html="true" data-bs-title="{{xPago.observacion}}<br>"></i>
+                                            data-bs-html="true" data-bs-title="{{xPago.observacion}}<br>
+                                            "></i>
                                         </i></a>
                                 </td>
                             {% endif %}
-                           
-
-
-
-                            
+                            {% if xPago.seguimiento == "" %}
+                                <td align="center">-</td>
+                            {% else %}
+                                    <td align="center"><a href="javascript:abrir_modal('{{xPago.seguimiento}}')"> <i style="font-size: small;" class="bi bi-activity"></a></i></td>
+                            {% endif %}
                             {% if xPago.forma__forma == "Transferencia Bancos Nacionales" or xPago.forma__forma == "Bolivares en Efectivo" %}
                                 <td>{{xPago.forma__forma}}
                                     <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
@@ -85,9 +85,15 @@ M1 | Historial de pagos
                             {% endif %}
                             <td align="right">{{xPago.monto_procesar|darFormato}}</td>
                             <td class="text-center" style="width:50px">
-                                <a href="{% url 'pago_cuenta_corregir' xPago.id %}">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
+                                {% if xPago.tipo == 1 %}
+                                    <a href="{% url 'pago_cuenta_corregir' xPago.id xPago.forma_id %}">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'pago_documentos_corregir' xPago.id xPago.forma_id %}">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                {% endif %}
                             </td>
                         {% endfor %}
                     </tbody>
@@ -98,7 +104,31 @@ M1 | Historial de pagos
         </div>
     </div>
 </main><!-- End #main -->
+
+<button type="button" id="boton_modal" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#miModal"
+hidden>
+Extra Large Moda
+</button>
+<!-- Modal -->
+<div class="modal fade" id="miModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" style="color:#012970">Seguimiento</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <h6 id="t"></h6>
+        </div>
+        <div class="modal-footer">
+          <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
+        </div>
+      </div>
+    </div>
+  </div><!-- End Extra Large Modal-->
 {% endblock content %}
+
+
 {% block Scripts_Adicionales %}
 <script>
   $(function () {
@@ -154,8 +184,9 @@ M1 | Historial de pagos
     } // fin obtener docuemntos
 
     
-    // tool tip
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    function abrir_modal(seguimiento) {
+        document.getElementById('t').innerHTML = seguimiento
+        boton_modal.click();
+    }
 </script>
 {% endblock Scripts_Adicionales %}

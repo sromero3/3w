@@ -4,6 +4,7 @@ from io import BytesIO
 from django.http import HttpResponse
 from django.template.loader import get_template
 from django.db.models import F
+from decimal import Decimal
 
 # Quitar formato a los post
 def quitarFormato(cifra):
@@ -12,6 +13,25 @@ def quitarFormato(cifra):
     monto_numerico2 = monto_numerico.replace(',', '.')
     #print("convertido",monto_numerico2)
     return float(monto_numerico2)
+
+
+# Quitar formato a los post
+def quitarFormatoDecimal(cifra):
+    # print(cifra)
+    monto_numerico = cifra.replace('.', '')
+    monto_numerico2 = monto_numerico.replace(',', '.')
+    #print("convertido",monto_numerico2)
+    return Decimal(monto_numerico2)
+
+
+# Dar formato a los post 1.559,32
+def darFormato(cifra):
+    # Formatear el número con dos decimales y convertirlo a string
+    numero_formateado = f"{cifra:,.2f}"
+    # Reemplazar la coma por un punto y el punto por una coma
+    numero_formateado = numero_formateado.replace(',', 'X').replace('.', ',').replace('X', '.')
+    return numero_formateado
+
 
 # Actauliza los dias de vencimiento 
 def actualizar_dias_vencido():
@@ -36,5 +56,4 @@ def actualizar_dias_vencido():
                xControl.save()
 
           print(" se actualiazo dias_v ")
-    
     return 

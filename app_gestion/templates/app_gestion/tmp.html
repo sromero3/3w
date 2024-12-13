@@ -3,81 +3,25 @@
 
 ALTER SEQUENCE app_gestion_pago_detalle_id_seq RESTART
 
+#hacer backup en mi maquina
+pg_dump --host localhost --port 5432 --username "postgres" --format custom --file "C:/Projects/03/3W/3w_backup1.sql" "3w_db"
+
 <td><a href="javascript:abrir_modal()">{{xDocumento.fecha|date:"d/m/y"}} </a></i></td>
 
 ^$\n
 
-
-<option value={{xCredito.id}} data-dias_credito="{{xCredito.dia}}">
+<option value={{xCredito.id}} data-forma_id="{{xCredito.dia}}">
     {{xCredito.dia}}
 </option>
-let id = document.getElementById('cliente').dataset.cliente_id
+xForma = document.getElementById('forma').dataset.forma_id
+
+credito_select = document.getElementById('credito');
+d = credito_select.options[credito_select.selectedIndex].dataset.dias_credito
 
 // var hoy = new Date() 
-
 // // Extraer el año, mes y día
 // var año = hoy.getFullYear();
 // var mes = ('0' + (hoy.getMonth() + 1)).slice(-2); // Meses empiezan en 0
 // var dia = ('0' + hoy.getDate()).slice(-2);
 // // Formatear la fecha como YYYY-MM-DD
 // var fecha_hoy = `${año}-${mes}-${dia}`;
-
-// credito_select = document.getElementById('credito');
-// d = credito_select.options[credito_select.selectedIndex].dataset.dias_credito
-
-
-
-                        
-# Buscar los docuemntos con saldo del cliente 
-xDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).filter(cliente=id)
-# Preparar monto a procesar
-xMonto_procesar = round(Decimal((request.POST['monto_procesar'])),2)
-
-# actualizar los documentos afectados, campo abonado en los docuemntos   
-for xDocumento in xDocumentos:
-    # si monto a procesar cubre el saldo del docuemnto
-    if xMonto_procesar >= xDocumento.saldo:
-       xAbono = xDocumento.saldo
-       xDocumento.abonado = xDocumento.abonado + xAbono 
-    # el monto a procesar no cubre el saldo del documento
-    else:
-       xAbono = xMonto_procesar  
-       xDocumento.abonado = xDocumento.abonado + xAbono
-       xAbono = xMonto_procesar
-    
-    # guardar detelle del pago
-    detalle = Pago_detalle(pago_id = xPago_id, documento_id =  xDocumento.id, monto_procesar = xAbono)  
-    detalle.save()
-    # actualizar el abonado del documento
-    xDocumento.save()
- 
- 
-   
-    if xMonto_procesar == 0: 
-       print("no hay mas monto_procesar")
-       break
-
-# si hay excedente 
-if xMonto_procesar > 0:
-    print("-------------Fac: " ,xDocumento.numero,"----------------")
-    xAbono = xMonto_procesar  
-    xDocumento.abonado = xDocumento.abonado + xAbono
-    xDocumento.pago = pago.id
-    
-    # Guardar detelle del pago
-    detalle = Pago_detalle(pago_id = xPago_id, documento_id =  xDocumento.id, monto_procesar = xAbono)  
-    detalle.save()
-    
-    xDocumento.save()
-   
-    # guardar el excedente
-    xExcedente = (xDocumento.monto - xDocumento.abonado) * -1
-    xE = Excedente(
-                cli_id = xDocumento.cliente_id,
-                doc_id= xDocumento.id,
-                concepto = "Excedente ",
-                monto=xExcedente,
-                saldo=xExcedente,
-                usuario_id=request.user.id
-            )
-    xE.save()

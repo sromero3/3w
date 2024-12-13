@@ -48,7 +48,7 @@ def InicioView(request):
     else:
         messages.error(
             request, "No ha fijado ninguna tasa de cambio")
-        return redirect('inicio')
+        return redirect('tasas')
     
     context = {
       'total_cxc': total_cxc,
@@ -232,7 +232,7 @@ def documentosView(request, xCliente, xDias):
         xDia_seleccionado  = request.POST.get('dias')
 
     actualizar_dias_vencido()
-    qDocumentos = Documento.objects.values('id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','condicion__condicion','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado', 'dias_v','credito').order_by('-id')
+    qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).values('saldo','id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','condicion__condicion','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado', 'dias_v','credito').order_by('-id')
 
    
     if xCliente == 0 and xDias == 0:
@@ -289,7 +289,9 @@ def add_documentoView(request):
        
         # for field in form:
         #      print("Field:", field.name, "-> ", field.errors)
-    
+
+        hoy = datetime.now()
+
         if form.is_valid():
             fecha_actual = datetime.now()
             documento = form.save(commit=False)
@@ -297,6 +299,7 @@ def add_documentoView(request):
             diferencia = request.POST['vencimiento'] - fecha_actual
             documento.dias_v = diferencia.days + 1
             documento.credito = request.POST['credito']
+            documento.actualizado = hoy
             documento.save()
 
             # Buscar en excedentes
@@ -311,8 +314,8 @@ def add_documentoView(request):
                     xS = xExcedente[0]['saldo']
                 # guardar pago
                 pago = Pago(fecha = request.POST.get('fecha'), cliente_id = request.POST.get('cliente'), referencia = "Abono excedente Doc: "+xNumero,
-                            monto = 0, monto_procesar = Decimal(xE), forma_id = 5, tasa = 0, banco_destino_id = 6, usuario_id = request.user.id
-                            )
+                            monto = 0, monto_procesar = Decimal(xE), forma_id = 5, tasa = 0, banco_destino_id = 6, usuario_id = request.user.id,
+                            actualizado = hoy)
                 pago.save() 
                 xPago_id = pago.id     
                 # guardar detelle del pago
@@ -524,6 +527,8 @@ def Pago_cuentaView(request, id, cliente):
         messages.error(
             request, "No ha fijado ninguna tasa de cambio")
         return redirect('inicio')
+    
+    hoy = datetime.now()
 
     form = asentar_pagoForm(request.POST)
     if request.method == 'POST':
@@ -542,11 +547,18 @@ def Pago_cuentaView(request, id, cliente):
         request.POST['monto'] = quitarFormato(request.POST['monto'])
         request.POST['tasa'] = quitarFormato(request.POST['tasa'])
         request.POST['monto_procesar'] = quitarFormato(request.POST['monto_procesar'])
+        strMonto_procesar = darFormato(request.POST['monto_procesar'])
        
         if form.is_valid():
             pago = form.save(commit=False)
             pago.cliente_id = id
             pago.usuario_id = request.user.id
+            pago.actualizado = hoy
+            hoyStr = hoy.strftime('%d/%m/%Y %H:%M')
+            pago.seguimiento =  "<b>-" + request.user.username + " a las " + hoyStr + "</b>" + "<br>"
+            pago.seguimiento =  pago.seguimiento + "&nbsp Procesó pago por: " + strMonto_procesar +"<br>"
+            pago.tipo = 1
+    
             # guardar el pago
             form.save()
             # asignar el id del pago guardado
@@ -591,7 +603,10 @@ def Pago_cuentaView(request, id, cliente):
                 print("-------------Fac: " ,xDocumento.numero,"----------------")
                 xAbono = xMonto_procesar  
                 xDocumento.abonado = xDocumento.abonado + xAbono
+                print(xDocumento.abonado )
+                
                 xDocumento.pago = pago.id
+                print(xDocumento.pago,"***** Duda")
                 
                 # Guardar detelle del pago
                 detalle = Pago_detalle(pago_id = xPago_id, documento_id =  xDocumento.id, monto_procesar = xAbono)  
@@ -620,9 +635,6 @@ def Pago_cuentaView(request, id, cliente):
             
             return redirect('cobranza', id, 0, 0, 0)
         
-        # redirect
-     #    if xUsuario.profile.rango == "Usuario":  
-     #        return redirect('inicio2')
         else:
             messages.error(
                 request, "Su operación no se puedo efectuar debido a problemas en el Servidor. El formulario no es válido")
@@ -676,7 +688,7 @@ def Estado_cuentaView(request, id, desde, fecha_ini, fecha_fin):
 
     if request.method == 'GET':
         print("--------- Parametros recibidos GET ----------") 
-        fecha_ini  = date.today() - timedelta(days=15)
+        fecha_ini  = date.today() - timedelta(days=60)
         fecha_fin  = date.today() 
    
         xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
@@ -902,7 +914,7 @@ def estado_cuentas_detalle_docView(request, id, xDoc, xMonto):
     xMonto = Decimal(xMonto)
   
     # print(xMonto)
-    xPagos_detalle = Pago_detalle.objects.filter(documento_id = id).values('documento__fecha','pago__fecha', 'monto_procesar','pago__referencia','pago__forma__forma')
+    xPagos_detalle = Pago_detalle.objects.filter(documento_id = id).values('documento__fecha','pago__fecha', 'monto_procesar','pago__referencia','pago__forma__forma').order_by('pago__fecha', 'id')
    
     xFecha = xPagos_detalle[0]["documento__fecha"]
     data_lista = []
@@ -1219,7 +1231,7 @@ def Historial_pagosView(request, xCliente, fecha_ini, fecha_fin):
         xFecha_ini = fecha_ini
         xFecha_fin = fecha_fin 
     
-    qPagos=Pago.objects.filter(fecha__range=(fecha_ini, fecha_fin)).values('id','cliente_id','referencia','fecha','monto','monto_procesar','forma__forma', 'tasa','cliente__nombre','observacion' )
+    qPagos=Pago.objects.filter(fecha__range=(fecha_ini, fecha_fin)).values('id','cliente_id','referencia','fecha','monto','monto_procesar','forma__forma', 'tasa','cliente__nombre','observacion', 'seguimiento', 'forma_id','tipo')
 
     if xCliente == 0 :
        xPagos=qPagos.all()
@@ -1272,7 +1284,10 @@ def Pago_documentosView(request, id, cliente):
         request.POST['monto'] = quitarFormato(request.POST['monto'])
         request.POST['tasa'] = quitarFormato(request.POST['tasa'])
         request.POST['monto_procesar'] = quitarFormato(request.POST['monto_procesar'])
-       
+        strMonto_procesar = darFormato(request.POST['monto_procesar'])
+
+        hoy = datetime.now()
+             
         if form.is_valid():
             # recorrer el post para ver que documentos traen abono 
             for elemento in request.POST: # iterando todo el POST
@@ -1290,6 +1305,12 @@ def Pago_documentosView(request, id, cliente):
                         pago = form.save(commit=False)
                         pago.cliente_id = id
                         pago.usuario_id = request.user.id
+                        pago.actualizado = hoy
+                        hoyStr = hoy.strftime('%d/%m/%Y %H:%M')
+                        pago.seguimiento=  "<b>-" + request.user.username + " a las " + hoyStr + "</b>" + "<br>"
+                        pago.seguimiento=  pago.seguimiento + "&nbsp Procesó pago por: " + strMonto_procesar +"<br>"
+                        pago.tipo = 2 # documento
+                       
                         form.save() 
                         # asignar el id del pago guardado
                         xPago_id = pago.id
@@ -1323,7 +1344,11 @@ def obtener_saldosView(request):
 
 @login_required
 def Guardar_tasaView(request):
-    tasa = Tasa(fecha = date.today(), monto = Decimal(request.POST.get('tasa')), usuario_id = request.user.id)  
+    hoy = datetime.now()
+    hoyStr = hoy.strftime('%d/%m/%Y %H:%M')
+    tasa = Tasa(fecha = date.today(), monto = Decimal(request.POST.get('tasa')), usuario_id = request.user.id,
+                 seguimiento = "<b>-" + request.user.username + " a las " + hoyStr + "</b>" + "<br>" 
+                 +  "&nbsp Creada" + "<br>", actualizado = hoy)  
     tasa.save()
     return redirect('inicio')
 
@@ -1358,9 +1383,14 @@ def Add_tasaView(request):
         form = tasaForm(request.POST)
    
         if form.is_valid():
+            hoy = datetime.now()
+            hoyStr = hoy.strftime('%d/%m/%Y %H:%M')
             tasa = form.save(commit=False)
             tasa.monto = float(request.POST.get('monto'))
             tasa.usuario_id = request.user.id
+            tasa.seguimiento =  "<b>-" + request.user.username + " a las " + hoyStr + "</b>" + "<br>"
+            tasa.seguimiento =  tasa.seguimiento +  "&nbsp Creada" + "<br>"
+            tasa.actualizado = hoy
 
             tasa.save()
        
@@ -1387,21 +1417,35 @@ def Add_tasaView(request):
 def Editar_tasaView(request, id):
     
     xOpcion = "Editando"
-
+    
+    # Obtengo el registro a editar
     xTasa = Tasa.objects.get(id=id)
 
     form = tasaForm(instance=xTasa)
     if request.method == 'POST':
+        
+        # datos originales 
+        oMonto = xTasa.monto
 
         # preparando los campos numericos
         request.POST._mutable = True
-        request.POST['monto'] = quitarFormato(request.POST['monto'])
+        request.POST['monto'] = quitarFormatoDecimal(request.POST['monto'])
+        strMonto = darFormato(request.POST['monto'])
      
         form = tasaForm(request.POST, instance=xTasa)
-        for field in form:
-            print("Field:", field.name, "-> ", field.errors)
+
         if form.is_valid():
-            form.save()
+            # print(type(request.POST.get('monto')), type(oMonto))
+            if request.POST.get('monto') != oMonto:
+                # print("entro==================")
+                hoy = datetime.now()
+                hoyStr = hoy.strftime('%d/%m/%Y %H:%M')
+                tasa = form.save(commit=False)
+                tasa.seguimiento= tasa.seguimiento+ "<b>-" + request.user.username + " a las " + hoyStr + "</b>" + "<br>"
+                tasa.seguimiento= tasa.seguimiento+ "&nbsp Corrigió monto de: "+ darFormato(oMonto) + " a "+ strMonto +"<br>"
+                tasa.actualizado = hoy
+                form.save()
+
             return redirect('tasas')
         else:
             messages.error(
@@ -1416,52 +1460,208 @@ def Editar_tasaView(request, id):
 
 
 @login_required
-def Pago_cuenta_corregirView(request, id):
+def Pago_cuenta_corregirView(request, id, forma_id):
     xUsuario = request.user
  
     xFormas = PagoForma.objects.order_by('orden').exclude(id=5)
-    xBancosdestino = BancoDestino.objects.exclude(id=6)
+   
+    if forma_id == 3:
+        xBancosdestino = BancoDestino.objects.exclude(tipo='Nacional')
+    elif forma_id == 2:
+        xBancosdestino = BancoDestino.objects.exclude(tipo='Inter')
+    elif forma_id == 1:
+        xBancosdestino = BancoDestino.objects.exclude(tipo='Inter').exclude(id=6)
+    elif forma_id == 4:
+        xBancosdestino = BancoDestino.objects.exclude(tipo='Inter')
+
 
     # Obtengo el registro a editar
     xPago = Pago.objects.get(id=id)
-    xCliente = Cliente.objects.get(id=xPago.cliente.id)
-    rFormaId = xPago.forma.id
-    rMonto_procesar = xPago.monto_procesar 
+    rCliente = Cliente.objects.get(id=xPago.cliente.id)
+    rMonto = xPago.monto
+    rMonto_procesar = xPago.monto_procesar
+    rFormaId = xPago.forma_id
+    rForma = PagoForma.objects.get(id=xPago.forma.id)
+    rBancodestinoId = xPago.banco_destino_id
+    rObjBanco = BancoDestino.objects.get(id=xPago.banco_destino_id)
+    rRef = xPago.referencia
+      
+    xTasas = Tasa.objects.all()
+    if xTasas.exists():
+        xTasa = str(xTasas[0].monto)
+    else:
+        messages.error(
+            request, "No ha fijado ninguna tasa de cambio")
+        return redirect('inicio')
     
     form = asentar_pagoForm(instance=xPago)
+    
     if request.method == 'POST':
- 
-        # preparando los campos numericos
+
+        # datos originales 
+        oFecha = xPago.fecha.strftime('%d/%m/%Y')
+        oForma = xPago.forma_id
+        oMonto_p = xPago.monto_procesar
+        oBanco = xPago.banco_destino_id
+        oBamcoStr = rObjBanco.nombre
+        oReferencia = xPago.referencia
+     
+        # Preparando el POST
         request.POST._mutable = True
+
+        request.POST['forma'] = oForma # se mantiene la original, no se puede cambiar
+
         if request.POST['monto'] == "":
             request.POST['monto'] = "0,00"
-
+        
         if request.POST['banco_destino'] == "":
             request.POST['banco_destino'] = "6"
       
         if request.POST['referencia'] == "":
             request.POST['referencia'] = "-"
-
+        
+        # preparando los campos numericos
         request.POST['monto'] = quitarFormato(request.POST['monto'])
         request.POST['tasa'] = quitarFormato(request.POST['tasa'])
         request.POST['monto_procesar'] = quitarFormato(request.POST['monto_procesar'])
+        strMonto_procesar = darFormato(request.POST['monto_procesar'])
 
         form = asentar_pagoForm(request.POST, instance=xPago)
-      
+        
         if form.is_valid():
-            # Grabagrel pago viejo  para auditoria 
-            # ===================== borra todas los registos de este pago ================
             pago = form.save(commit=False)
+
+            # Grabar cambios en pago.seguimiento
+            hay_cambio = False
+            Corrigio_monto = False
+            hoy = datetime.now()
+            hoyStr = hoy.strftime('%d/%m/%Y %H:%M')
+            fechaStr = (request.POST.get('fecha')[8:10]+"/"+request.POST.get('fecha')[5:7]+"/"+request.POST.get('fecha')[0:4])
+            BancoStr = BancoDestino.objects.get(id=int(request.POST.get('banco_destino')))
+
+            if fechaStr != str(oFecha):
+                pago.seguimiento = pago.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" + "</b>"
+                hay_cambio = True
+                pago.seguimiento = pago.seguimiento + "&nbsp Corrigió fecha de: "+ str(oFecha) + " a "+ fechaStr +"<br>"
+     
+            nMonto_p = round(Decimal(request.POST.get('monto_procesar')),2)
+            if nMonto_p != oMonto_p:
+                Corrigio_monto = True
+                if hay_cambio == False:
+                    pago.seguimiento = pago.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" +  "</b>"
+                    hay_cambio = True
+                pago.seguimiento =  pago.seguimiento + "&nbsp Corrigió monto de: "+ darFormato(oMonto_p) + " a "+ strMonto_procesar +"<br>"
+           
+            if int(request.POST.get('banco_destino')) != oBanco:
+                if hay_cambio == False:
+                    pago.seguimiento = pago.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" +  "</b>"
+                    hay_cambio = True
+                pago.seguimiento =  pago.seguimiento + "&nbsp Corrigió banco de: "+ oBamcoStr + " a "+ str(BancoStr) +"<br>"
+
+            if request.POST.get('referencia') != oReferencia:
+                if hay_cambio == False:
+                    pago.seguimiento = pago.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" +  "</b>"
+                    hay_cambio = True
+                pago.seguimiento =  pago.seguimiento + "&nbsp Corrigió referencia de: "+ oReferencia + " a "+request.POST.get('referencia') +"<br>"
+
+            # guardar el nuevo pago
             pago.cliente_id = xPago.cliente.id
             pago.usuario_id = request.user.id
-            # guardar el pago
+            pago.actualizado = hoy
             form.save()
             # asignar el id del pago guardado
             xPago_id = pago.id
-                    
+
+            if Corrigio_monto == False:
+                return redirect('historial_pagos', 0, ' ', ' ')  
+
+            # Reversar los registos de este pago 
+            xPago_detalles = Pago_detalle.objects.filter(pago_id=id)
+            for xPago_detalle in xPago_detalles:
+                 xDoc = Documento.objects.get(id=xPago_detalle.documento_id)
+                 xDoc.abonado = xDoc.abonado - xPago_detalle.monto_procesar
+                 xDoc.actualizado = hoy
+                 xDoc.save()
+                #  print("Saldo actualizado a: ",xDoc.abonado, xPago_detalle.monto_procesar)
+                 # borrar pago detalle
+                 xPago_detalle.delete()
+            
+            # Borrar el excedente
+            try:
+                xExc = Excedente.objects.get(doc_id=xPago_detalle.documento_id)
+                xExc.delete()
+            except Excedente.DoesNotExist:
+                # print("No hay excedente")
+                pass
+           
+            # Buscar los docuemntos con saldo del cliente 
+            xDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).filter(cliente=xPago.cliente.id)
+            # Preparar monto a procesar
+            xMonto_procesar = round(Decimal((request.POST['monto_procesar'])),2)
+
+            # actualizar los documentos afectados, campo abonado en los docuemntos   
+            for xDocumento in xDocumentos:
+                # si monto a procesar cubre el saldo del docuemnto
+                if xMonto_procesar >= xDocumento.saldo:
+                   xAbono = xDocumento.saldo
+                   xDocumento.abonado = xDocumento.abonado + xAbono 
+                # el monto a procesar no cubre el saldo del documento
+                else:
+                   xAbono = xMonto_procesar  
+                   xDocumento.abonado = xDocumento.abonado + xAbono
+                   xAbono = xMonto_procesar
+                
+                # guardar detelle del pago
+                detalle = Pago_detalle(pago_id = xPago_id, documento_id =  xDocumento.id, monto_procesar = xAbono)  
+                detalle.save()
+                # actualizar el abonado del documento
+                xDocumento.save()
+             
+                print("-------------Fac: " ,xDocumento.numero,"----------------")
+                print("xMonto_procesar: " ,xMonto_procesar)
+                print("Saldo: " ,xDocumento.saldo)
+                xMonto_procesar = xMonto_procesar - xAbono
+                print("xAbono: " ,xAbono)
+                print("Monto restante",  xMonto_procesar )
+               
+                if xMonto_procesar == 0: 
+                   print("no hay mas monto_procesar")
+                   break
+            
+            # si hay excedente 
+            if xMonto_procesar > 0:
+                print("-------------Fac: " ,xDocumento.numero,"----------------")
+                xAbono = xMonto_procesar  
+                xDocumento.abonado = xDocumento.abonado + xAbono
+                xDocumento.pago = pago.id
+                
+                # Guardar detelle del pago
+                detalle = Pago_detalle(pago_id = xPago_id, documento_id =  xDocumento.id, monto_procesar = xAbono)  
+                detalle.save()
+                
+                xDocumento.save()
+               
+                # guardar el excedente
+                xExcedente = (xDocumento.monto - xDocumento.abonado) * -1
+                xE = Excedente(
+                            cli_id = xDocumento.cliente_id,
+                            doc_id= xDocumento.id,
+                            concepto = "Excedente ",
+                            monto=xExcedente,
+                            saldo=xExcedente,
+                            usuario_id=request.user.id
+                        )
+                xE.save()
+   
+                print("xMonto_procesar: " ,xMonto_procesar)
+                print("Saldo: " ,xDocumento.saldo)
+                xMonto_procesar = xMonto_procesar - xAbono
+                print("xAbono: " ,xAbono)
+                print("Monto restante",  xMonto_procesar )
+                print("--------- Sobro monto_procesar ----------")
+ 
    
             return redirect('historial_pagos', 0, ' ', ' ')
-        
 
         else:
             messages.error(
@@ -1473,15 +1673,208 @@ def Pago_cuenta_corregirView(request, id):
         'xFormas': xFormas,
         'rFormaId': rFormaId,
         'rMonto_procesar': rMonto_procesar,
-        # 'xTasa': xTasa,
-        # 'xId': xId,
-        'xCliente': xCliente,
+        'rMonto': rMonto,
+        'xTasa': xTasa,
+        'rRef': rRef,
+        'rCliente': rCliente,
+        'rForma': rForma,
+        'rFormaId': rFormaId,
+        'rBancodestinoId': rBancodestinoId,
         'xBancosdestino': xBancosdestino
     }
     return render(request, 'app_gestion/pago_cuenta_corregir.html', context)
 
 
 
+
+
+@login_required
+def Pago_documentos_corregirView(request, id, forma_id):
+    xUsuario = request.user
+ 
+    xFormas = PagoForma.objects.order_by('orden').exclude(id=5)
+   
+    if forma_id == 3:
+        xBancosdestino = BancoDestino.objects.exclude(tipo='Nacional')
+    elif forma_id == 2:
+        xBancosdestino = BancoDestino.objects.exclude(tipo='Inter')
+    elif forma_id == 1:
+        xBancosdestino = BancoDestino.objects.exclude(tipo='Inter').exclude(id=6)
+    elif forma_id == 4:
+        xBancosdestino = BancoDestino.objects.exclude(tipo='Inter')
+
+
+    # Obtengo el registro a editar
+    xPago = Pago.objects.get(id=id)
+    rCliente = Cliente.objects.get(id=xPago.cliente.id)
+    rMonto = xPago.monto
+    rMonto_procesar = xPago.monto_procesar
+    rFormaId = xPago.forma_id
+    rForma = PagoForma.objects.get(id=xPago.forma.id)
+    rBancodestinoId = xPago.banco_destino_id
+    rObjBanco = BancoDestino.objects.get(id=xPago.banco_destino_id)
+    rRef = xPago.referencia
+      
+    xTasas = Tasa.objects.all()
+    if xTasas.exists():
+        xTasa = str(xTasas[0].monto)
+    else:
+        messages.error(
+            request, "No ha fijado ninguna tasa de cambio")
+        return redirect('inicio')
+    
+    form = asentar_pagoForm(instance=xPago)
+    
+    if request.method == 'POST':
+
+        # datos originales 
+        oFecha = xPago.fecha.strftime('%d/%m/%Y')
+        oForma = xPago.forma_id
+        oMonto_p = xPago.monto_procesar
+        oBanco = xPago.banco_destino_id
+        oBamcoStr = rObjBanco.nombre
+        oReferencia = xPago.referencia
+     
+        # Preparando el POST
+        request.POST._mutable = True
+
+        request.POST['forma'] = oForma # se mantiene la original, no se puede cambiar
+
+        if request.POST['monto'] == "":
+            request.POST['monto'] = "0,00"
+        
+        if request.POST['banco_destino'] == "":
+            request.POST['banco_destino'] = "6"
+      
+        if request.POST['referencia'] == "":
+            request.POST['referencia'] = "-"
+        
+        # preparando los campos numericos
+        request.POST['monto'] = quitarFormato(request.POST['monto'])
+        request.POST['tasa'] = quitarFormato(request.POST['tasa'])
+        request.POST['monto_procesar'] = quitarFormato(request.POST['monto_procesar'])
+        strMonto_procesar = darFormato(request.POST['monto_procesar'])
+
+        form = asentar_pagoForm(request.POST, instance=xPago)
+        
+        if form.is_valid():
+            pago = form.save(commit=False)
+
+            # Grabar cambios en pago.seguimiento
+            hay_cambio = False
+            Corrigio_monto = False
+            hoy = datetime.now()
+            hoyStr = hoy.strftime('%d/%m/%Y %H:%M')
+            fechaStr = (request.POST.get('fecha')[8:10]+"/"+request.POST.get('fecha')[5:7]+"/"+request.POST.get('fecha')[0:4])
+            BancoStr = BancoDestino.objects.get(id=int(request.POST.get('banco_destino')))
+
+            if fechaStr != str(oFecha):
+                pago.seguimiento = pago.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" + "</b>"
+                hay_cambio = True
+                pago.seguimiento = pago.seguimiento + "&nbsp Corrigió fecha de: "+ str(oFecha) + " a "+ fechaStr +"<br>"
+     
+            nMonto_p = round(Decimal(request.POST.get('monto_procesar')),2)
+            if nMonto_p != oMonto_p:
+                Corrigio_monto = True
+                if hay_cambio == False:
+                    pago.seguimiento = pago.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" +  "</b>"
+                    hay_cambio = True
+                pago.seguimiento =  pago.seguimiento + "&nbsp Corrigió monto de: "+ darFormato(oMonto_p) + " a "+ strMonto_procesar +"<br>"
+           
+            if int(request.POST.get('banco_destino')) != oBanco:
+                if hay_cambio == False:
+                    pago.seguimiento = pago.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" +  "</b>"
+                    hay_cambio = True
+                pago.seguimiento =  pago.seguimiento + "&nbsp Corrigió banco de: "+ oBamcoStr + " a "+ str(BancoStr) +"<br>"
+
+            if request.POST.get('referencia') != oReferencia:
+                if hay_cambio == False:
+                    pago.seguimiento = pago.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" +  "</b>"
+                    hay_cambio = True
+                pago.seguimiento =  pago.seguimiento + "&nbsp Corrigió referencia de: "+ oReferencia + " a "+request.POST.get('referencia') +"<br>"
+
+            # guardar el nuevo pago
+            pago.cliente_id = xPago.cliente.id
+            pago.usuario_id = request.user.id
+            pago.actualizado = hoy
+            form.save()
+            # asignar el id del pago guardado
+            xPago_id = pago.id
+
+            if Corrigio_monto == False:
+                return redirect('historial_pagos', 0, ' ', ' ')  
+
+            # Reversar los registos de este pago 
+            xPago_detalles = Pago_detalle.objects.filter(pago_id=id)
+            for xPago_detalle in xPago_detalles:
+                 xDoc = Documento.objects.get(id=xPago_detalle.documento_id)
+                 xDoc.abonado = xDoc.abonado - xPago_detalle.monto_procesar
+                 xDoc.actualizado = hoy
+                 xDoc.save()
+                 print("Saldo actualizado a: ",xDoc.abonado, xPago_detalle.monto_procesar)
+                 # borrar pago detalle
+                 xPago_detalle.delete()
+            
+            # Borrar el excedente
+            try:
+                xExc = Excedente.objects.get(doc_id=xPago_detalle.documento_id)
+                xExc.delete()
+                print("marca 1")
+            except Excedente.DoesNotExist:
+                # print("No hay excedente")
+                pass
+           
+            # recorrer el post para ver que documentos traen abono 
+            for elemento in request.POST: # iterando todo el POST
+                if ((elemento[0:15]) == "monto_ingresado"): # si el elemento es un monto
+                     xDoc_Id = elemento[16:len(elemento)]
+                     xVal = request.POST['monto_ingresado-'+str(xDoc_Id)]
+                     if xVal != '' and xVal != '0,00': # Si el monto trae valor se procesa el pago
+                        xDoc_Id = elemento[16:len(elemento)]
+                        xMonto_ingresado = quitarFormato(request.POST['monto_ingresado-'+str(xDoc_Id)])
+                        # actualizo el abonado del documento
+                        documento = Documento.objects.get(id=xDoc_Id)
+                        documento.abonado = documento.abonado + Decimal(xMonto_ingresado)
+                        documento.save() 
+                        # guardar el pago
+                        pago = form.save(commit=False)
+                        pago.cliente_id = id
+                        pago.usuario_id = request.user.id
+                        pago.actualizado = hoy
+                        hoyStr = hoy.strftime('%d/%m/%Y %H:%M')
+                        pago.seguimiento=  "<b>-" + request.user.username + " a las " + hoyStr + "</b>" + "<br>"
+                        pago.seguimiento=  pago.seguimiento + "&nbsp Procesó pago por: " + strMonto_procesar +"<br>"
+                        # pago.tipo = 2 # documento
+                       
+                        form.save() 
+                        # asignar el id del pago guardado
+                        xPago_id = pago.id
+                        # guardar detelle del pago
+                        detalle = Pago_detalle(pago_id = xPago_id, documento_id = xDoc_Id, monto_procesar = Decimal(xMonto_ingresado))  
+                        detalle.save()
+   
+            return redirect('historial_pagos', 0, ' ', ' ')
+
+        else:
+            messages.error(
+                request, "Su operación no se puedo efectuar debido a problemas en el Servidor. El formulario no es válido")
+    
+    context = {
+        'xUsuario':xUsuario,
+        'form': form,
+        'xFormas': xFormas,
+        # 'rFormaId': rFormaId,
+        'rMonto_procesar': rMonto_procesar,
+        'rMonto': rMonto,
+        'xTasa': xTasa,
+        'rRef': rRef,
+        'rCliente': rCliente,
+        'rForma': rForma,
+        'rFormaId': rFormaId,
+        'rBancodestinoId': rBancodestinoId,
+        'xBancosdestino': xBancosdestino
+    }
+    return render(request, 'app_gestion/pago_documentos_corregir.html', context)
 
 
 
