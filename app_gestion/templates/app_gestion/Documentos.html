@@ -29,9 +29,9 @@ M1 | Cobranza
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-lg-3 col-sm-12 d-flex" style="width: 200px;">
-                            <label class="titulos d-flex ms-2 me-2 mt-1">Ultimos</label>
-                            <select name="dias" id="dias" class="form-control d-flex alto" required
+                        <div class="col-lg-3 col-sm-12 d-flex" style="width: 200px;" >
+                            <label class="titulos d-flex me-2 mt-1">Ultimos</label>
+                            <select name="dias" id="dias" class="form-control alto" required
                                 onChange="obtener_documentos()">
                                 <option value="0" selected>Todos</option>
                                 {% for xDia in xDias_select %}
@@ -172,7 +172,22 @@ M1 | Cobranza
     function obtener_documentos() {
         filtros.action = `/documentos/${cliente.value}/${dias.value}/`
         filtros.submit()
-    } // fin obtener docuemntos  
-  
+    } // fin obtener docuemntos 
+
+    //
+    function revisarTamañoPantalla() {
+    var elemento = document.getElementById('filtro2');
+   
+        if (window.innerWidth <= 768) {
+            // Quitar la clase cuando el ancho de la pantalla es 600px o menos
+            elemento.classList.remove('d-flex');
+        } else {
+            // Agregar la clase de nuevo cuando el ancho de la pantalla es mayor a 600px
+            elemento.classList.add('d-flex');
+        }
+    }
+    // Revisar el tamaño de pantalla cuando la ventana se redimensiona
+    // window.addEventListener('load', revisarTamañoPantalla);
+ 
 </script>
 {% endblock Scripts_Adicionales %}
