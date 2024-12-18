@@ -798,6 +798,9 @@ h6 {
   [data-aos-delay] {
     transition-delay: 0 !important;
   }
+  #tamano{
+    font-size: 20px;
+  }
 }
 
 /*--------------------------------------------------------------

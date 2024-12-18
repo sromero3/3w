@@ -55,12 +55,12 @@ M1 | Pago a documentos
                     </div>
                     <div id="div_monto" class="col-md-6" hidden>
                         <span class="titulos">{{form.monto.label}}</span>
-                        <input id="monto" name="monto" class="form-control input-numero alto" value="" maxlength="12" onChange=" Calcular()"></input>
+                        <input id="monto" name="monto" class="form-control input-numero alto" value="" maxlength="12" onChange="Calcular()" onblur="FormatearNumerosInputs(this)"></input>
                     </div>
                     <div id="div_tasa" class="col-md-6" hidden>
                         <span class="titulos">{{form.tasa.label}}</span>
                         <input class="form-control alto input-numero" name="tasa" id="tasa" value="{{xTasa}}"
-                            onChange="Calcular()" required maxlength="5">
+                            onChange="Calcular()" required maxlength="5" onblur="FormatearNumerosInputs(this)">
                     </div>
 
                     <div id="div_ban" class="col-md-6" style="margin-bottom: 15px" hidden>
@@ -77,7 +77,7 @@ M1 | Pago a documentos
                     <div id="div_monto_procesar" class="col-md-6" hidden>
                         <span class="titulos">{{form.monto_procesar.label}}</span>
                         <input id="monto_procesar" name="monto_procesar" class="form-control input-numero alto"
-                            readonly maxlength="10" onChange="obtener_saldos()"></input>
+                            readonly maxlength="10" onChange="obtener_saldos()" onblur="FormatearNumerosInputs(this)"></input>
                     </div>
                     <!-- fin Campos variables -->
 

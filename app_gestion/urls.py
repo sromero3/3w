@@ -27,6 +27,7 @@ urlpatterns = [
      path('pago_documentos/<int:id>/<cliente>/', views.Pago_documentosView, name='pago_documentos'),
      path('pago_documentos_corregir/<int:id>/<int:forma_id>/', views.Pago_documentos_corregirView, name='pago_documentos_corregir'),
      path('guardar_tasa/', views.Guardar_tasaView, name='guardar_tasa'),
+     path('cerrar/', views.cerrarView, name='cerrar'),
 
      path('tasas/', views.tasasView, name='tasas'),
      path('add_tasa/', views.Add_tasaView, name='add_tasa'),
@@ -54,7 +55,7 @@ urlpatterns = [
      path('obtener_clientes/', views.obtener_clientesView, name='obtener_clientes'),
      path('validar_vendedor/', views.Validar_vendedorView, name='validar_vendedor'),
      path('obtener_saldos/', views.obtener_saldosView, name='obtener_saldos'),
-
+     path('obtener_pagos/', views.obtener_pagosView, name='obtener_pagos'),
      
      # Migrar
     #  path('e/', views.MigrarView, name='migrar'), 

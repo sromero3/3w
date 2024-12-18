@@ -35,7 +35,7 @@ Content: pagina de inicio
           <!-- Uncomment the line below if you also wish to use an image logo -->
           <!-- <img src="assets/img/logo.png" alt=""> -->
           <img src="{% static 'app_website/custom-files/assets/img/3wlogo.png' %}" alt="" data-aos="fade-in">
-          <h1 class="sitename">3W2014, C.A.</h1>
+          <h1 id="tamano" class="sitename">3W2014, C.A.</h1>
         </a>
 
         <nav id="navmenu" class="navmenu">
@@ -64,10 +64,12 @@ Content: pagina de inicio
             </li>
             <li><a href="#contact">Contact</a></li>
           </ul> -->
-          <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+          <!-- <i class="mobile-nav-toggle d-xl-none bi bi-list"></i> -->
+          
+          <a class="cta-btn" href="{% url 'login' %}">Ingresar</a>
         </nav>
 
-        <a class="cta-btn d-none d-sm-block" href="{% url 'login' %}">Ingresar</a>
+        
         <!-- <li><a  class="getstarted n2">Ingresar</a></li> -->
 
       </div>

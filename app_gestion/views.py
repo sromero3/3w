@@ -23,6 +23,7 @@ from datetime import datetime, timedelta
 from django.db.models import Q
 from decimal import *
 import os
+from django.contrib.auth import logout
 
 # Create your views here.
 def Index_gestion(request):
@@ -654,7 +655,7 @@ def Pago_cuentaView(request, id, cliente):
 # validar referencia de pago
 def Validar_referenciaView(request):
     data = {'status': True}
-    print('Dato: ',request.POST.get('campo'))
+    # print('Dato: ',request.POST.get('campo'))
    
     # para campos repetidos
     xRegistros = Pago.objects.filter(referencia=request.POST.get('campo'))
@@ -851,7 +852,7 @@ def Actualizar_fechasView(request):
 # validar ced_rif del cliente
 def Validar_clienteView(request):
     data = {'status': True}
-    print('Dato: ',request.POST.get('campo'))
+    # print('Dato: ',request.POST.get('campo'))
    
     # para campos repetidos
     xRegistros = Cliente.objects.filter(ced_rif=request.POST.get('campo'))
@@ -1337,8 +1338,10 @@ def Pago_documentosView(request, id, cliente):
 
 
 def obtener_saldosView(request):
+    # print(request.POST.get('id'))
     xDocumentos = Documento.objects.filter(cliente_id=request.POST.get('id')).annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','numero','abonado', 'saldo','vencimiento').order_by('id')
     data = list(xDocumentos)
+    # print(data)
 
     return JsonResponse(data, safe=False)
 
@@ -1346,7 +1349,8 @@ def obtener_saldosView(request):
 def Guardar_tasaView(request):
     hoy = datetime.now()
     hoyStr = hoy.strftime('%d/%m/%Y %H:%M')
-    tasa = Tasa(fecha = date.today(), monto = Decimal(request.POST.get('tasa')), usuario_id = request.user.id,
+    xTasa = quitarFormato(request.POST.get('tasa'))
+    tasa = Tasa(fecha = date.today(), monto = Decimal(xTasa), usuario_id = request.user.id,
                  seguimiento = "<b>-" + request.user.username + " a las " + hoyStr + "</b>" + "<br>" 
                  +  "&nbsp Creada" + "<br>", actualizado = hoy)  
     tasa.save()
@@ -1564,7 +1568,7 @@ def Pago_cuenta_corregirView(request, id, forma_id):
                     hay_cambio = True
                 pago.seguimiento =  pago.seguimiento + "&nbsp Corrigió referencia de: "+ oReferencia + " a "+request.POST.get('referencia') +"<br>"
 
-            # guardar el nuevo pago
+            # actalizar el pago
             pago.cliente_id = xPago.cliente.id
             pago.usuario_id = request.user.id
             pago.actualizado = hoy
@@ -1707,6 +1711,7 @@ def Pago_documentos_corregirView(request, id, forma_id):
     # Obtengo el registro a editar
     xPago = Pago.objects.get(id=id)
     rCliente = Cliente.objects.get(id=xPago.cliente.id)
+    xId = xPago.cliente.id
     rMonto = xPago.monto
     rMonto_procesar = xPago.monto_procesar
     rFormaId = xPago.forma_id
@@ -1762,7 +1767,6 @@ def Pago_documentos_corregirView(request, id, forma_id):
 
             # Grabar cambios en pago.seguimiento
             hay_cambio = False
-            Corrigio_monto = False
             hoy = datetime.now()
             hoyStr = hoy.strftime('%d/%m/%Y %H:%M')
             fechaStr = (request.POST.get('fecha')[8:10]+"/"+request.POST.get('fecha')[5:7]+"/"+request.POST.get('fecha')[0:4])
@@ -1775,7 +1779,6 @@ def Pago_documentos_corregirView(request, id, forma_id):
      
             nMonto_p = round(Decimal(request.POST.get('monto_procesar')),2)
             if nMonto_p != oMonto_p:
-                Corrigio_monto = True
                 if hay_cambio == False:
                     pago.seguimiento = pago.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" +  "</b>"
                     hay_cambio = True
@@ -1793,7 +1796,7 @@ def Pago_documentos_corregirView(request, id, forma_id):
                     hay_cambio = True
                 pago.seguimiento =  pago.seguimiento + "&nbsp Corrigió referencia de: "+ oReferencia + " a "+request.POST.get('referencia') +"<br>"
 
-            # guardar el nuevo pago
+            # actualizar el pago
             pago.cliente_id = xPago.cliente.id
             pago.usuario_id = request.user.id
             pago.actualizado = hoy
@@ -1801,7 +1804,8 @@ def Pago_documentos_corregirView(request, id, forma_id):
             # asignar el id del pago guardado
             xPago_id = pago.id
 
-            if Corrigio_monto == False:
+            if request.POST.get('cambio') == "No":
+                print("mo cambio montos")
                 return redirect('historial_pagos', 0, ' ', ' ')  
 
             # Reversar los registos de este pago 
@@ -1811,7 +1815,7 @@ def Pago_documentos_corregirView(request, id, forma_id):
                  xDoc.abonado = xDoc.abonado - xPago_detalle.monto_procesar
                  xDoc.actualizado = hoy
                  xDoc.save()
-                 print("Saldo actualizado a: ",xDoc.abonado, xPago_detalle.monto_procesar)
+                 print("Saldo reverzado: ", xPago_detalle.monto_procesar)
                  # borrar pago detalle
                  xPago_detalle.delete()
             
@@ -1819,7 +1823,7 @@ def Pago_documentos_corregirView(request, id, forma_id):
             try:
                 xExc = Excedente.objects.get(doc_id=xPago_detalle.documento_id)
                 xExc.delete()
-                print("marca 1")
+                print("marca 1 no hace falta")
             except Excedente.DoesNotExist:
                 # print("No hay excedente")
                 pass
@@ -1832,26 +1836,35 @@ def Pago_documentos_corregirView(request, id, forma_id):
                      if xVal != '' and xVal != '0,00': # Si el monto trae valor se procesa el pago
                         xDoc_Id = elemento[16:len(elemento)]
                         xMonto_ingresado = quitarFormato(request.POST['monto_ingresado-'+str(xDoc_Id)])
-                        # actualizo el abonado del documento
+                        # actualizo el abonado en documento
                         documento = Documento.objects.get(id=xDoc_Id)
                         documento.abonado = documento.abonado + Decimal(xMonto_ingresado)
                         documento.save() 
                         # guardar el pago
-                        pago = form.save(commit=False)
-                        pago.cliente_id = id
-                        pago.usuario_id = request.user.id
-                        pago.actualizado = hoy
-                        hoyStr = hoy.strftime('%d/%m/%Y %H:%M')
-                        pago.seguimiento=  "<b>-" + request.user.username + " a las " + hoyStr + "</b>" + "<br>"
-                        pago.seguimiento=  pago.seguimiento + "&nbsp Procesó pago por: " + strMonto_procesar +"<br>"
+                        # pago = form.save(commit=False)
+                        # pago.cliente_id = rCliente
+                        # pago.usuario_id = request.user.id
+                        # pago.actualizado = hoy
+                        # hoyStr = hoy.strftime('%d/%m/%Y %H:%M')
+                        # pago.seguimiento=  "<b>-" + request.user.username + " a las " + hoyStr + "</b>" + "<br>"
+                        # pago.seguimiento=  pago.seguimiento + "&nbsp Procesó pago por: " + strMonto_procesar +"<br>"
                         # pago.tipo = 2 # documento
-                       
-                        form.save() 
+                        # form.save() 
                         # asignar el id del pago guardado
                         xPago_id = pago.id
                         # guardar detelle del pago
                         detalle = Pago_detalle(pago_id = xPago_id, documento_id = xDoc_Id, monto_procesar = Decimal(xMonto_ingresado))  
                         detalle.save()
+          
+            if hay_cambio == False:
+                pago.seguimiento = pago.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" +  "</b>"
+                pago.seguimiento =  pago.seguimiento + "&nbsp Corrigió distribución" + "<br>"
+            else:
+                pago.seguimiento =  pago.seguimiento + "&nbsp Corrigió distribución" + "<br>"
+            form.save()
+           
+
+                
    
             return redirect('historial_pagos', 0, ' ', ' ')
 
@@ -1863,7 +1876,7 @@ def Pago_documentos_corregirView(request, id, forma_id):
         'xUsuario':xUsuario,
         'form': form,
         'xFormas': xFormas,
-        # 'rFormaId': rFormaId,
+        'rFormaId': rFormaId,
         'rMonto_procesar': rMonto_procesar,
         'rMonto': rMonto,
         'xTasa': xTasa,
@@ -1872,9 +1885,33 @@ def Pago_documentos_corregirView(request, id, forma_id):
         'rForma': rForma,
         'rFormaId': rFormaId,
         'rBancodestinoId': rBancodestinoId,
-        'xBancosdestino': xBancosdestino
+        'xBancosdestino': xBancosdestino,
+        'xId': xId, # Clinet
+        'id': id
     }
+    
     return render(request, 'app_gestion/pago_documentos_corregir.html', context)
 
+def obtener_pagosView(request):
+    xPago_detalles = Pago_detalle.objects.filter(pago_id=int(request.POST.get('id'))).values('id','monto_procesar','documento_id', 'pago_id')
+    data_lista = []
+    for xPago_detalle in xPago_detalles:
+            xDoc = Documento.objects.get(id=xPago_detalle['documento_id'])
 
+            xPago_detalle["id"] = xDoc.id
+            xPago_detalle["numero"] = xDoc.numero
+            xPago_detalle["vencimiento"] = xDoc.vencimiento
+            xAbonado  = xDoc.abonado - xPago_detalle['monto_procesar']
+            xPago_detalle["saldo"] = xDoc.monto - xAbonado
+            xPago_detalle["monto_ingresado"] = xPago_detalle['monto_procesar']
 
+            data_lista.append(xPago_detalle)
+    
+    data = list(data_lista)
+  
+    return JsonResponse(data, safe=False)
+
+@login_required
+def cerrarView(request):
+    logout(request)
+    return redirect('/')
