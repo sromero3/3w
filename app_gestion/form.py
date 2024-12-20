@@ -3,6 +3,7 @@ from django.forms import DateField, DateInput, FloatField, ModelForm
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from app_gestion.models import Pago, Documento, Cliente, Vendedor, Tasa
+from datetime import date
 
 
 class DateInput(forms.DateInput):
@@ -58,11 +59,12 @@ class agregar_documentoForm(ModelForm):
        
         self.fields['monto'].widget.input_type = 'text' #Pasa el campo numerico a texto          
         self.fields['monto'].widget.attrs.update(
-            { 'maxlength': '10', 'class': 'form-control input-numero alto'})
-        
+            {'onblur': "FormatearNumerosInputs(this)", 'maxlength': '10', 'class': 'form-control input-numero alto'})
+        self.fields['vencimiento'].widget.attrs.update({'onChange': "calcular_dias()"})
+        self.fields['fecha'].widget.attrs.update({'onChange': "calcular_dias()"})
         self.fields['observacion'].widget.attrs.update({'class': 'form-control'})
         self.fields['observacion'].widget.attrs['rows'] = 3
-
+      
     class Meta:
         model = Documento
         fields = ('numero','cliente','fecha','vencimiento','monto','observacion','iva','condicion','credito')

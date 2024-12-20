@@ -50,6 +50,8 @@ M1 | Pago a documentos
                     <div id="div_ref" class="col-md-6" hidden>
                         <span class="titulos"> {{form.referencia.label}}</span>
                         {{form.referencia}}
+                        <input type="text" id="rRef" value="{{rRef}}" hidden>
+
                     </div>
                     <div id="div_monto" class="col-md-6" hidden>
                         <span class="titulos">{{form.monto.label}}</span>
@@ -540,76 +542,100 @@ function obtener_pagos() {
             e.preventDefault()
 
             // validar referencia 
+            let Var_rRef = document.getElementById('rRef').value
+            let Var_referencia = document.getElementById('id_referencia').value
+            // Si editaron la referencia valido
+            if (Var_rRef != Var_referencia) { 
             var existe = false
             let campo = $('#id_referencia').val()
-            $.ajax({
-                url: "{% url 'validar_referencia' %}",
-                type: 'POST',
-                async: false,
-                data: {
-                    csrfmiddlewaretoken: '{{ csrf_token }}',
-                    'campo': campo,
-                },
-                datatype: 'json',
-                success: function (data) {
-                    // console.log('RESULTADO', data.status, typeof data.status)
-                    existe = data.status
-                },
-                error: function (xhr, status, error) {
-                }
-            })
-            if (existe) {
-                Swal.fire({
-                    position: 'center',
-                    icon: 'error',
-                    title: 'Esta Referencia ya esta rigistrada' + ' Verifique...!',
-                    showDenyButton: true,
-                    // showCancelButton: true,
-                    confirmButtonText: "Continuar",
-                    denyButtonText: `Descartar`
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Condirmar
-                        let c = document.getElementById('cliente').value
-                        let m = document.getElementById('monto_procesar').value
-                        Swal.fire({
-                            title: '¿ Esta seguro de abonar ?',
-                            html: `<h1>${m}$</h1><br>A ${c} `,
-                            showDenyButton: true,
-                            // showCancelButton: true,
-                            confirmButtonText: "Guardar",
-                            denyButtonText: `Descartar`
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                document.getElementById('pago_documentos_corregir').submit()
-                            } else {
-                                return false
-                            }
-                        }) // fin Confirmar
-                    } else {
-                        return false
+                $.ajax({
+                    url: "{% url 'validar_referencia' %}",
+                    type: 'POST',
+                    async: false,
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                        'campo': campo,
+                    },
+                    datatype: 'json',
+                    success: function (data) {
+                        // console.log('RESULTADO', data.status, typeof data.status)
+                        existe = data.status
+                    },
+                    error: function (xhr, status, error) {
                     }
                 })
-            } else {
-                // Condirmar
-                let c = document.getElementById('cliente').value
-                let m = document.getElementById('monto_procesar').value
-                Swal.fire({
-                    title: '¿ Esta seguro de abonar ?',
-                    html: `<h1>${m}$</h1><br>A ${c} `,
-                    showDenyButton: true,
-                    // showCancelButton: true,
-                    confirmButtonText: "Guardar",
-                    denyButtonText: `Descartar`
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        document.getElementById('pago_documentos_corregir').submit()
-                    } else {
-                        return false
-                    }
-                })// fin Confirmar
-            }//validar referencia 
-
+                if (existe) {
+                    Swal.fire({
+                        position: 'center',
+                        icon: 'error',
+                        title: 'Esta Referencia ya esta rigistrada' + ' Verifique...!',
+                        showDenyButton: true,
+                        // showCancelButton: true,
+                        confirmButtonText: "Continuar",
+                        denyButtonText: `Descartar`
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Condirmar
+                            let c = document.getElementById('cliente').value
+                            let m = document.getElementById('monto_procesar').value
+                            Swal.fire({
+                                title: '¿ Esta seguro de abonar ?',
+                                html: `<h1>${m}$</h1><br>A ${c} `,
+                                showDenyButton: true,
+                                // showCancelButton: true,
+                                confirmButtonText: "Guardar",
+                                denyButtonText: `Descartar`
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    document.getElementById('pago_documentos_corregir').submit()
+                                } else {
+                                    return false
+                                }
+                            }) // fin Confirmar
+                        } else {
+                            return false
+                        }
+                    })
+                } else {
+                    // Condirmar
+                    let c = document.getElementById('cliente').value
+                    let m = document.getElementById('monto_procesar').value
+                    Swal.fire({
+                        title: '¿ Esta seguro de abonar ?',
+                        html: `<h1>${m}$</h1><br>A ${c} `,
+                        showDenyButton: true,
+                        // showCancelButton: true,
+                        confirmButtonText: "Guardar",
+                        denyButtonText: `Descartar`
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById('pago_documentos_corregir').submit()
+                        } else {
+                            return false
+                        }
+                    })// fin Confirmar
+                }//validar referencia 
+            } // Referecia editada
+            else {
+                    // Condirmar
+                    let c = document.getElementById('cliente').value
+                    let m = document.getElementById('monto_procesar').value
+                    Swal.fire({
+                        title: '¿ Esta seguro de abonar ?',
+                        html: `<h1>${m}$</h1><br>A ${c} `,
+                        showDenyButton: true,
+                        // showCancelButton: true,
+                        confirmButtonText: "Guardar",
+                        denyButtonText: `Descartar`
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById('pago_documentos_corregir').submit()
+                        } else {
+                            return false
+                        }
+                    })// fin Confirmar
+            }
+       
             // validar pendiente
             let rTmp2 = quitarFormato(document.getElementById("total-saldo").value) * 1;
             let rTmp3 = quitarFormato(document.getElementById("monto_procesar").value) * 1;

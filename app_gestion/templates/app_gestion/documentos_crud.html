@@ -41,24 +41,14 @@ M1 | Documentos crud
                             onclick="get_hoy(id_fecha)">HOY</span>
                         {{form.fecha}}
                     </div>
-                    <div class="col-1">
-                        <span class="titulos">
-                            Dias</span>
-                        <select name="credito" id="credito" class="form-control d-flex alto" required
-                            onChange="poner_vencimiento()">
-                            <option selected></option>
-                            {% for xCredito in xCreditos %}
-                            <option value={{xCredito.dia}} data-dias_credito="{{xCredito.dia}}">
-                                {{xCredito.dia}}
-                                <!-- <input type="text" > -->
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
                     <div class="col-5">
                         <span class="titulos">
                             {{form.vencimiento.label}}</span>
                         {{form.vencimiento}}
+                    </div>
+                    <div class="col-1">
+                        <span class="titulos">Dias</span>
+                        <input type="text" name="credito" id="credito" class="form-control d-flex alto" readonly style="align-items: center;" required>
                     </div>
                     <div id="div_ref" class="col-md-6">
                         <span class="titulos"> {{form.monto.label}}</span>
@@ -240,13 +230,13 @@ M1 | Documentos crud
 
 {% block Scripts_Adicionales %}
 {% if otro %}
-<script>
+<!-- <script>
     Swal.fire({
         title: "Su operación ha sido exitosa!",
         //text: "",
         icon: "success"
     });
-</script>
+</script> -->
 {% endif %}
 
 <script>
@@ -279,19 +269,23 @@ M1 | Documentos crud
         if (form.checkValidity()) {
             e.preventDefault()
             // Validar condicion
-            if (document.getElementById('credito')) {
-                if (document.getElementById('credito').value == 1 && document.getElementById('condicion').value == 2) {
-                    document.getElementById('condicion').focus();
-                    Swal.fire({
-                        position: 'center',
-                        icon: 'error',
-                        title: 'El Documento no puede tener Condicion Credito' + ' Verifique...!',
-                        showConfirmButton: true,
-                        //timer: 2500
-                    })
-                    return
-                } // fin validar condicion
-            }
+            console.log(document.getElementById('credito').value )
+            
+
+            // validar fecha
+            // if (document.getElementById('credito')) {
+            //     if ((document.getElementById('credito').value) * 1 < 0){
+            //         document.getElementById('id_vencimiento').focus();
+            //         Swal.fire({
+            //             position: 'center',
+            //             icon: 'error',
+            //             title: 'Hay problemas con las fechas y no se puede calcular los dias' + ' Verifique...!',
+            //             showConfirmButton: true,
+            //             //timer: 2500
+            //         })
+            //         return
+            //     }
+            // }
 
             // validar fechas
             let f = document.getElementById('id_fecha').value
@@ -303,12 +297,26 @@ M1 | Documentos crud
                 Swal.fire({
                     position: 'center',
                     icon: 'error',
-                    title: 'la fecha de vencimiento no pude ser menor que la fecha' + ' Verifique...!',
+                    title: 'la fecha vencimiento no pude ser menor que la fecha' + ' Verifique...!',
                     showConfirmButton: true,
                     //timer: 2500
                 })
                 return
             } // fin validar fechas
+
+            if (document.getElementById('credito')) {
+                if (document.getElementById('credito').value <= 3) {
+                    document.getElementById('condicion').focus();
+                    Swal.fire({
+                        position: 'center',
+                        icon: 'error',
+                        title: 'El Documento no puede tener Condición crédito, ya que vence en menos de 3 días.' + ' Verifique...!',
+                        showConfirmButton: true,
+                        //timer: 2500
+                    })
+                    return
+                } // fin validar condicion
+            }
 
             // validar numero de docuemnto no exista
             let Var_rNum = document.getElementById('rNum').value
@@ -346,7 +354,6 @@ M1 | Documentos crud
             } // fin validar numero de docuemnto 
             // Condirmar
             let c = document.getElementById('cliente').value
-            let credito_select = document.getElementById("cliente")
             let c_texto = cliente.options[cliente.selectedIndex].text
             let m = document.getElementById('id_monto').value
             let n = document.getElementById('id_numero').value
@@ -366,43 +373,50 @@ M1 | Documentos crud
             }) // fin Confirmar        
         } // fin de checkValidity()
     } // fin validar formulario
-    function poner_vencimiento() {
-        let Fecha = new Date(document.getElementById('id_fecha').value + "T00:00:00")
-        if (esFechaValida(Fecha) == false) {
-            document.getElementById('id_fecha').focus();
-            document.getElementById('credito').value = ""
-            Swal.fire({
-                position: 'center',
-                icon: 'error',
-                title: 'la fecha no es valida' + ' Verifique...!',
-                showConfirmButton: true,
-                //timer: 2500
-            })
-            return
-        }
-        credito_select = document.getElementById('credito').value;
-        // d = credito_select.options[credito_select.selectedIndex].dataset.dias_credito
-        var sFecha = fecha || (Fecha.getDate() + "/" + (Fecha.getMonth() + 1) + "/" + Fecha.getFullYear());
-        var sep = sFecha.indexOf('/') != -1 ? '/' : '-';
-        var aFecha = sFecha.split(sep);
-        var fecha = aFecha[2] + '/' + aFecha[1] + '/' + aFecha[0];
-        fecha = new Date(fecha);
-        fecha.setDate(fecha.getDate() + parseInt(credito_select));
-        var anno = fecha.getFullYear();
-        var mes = fecha.getMonth() + 1;
-        var dia = fecha.getDate();
-        mes = (mes < 10) ? ("0" + mes) : mes;
-        dia = (dia < 10) ? ("0" + dia) : dia;
-        var fechaFinal = anno + "-" + mes + "-" + dia;
-        document.getElementById('id_vencimiento').value = fechaFinal;
 
-        // llenar campo condicion
-        if (credito_select == 3) {
-            document.getElementById('condicion').value = 1 //Contado
-        } else {
-            document.getElementById('condicion').value = 2
+
+
+  
+    function calcular_dias() {
+        if (document.getElementById('credito')) {
+            let Fecha = new Date(document.getElementById('id_fecha').value + "T00:00:00")
+            if (esFechaValida(Fecha) == false) {
+                document.getElementById('id_fecha').focus();
+                document.getElementById('credito').value = ""
+                Swal.fire({
+                    position: 'center',
+                    icon: 'error',
+                    title: 'la fecha no es valida' + ' Verifique...!',
+                    showConfirmButton: true,
+                    //timer: 2500
+                })
+                return
+            }
+
+
+            let Vencimiento = new Date(document.getElementById('id_vencimiento').value + "T00:00:00")
+
+            if (esFechaValida(Vencimiento) == false) {
+                return
+            }
+         
+            // Calcular la diferencia en milisegundos
+            var diferenciaEnMilisegundos = Vencimiento - Fecha;
+
+            // Convertir la diferencia a días
+            var milisegundosPorDia = 24 * 60 * 60 * 1000;
+            var diferenciaEnDias = diferenciaEnMilisegundos / milisegundosPorDia;
+            document.getElementById('credito').value = diferenciaEnDias
+
+            // llenar campo condicion
+            if (diferenciaEnDias <= 3) {
+                document.getElementById('condicion').value = 1 //Contado
+            } else {
+                document.getElementById('condicion').value = 2
+            }
         }
-    } // fin poner vencimiento
+
+    } // fin calcular dias
 
     // validar fecha
     function esFechaValida(fecha) {
@@ -538,6 +552,10 @@ M1 | Documentos crud
         })
     }
     
+    window.addEventListener("load", (event) => {
+        
+        hoy.click();
+    });
 
 </script>
 {% endblock Scripts_Adicionales %}
