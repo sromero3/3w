@@ -18,9 +18,8 @@ M1 | Cobranza
 
                 <form id="filtros" action="" method="post" class="row g-3">
                     {% csrf_token %}
-                    <!-- <div class="row header-filtros"> -->
                         <div class="col-md-6">
-                            <label id="m" class="titulos d-flex ms-2 me-2 mt-1">Cliente</label>
+                            <label id="m" class="titulos d-flex me-2 mt-1">Cliente</label>
                             <select name="cliente" id="cliente" class="form-control d-flex alto" required
                                 onChange="obtener_documentos()">
                                 <option value="0" selected>Todos</option>
@@ -33,7 +32,7 @@ M1 | Cobranza
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="titulos d-flex ms-2 me-2 mt-1">Vend.</label>
+                            <label class="titulos d-flex me-2 mt-1">Vend.</label>
                             <select name="vendedor" id="vendedor" class="form-control d-flex alto" required
                                 onChange="obtener_documentos()">
                                 <option value="0" selected>Todos</option>
@@ -46,7 +45,7 @@ M1 | Cobranza
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="titulos d-flex ms-2 me-2 mt-1">Iva</label>
+                            <label class="titulos d-flex me-2 mt-1">Iva</label>
                             <select name="iva" id="iva" class="form-control d-flex alto" required
                                 onChange="obtener_documentos()">
                                 <option value="0" selected>Todos</option>
@@ -58,7 +57,7 @@ M1 | Cobranza
                             </select>
                         </div>
                         <div class="col-md-6" style="padding-top: 10px">
-                            <label class="titulos ms-2 me-2 mt-1">Vencidos</label>
+                            <label class="titulos  me-2 mt-1">Vencidos</label>
                             {% if xVencido_seleccionado == 0 %}
                             <input name="vencido" class="form-check-input" type="checkbox" id="vencido" style="padding-top: 20px"
                                 onChange="obtener_documentos()">
@@ -67,17 +66,16 @@ M1 | Cobranza
                                 onChange="obtener_documentos()">
                             {% endif %}
                         </div>
-                    <!-- </div> -->
-                    <div class="row">
-                        <div class="mt-1 pb-2 col-lg-3 col-sm-12">
-                            <span id="enlaces" hidden>
-                                <a id="url_pago_cuenta">Pago a cuenta<a/><br>
-                                <a id="url_pago_documentos">Pago a documentos<a/><br>
-                                <a id="url_estado">Estado de cuenta<a/>
-                            </span>
-                            <input type="text" id="xDoc_encontrados" value="{{xDoc_encontrados}}" hidden>
+                        <div class="row">
+                            <div class="mt-1 pb-2 col-lg-3 col-sm-12">
+                                <span id="enlaces" hidden>
+                                    <a id="url_pago_cuenta">Pago a cuenta<a/><br>
+                                    <a id="url_pago_documentos">Pago a documentos<a/><br>
+                                    <a id="url_estado">Estado de cuenta<a/>
+                                </span>
+                                <input type="text" id="xDoc_encontrados" value="{{xDoc_encontrados}}" hidden>
+                            </div>
                         </div>
-                    </div>
                 </form>
                 <table id="cobranza" class="table table-hover table-bordered" style="width:100%">
                     <thead>

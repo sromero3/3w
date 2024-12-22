@@ -13,10 +13,9 @@ M1 | Documentos
             <div class="card-body">
                 <h5 class="card-title">Documentos<a href="{% url 'inicio' %}" class="float-end"><i class="bi bi-house-door" title='Cerrar'></i></a></h5>
                 
-                <form id="filtros" action="" method="post" class="mb-4">
+                <form id="filtros" action="" method="post" class="row g-3">
                     {% csrf_token %}
-                    <div class="row">
-                        <div class="col-lg-3 col-sm-12 d-flex">
+                        <div class="col-md-6">
                             <label id="m" class="titulos d-flex me-2 mt-1">Cliente</label>
                             <select name="cliente" id="cliente" class="form-control d-flex alto" required
                                 onChange="obtener_documentos()">
@@ -29,8 +28,8 @@ M1 | Documentos
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-lg-3 col-sm-12 d-flex" style="width: 200px;" >
-                            <label class="titulos d-flex me-2 mt-1">Ultimos</label>
+                        <div class="col-md-6">
+                            <label class="titulos d-flex me-2 mt-1">Días transcurridos</label>
                             <select name="dias" id="dias" class="form-control alto" required
                                 onChange="obtener_documentos()">
                                 <option value="0" selected>Todos</option>
@@ -40,7 +39,7 @@ M1 | Documentos
                                     {{xDia.dia}}
                                 </option>
                                 {% endfor %}
-                            </select><span class="titulos d-flex ms-2 me-2 mt-1"> dias</span>
+                            </select>
                         </div>
                 </form>
 
@@ -166,8 +165,13 @@ M1 | Documentos
         })
     })
 
-    document.getElementById('data-section').style.opacity = 1;  
+    setTimeout(() => {
+        document.getElementById('data-section').style.opacity = 1;
+       }  ,200 );
+
     });
+
+
     
 
     // tool tip

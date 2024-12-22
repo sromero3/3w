@@ -47,7 +47,6 @@
 
   <header id="header" class="header fixed-top d-flex align-items-center">
 
-
     <div class="d-flex align-items-center justify-content-between">
       <a href="index.html" class="logo d-flex align-items-center">
         <img src="{% static 'app_website/custom-files/assets_m1/img/logo1.png' %}" alt="" data-aos="fade-in">
@@ -56,14 +55,7 @@
       <i class="bi bi-list toggle-sidebar-btn"></i>
     </div><!-- End Logo -->
 
-
-
-
   </header><!-- End Header -->
-
-
-
-
 
   <main class="main">
     <!-- Hero Section -->
@@ -93,34 +85,17 @@
 
                 <form action="" method="post" class="row g-3 needs-validation">
                   {% csrf_token %}
-                  <!-- <div class="col-12">
-                      <label for="yourUsername" class="form-label">Username</label>
-                      <div class="input-group has-validation">
-                     
-                        {{form.username}}
-                        <input type="text" name="username" class="form-control" id="yourUsername" required>
-                        <div class="invalid-feedback">Please enter your username.</div>
-                      </div>
-                    </div> -->
-                  <div class="col-12">
-                    <label for="yourusername" class="form-label">username</label>
-
-                    {{form.username}}
-                    <div class="invalid-feedback">Please enter your username!</div>
-                  </div>
-
-                  <div class="col-12">
-                    <label for="yourPassword" class="form-label">Password</label>
-                    {{form.password}}
-                    <div class="invalid-feedback">Please enter your password!</div>
-                  </div>
-
-                  <div class="col-12">
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" name="remember" value="true" id="rememberMe">
-                      <!-- <label class="form-check-label" for="rememberMe">Remember me</label> -->
+            
+                  {% for field in form %}
+                    <div class="col-12">
+                      {{field}}
                     </div>
-                  </div>
+                    <div>
+                      {% for error in field.errors %}
+                        <p>{{ error }}</p>
+                      {% endfor %}
+                    </div>
+                  {% endfor %}
                   <div class="col-12">
                     <button class="btn btn-primary w-100" type="submit">Login</button>
                   </div>
@@ -128,7 +103,7 @@
                     <p class="small mb-0">Olvido su password ? <a href="#">Solucion</a></p>
                   </div>
                 </form>
-
+                {% include 'app_gestion/list_errors.html' %}
               </div>
             </div>
           </div>
