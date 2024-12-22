@@ -26,4 +26,22 @@ d = credito_select.options[credito_select.selectedIndex].dataset.dias_credito
 // // Formatear la fecha como YYYY-MM-DD
 // var fecha_hoy = `${año}-${mes}-${dia}`;
 
+// quitra cosas al data table
+// "paging": false,    
+// "info": false,
+// "bFilter": false,
+    
+// Para eliminar elmemntos del dom su es pantalla pequena
+function revisarTamañoPantalla() {
+var elemento = document.getElementById('filtro2');
 
+    if (window.innerWidth <= 600) {
+        // Quitar la clase cuando el ancho de la pantalla es 600px o menos
+        elemento.classList.remove('d-flex');
+    } else {
+        // Agregar la clase de nuevo cuando el ancho de la pantalla es mayor a 600px
+        elemento.classList.add('d-flex');
+    }
+}
+// Revisar el tamaño de pantalla cuando la ventana se redimensiona
+window.addEventListener('load', revisarTamañoPantalla);

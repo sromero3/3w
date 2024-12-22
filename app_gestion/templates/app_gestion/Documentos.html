@@ -2,14 +2,14 @@
 {% load static %}
 {% load filtros %}
 {% block title %}
-M1 | Cobranza
+M1 | Documentos
 {% endblock %}
 {% block styles %}
 {% endblock styles %}
 {% block content %}
 <main id="main" class="main" style="margin-top: 40px">
     <div class="col-lg-12">
-        <div class="card">
+        <div class="card" id="data-section" style="opacity: 0;">
             <div class="card-body">
                 <h5 class="card-title">Documentos<a href="{% url 'inicio' %}" class="float-end"><i class="bi bi-house-door" title='Cerrar'></i></a></h5>
                 
@@ -47,11 +47,10 @@ M1 | Cobranza
                 <div class="row">
                     <div class="col-lg-12" style="text-align: center;margin-top: 10px">
                         <h6 > <a href="{% url 'add_documento' %}" ><i class="bi bi-stickies"  title='Agregar un documento'></i><span>+</span></a></h6>
-
                     </div>
                 </div>
                 
-                <table id="documentos" class="table table-hover table-bordered " style="width:100%">
+                <table id="documentos" class="table table-hover table-bordered" style="width:100%">
                     <thead>
                         <tr>
                             <th>Documento</th>
@@ -118,6 +117,8 @@ M1 | Cobranza
 {% endblock content %}
 {% block Scripts_Adicionales %}
 <script>
+     // cuando cargue los datos
+    $( document ).ready(function() { 
  
     $(function () {
         $("#documentos").DataTable({
@@ -150,19 +151,24 @@ M1 | Cobranza
                     "colvis": "Visibilidad"
                 }
             },
+
             "ordering": false,
             "responsive": true,
             "lengthChange": true,
             "autoWidth": true,
             "pageLength": 50,
             "scrollX": true,
-            // "order": [[1, "desc"]],
+            "order": [[3, "asc"]],
             "columnDefs": [{
-                "targets": [1,5,6,7    ],
+                "targets": [1, 5, 6, 7],
                 "orderable": false
             }]
         })
     })
+
+    document.getElementById('data-section').style.opacity = 1;  
+    });
+    
 
     // tool tip
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
@@ -174,20 +180,5 @@ M1 | Cobranza
         filtros.submit()
     } // fin obtener docuemntos 
 
-    //
-    function revisarTamañoPantalla() {
-    var elemento = document.getElementById('filtro2');
-   
-        if (window.innerWidth <= 768) {
-            // Quitar la clase cuando el ancho de la pantalla es 600px o menos
-            elemento.classList.remove('d-flex');
-        } else {
-            // Agregar la clase de nuevo cuando el ancho de la pantalla es mayor a 600px
-            elemento.classList.add('d-flex');
-        }
-    }
-    // Revisar el tamaño de pantalla cuando la ventana se redimensiona
-    // window.addEventListener('load', revisarTamañoPantalla);
- 
-</script>
+  </script>
 {% endblock Scripts_Adicionales %}
