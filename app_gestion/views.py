@@ -1477,6 +1477,8 @@ def Pago_cuenta_corregirView(request, id, forma_id):
         xBancosdestino = BancoDestino.objects.exclude(tipo='Inter').exclude(id=6)
     elif forma_id == 4:
         xBancosdestino = BancoDestino.objects.exclude(tipo='Inter')
+    elif forma_id == 6:
+        xBancosdestino = BancoDestino.objects.exclude(tipo='Inter')
 
 
     # Obtengo el registro a editar
@@ -1705,6 +1707,8 @@ def Pago_documentos_corregirView(request, id, forma_id):
     elif forma_id == 1:
         xBancosdestino = BancoDestino.objects.exclude(tipo='Inter').exclude(id=6)
     elif forma_id == 4:
+        xBancosdestino = BancoDestino.objects.exclude(tipo='Inter')
+    elif forma_id == 6:
         xBancosdestino = BancoDestino.objects.exclude(tipo='Inter')
 
 

@@ -157,7 +157,7 @@ M1 | Pago a cuenta
             document.getElementById("monto").value = ""
             document.getElementById('monto_procesar').value = ""
             document.getElementById('banco_destino').removeAttribute("required")
-        }
+        } // fin forma 2
 
         if (document.getElementById('forma').value == 3) {// Transferencia zelle
             document.getElementById("div_ref").removeAttribute('hidden')
@@ -210,7 +210,22 @@ M1 | Pago a cuenta
             document.getElementById("div_ref").hidden = true
             document.getElementById("div_ban").hidden = true
             document.getElementById('banco_destino').removeAttribute("required")
-        }
+        } // fin forma 4
+
+        if (document.getElementById('forma').value == 6) { // Notta de credito
+            document.getElementById("div_ref").hidden = true
+            document.getElementById("div_monto").hidden = true
+            document.getElementById("div_tasa").hidden = true
+            document.getElementById("div_monto_procesar").removeAttribute('hidden')
+            document.getElementById("div_ban").hidden = true
+            document.getElementById("monto_procesar").removeAttribute('readonly')
+            document.getElementById('monto_procesar').setAttribute("required", "")
+            document.getElementById('monto').removeAttribute("required")
+            document.getElementById("monto").value = ""
+            document.getElementById('monto_procesar').value = ""
+            document.getElementById('banco_destino').removeAttribute("required")
+        } // fin forma 6
+
     } // fin mostrar campos
 
 
