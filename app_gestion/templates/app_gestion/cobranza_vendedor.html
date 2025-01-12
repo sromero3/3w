@@ -8,30 +8,30 @@ M1 | Cobranza x vendedores
 {% endblock styles %}
 {% block content %}
 <main id="main" class="main" style="margin-top: 40px;">
-    <div class="col-lg-12" >
+    <div class="col-lg-12">
         <div class="card">
-            <div class="card-body" style="margin-left: 100px;">
+            <div class="card-body" id="card-body-areaPDF" style="margin-left: 100px;">
                 <h5 class="card-title">Cobranza x vendedor<a href="javascript:history.back()" class="float-end">
                         <i class="bi bi-arrow-return-left" title='Regresar'></i>
                     </a></h5>
-                
-                <form id="filtros" action="" method="post" class="mb-4" style="width:90%;margin-bottom: 8px !important;">
+
+                <form id="filtros" action="" method="post" class="mb-4"
+                    style="width:90%;margin-bottom: 8px !important;">
                     {% csrf_token %}
                     <div class="row">
                         <div class="col-4" style="margin-bottom: 12px;">
                             <span class="titulos">
                                 Vendedor</span>
-                                <select name="vendedor" id="vendedor" class="form-control d-flex alto" required
+                            <select name="vendedor" id="vendedor" class="form-control d-flex alto" required
                                 onChange="obtener_documentos()">
                                 <option value="0" selected></option>
                                 {% for xVendedor in xVendedores %}
-                                <option value={{xVendedor.id}} {% if xVendedor.id == xVendedor_seleccionado %} selected
-                                    {%endif %}>
+                                <option value={{xVendedor.id}} data-nombre="{{xVendedor.nombre}}" {% if xVendedor.id == xVendedor_seleccionado %} selected {%endif %}>
                                     {{xVendedor.nombre}}
                                 </option>
                                 {% endfor %}
                             </select>
-                      
+
                         </div>
                         <!-- <div class="col-md-4">
                             <span class="titulos">
@@ -41,7 +41,8 @@ M1 | Cobranza x vendedores
                         <div class="col-md-4">
                             <span class=" titulos">
                                 Hasta</span>
-                            <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}" class="form-control alto" onChange="obtener_documentos()"/>
+                            <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}"
+                                class="form-control alto" onChange="obtener_documentos()" />
                         </div>
                     </div>
                 </form>
@@ -58,7 +59,7 @@ M1 | Cobranza x vendedores
                             <th>Monto</th>
                             <th>Abonado</th>
                             <th>Pendiente</th>
-                        </tr>  
+                        </tr>
                     </thead>
                     <tbody>
                         {% for xDocumento in xDocumentos %}
@@ -73,23 +74,31 @@ M1 | Cobranza x vendedores
                             <td align="right">{{xDocumento.monto|darFormato}}</td>
                             <td align="right">{{xDocumento.abonado|darFormato}}</td>
                             <td align="right">{{xDocumento.saldo|darFormato}}</td>
-                            
+
                         </tr>
                         {% endfor %}
                     </tbody>
                     <tfoot>
-         
+
                     </tfoot>
                 </table>
             </div>
         </div>
     </div>
+
+    <button class="btn btn-primary d-flex justify-content-center align-items-center float-end" style="width: auto;"
+        onclick="generarPDF()">Generar PDF</button>
+        
+    <!-- <button id="share-button">Compartir</button> -->
 </main><!-- End #main -->
+
+
 {% endblock content %}
 {% block Scripts_Adicionales %}
 <script>
+
     new DataTable('#documentos', {
-    language: {
+        language: {
             "sProcessing": "Procesando...",
             "sLengthMenu": "Mostrar _MENU_ registros",
             "sZeroRecords": "No se encontraron resultados",
@@ -117,33 +126,35 @@ M1 | Cobranza x vendedores
                 "colvis": "Visibilidad"
             }
         },
-    ordering: true,    
-    paging: false,
-    searching: false,
-    order: [[6, 'asc']],
-    rowGroup: {
-        dataSrc: 4,
-        endRender: function (rows, group) {
-            suma = 0;
-            for (i = 0; i < rows.data().pluck(9).length; i++) {
-                suma += quitarFormato(rows.data().pluck(9)[i])*1;
-                // console.log('Dato', i ,typeof(t), suma);
-            }
+        ordering: true,
+        paging: false,
+        searching: false,
+        info: false,
+        order: [[6, 'asc']],
+        rowGroup: {
+            dataSrc: 4,
+            endRender: function (rows, group) {
+                suma = 0;
+                for (i = 0; i < rows.data().pluck(9).length; i++) {
+                    suma += quitarFormato(rows.data().pluck(9)[i]) * 1;
+                    // console.log('Dato', i ,typeof(t), suma);
+                }
 
-            // var suma =
-            //     rows
-            //         .data()
-            //         .pluck(8)
-            //         .reduce((a, b) => a +  b.reduce((a, b) => a + b.replace(/[^\d]/g, '') * 1, 0) / rows.count();
-                                         
-            // Use the DataTables number formatter
-            return (
-                'Total cliente: ' +
-                DataTable.render.number(null, null, 2, '$').display(suma)
-            );
+                // var suma =
+                //     rows
+                //         .data()
+                //         .pluck(8)
+                //         .reduce((a, b) => a +  b.reduce((a, b) => a + b.replace(/[^\d]/g, '') * 1, 0) / rows.count();
+
+                // Use the DataTables number formatter
+                return (
+                    'Total cliente: ' +
+                    DataTable.render.number(null, null, 2, '$').display(suma)
+                );
+            }
         }
-    }
-});
+    }); // fin data table
+
     // obtener docuemntos
     function obtener_documentos() {
         // console.log(document.getElementById('cliente').value)
@@ -152,7 +163,95 @@ M1 | Cobranza x vendedores
         filtros.submit()
     } // fin obtener docuemntos
 
+    // generar PDF
+    function generarPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
 
-    
+        // Obtener el contenido del elemento del DOM
+        const content = document.getElementById('card-body-areaPDF').innerHTML;
+        // Obtener el nombre del vendedor para nombre del archivo
+        const vendedor_select = document.getElementById('vendedor');
+        const xVendedor = vendedor_select.options[vendedor_select.selectedIndex].dataset.nombre
+
+        // Usar html2canvas para renderizar el contenido como una imagen
+        html2canvas(document.getElementById('card-body-areaPDF')).then((canvas) => {
+            const imgData = canvas.toDataURL('image/png');
+
+            // Configurar márgenes
+            const margin = 0;
+            const pageWidth = 232;
+            const pageHeight = doc.internal.pageSize.getHeight();
+            // const imgWidth = pageWidth - 2 * margin;
+            const imgWidth = pageWidth;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            // Agregar la imagen al PDF con márgenes personalizados
+            doc.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
+
+            // Crear un Blob del PDF
+            const pdfOutput = doc.output('blob');
+            const url = URL.createObjectURL(pdfOutput);
+
+            // Abrir el PDF en una nueva ventana o pestaña del navegador
+            // window.open(url, '_blank');
+
+            // Descargar el PDF automáticamente
+             const nombre_doc = xVendedor + '.pdf';
+            //  const nombre_doc = 'archivo' + '.pdf';
+            doc.save(nombre_doc);
+
+            // const file = new File([pdfOutput], nombre_doc, { type: 'application/pdf' });
+            // sharePDF(file);
+         
+        });
+    } //fin generar pdf
+
+    // compartir
+    // async function sharePDF(file) {
+    //     try {
+    //         const shareData = {
+    //             files: [file],
+    //         };
+    //         if (navigator.canShare && navigator.canShare(shareData)) {
+    //             await navigator.share(shareData);
+    //             console.log('Archivo compartido con éxito.');
+    //         } else {
+    //             console.log('Tu navegador no admite compartir archivos.');
+    //         }
+    //     } catch (error) {
+    //         console.log('Error al compartir el archivo:', error);
+    //     }
+    // }
+ 
+    // Enviar navegator.share 
+    // document.getElementById('share-button').addEventListener('click', function() {
+    // fetch('ruta/al/archivo.pdf')
+    //     .then(response => response.blob())
+    //     .then(blob => {
+    //     const file = new File([blob], 'archivo.pdf', { type: 'application/pdf' });
+    //     if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    //         navigator.share({
+    //         title: 'Ejemplo de Web Share API con PDF',
+    //         text: 'Aquí tienes un archivo PDF para ti.',
+    //         files: [file]
+    //         }).then(() => {
+    //         console.log('Archivo PDF compartido exitosamente.');
+    //         }).catch((error) => {
+    //         console.log('Error al compartir el archivo PDF:', error);
+    //         });
+    //     } else {
+    //         console.log('El navegador no puede compartir archivos.');
+    //     }
+    //     })
+    //     .catch((error) => {
+    //     console.log('Error al obtener el archivo PDF:', error);
+    //     });
+    // });
+
 </script>
 {% endblock Scripts_Adicionales %}

@@ -192,7 +192,7 @@ class Documento(models.Model):
     credito = models.IntegerField(default=0)
     monto = models.DecimalField(max_digits=8, decimal_places=2)
     abonado = models.DecimalField(max_digits=8, decimal_places=2,default=0)
-    observacion = models.TextField(max_length=1000, blank=True,null=True)
+    observacion = models.TextField(max_length=1000, blank=True,null=True, verbose_name="Observación")
     iva = models.ForeignKey(Iva, on_delete=models.CASCADE)
     creado = models.DateTimeField(auto_now_add=True, null=False)
     actualizado = models.DateTimeField(null=False)
@@ -239,7 +239,7 @@ class Pago(models.Model):
     monto = models.DecimalField(max_digits=9, decimal_places=2, verbose_name="Monto en Bs.")
     # validators=[MinValueValidator(0.00), MaxValueValidator(999999.99)], 
     monto_procesar = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Monto en $")
-    observacion = models.TextField(max_length=250, blank=True)
+    observacion = models.TextField(max_length=250, blank=True, verbose_name="Observación")
     seguimiento = models.TextField(blank=True)
     forma = models.ForeignKey(PagoForma, on_delete=models.CASCADE, verbose_name="Forma de pago")
     banco_destino = models.ForeignKey(BancoDestino, on_delete=models.CASCADE, verbose_name="Banco destino")

@@ -24,6 +24,8 @@ from django.db.models import Q
 from decimal import *
 import os
 from django.contrib.auth import logout
+# from weasyprint import HTML
+
 
 # Create your views here.
 def Index_gestion(request):
@@ -56,7 +58,7 @@ def InicioView(request):
       'xTasa': xTasa,
       'xActual': xActual
     }
-  
+    
     return render(request, 'app_gestion/inicio.html', context)
 
 
@@ -1163,9 +1165,11 @@ def MigrarView(request):
 
 @login_required
 def Cobranza_vendedorView(request, xVendedor,  fecha_fin):
+
+
     xUsuario = request.user
     if xVendedor != 0:
-         xVendedor_seleccionado = xVendedor
+        xVendedor_seleccionado = xVendedor
     else:
         xVendedor_seleccionado   = 0
 
@@ -1185,11 +1189,11 @@ def Cobranza_vendedorView(request, xVendedor,  fecha_fin):
         # print("--------- Parametros recibidos POST ----------")
         xFecha_fin = fecha_fin
         qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).filter(cliente_id__vendedor__id=xVendedor, vencimiento__lte=xFecha_fin).values('id','cliente_id','numero','credito','fecha','dias_v','vencimiento','monto','cliente_id__vendedor__id','abonado','saldo','cliente__nombre').order_by('cliente__nombre').order_by('vencimiento')
-       
+    
         # for x in qDocumentos:
         #  print("Documento ",x['numero'],x['vencimiento'])
         #  print(qDocumentos[0]['vencimiento'])
-       
+    
         # if qDocumentos.exists():
         #     fecha_ini = qDocumentos[0]['vencimiento'] # fecha de vencimento del docuemto mas viejo 
         #     xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
@@ -1206,10 +1210,11 @@ def Cobranza_vendedorView(request, xVendedor,  fecha_fin):
         'xVendedor_seleccionado': int(xVendedor_seleccionado),
         # 'xFecha_ini': xFecha_ini,
         'xFecha_fin': xFecha_fin,
-     }
- 
-    return render(request, 'app_gestion/cobranza_vendedor.html', context)
+    }
 
+    # HTML('app_gestion/cobranza_vendedor.html').write_pdf('mi_documento.pdf')
+    return render(request, 'app_gestion/cobranza_vendedor.html', context)
+ 
 
 @login_required
 def Historial_pagosView(request, xCliente, fecha_ini, fecha_fin):
