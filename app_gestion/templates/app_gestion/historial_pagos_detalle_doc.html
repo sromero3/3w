@@ -22,7 +22,6 @@ M1 | historial_pagos_detalle_doc
                 <table id="asientos" class="table table-hover table-bordered " style="width:100%">
                     <thead>
                         <tr>
-                            <th>Fecha</th>
                             <th>Documento afectado</th>
                             <th>Monto</th>
                         </tr>
@@ -30,15 +29,8 @@ M1 | historial_pagos_detalle_doc
                     <tbody>
                         {% for xDetalle in xPagos_detalle %}
                         <tr>
-                            <td>{{xDetalle.fecha|date:"d/m/y"}}</td>
-
                             <td >{{xDetalle.documento__numero|rellenar}}</td>
-                         
-                            {% if xDetalle.monto == "-" %}
-                                <td align="center">-</td>
-                            {% else %}
-                                <td align="right">{{xDetalle.monto_procesar|darFormato}}</td>
-                            {% endif %}
+                            <td align="right">{{xDetalle.monto_procesar|darFormato}}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -82,6 +74,7 @@ M1 | historial_pagos_detalle_doc
                     "colvis": "Visibilidad"
                 }
             },
+            "searching": false,
             "info": false,
             "ordering": false,
             "paging": false,
