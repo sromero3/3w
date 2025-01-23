@@ -206,7 +206,7 @@ class Documento(models.Model):
         db_table = "app_gestion_documentos"
         verbose_name = "Documento"
         verbose_name_plural = "Documentos"
-        ordering = ["vencimiento","id"]  
+        ordering = ["vencimiento","-id"]  
 
 
 class PagoForma(models.Model):

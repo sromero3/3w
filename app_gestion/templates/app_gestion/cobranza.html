@@ -84,14 +84,14 @@ M1 | Cobranza
                             <th>Fecha</th>
                             <th>Vence</th>
                             <th>DV</th>
-                            <th style="width:200px">Cliente</th>
+                            <th style="width:300px">Cliente</th>
                             <th>Monto</th>
                             <th>Abonado</th>
                             <th>Pendiente</th>
                             <!-- <th>Ciudad</th> -->
-                            <th>Vendedor</th>
-                            <th>Iva</th>
-                            <th>Condición</th>
+                            <th style="width:150px">Vendedor</th>
+                            <th style="width:50px">Iva</th>
+                            <th style="width:90px">Condición</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -109,19 +109,23 @@ M1 | Cobranza
                             <td>{{xDocumento.fecha|date:"d/m/y"}}<a href="javascript:abrir_modal( '{{xDocumento.fecha|date:"Y-m-d"}}','{{xDocumento.vencimiento|date:"Y-m-d"}}','{{xDocumento.id}}' )"> <i style="font-size: small;" class="bi bi-pencil"></a></i></td>
                             <td>{{xDocumento.vencimiento|date:"d/m/y"}}</td>
                             <td align="center">{{xDocumento.dias_v}}</td>
-                            <td>{{xDocumento.cliente__nombre|truncatechars:22}}</td>
+                            <td>{{xDocumento.cliente__nombre}}</td>
                             <td align="right">{{xDocumento.monto|darFormato}}</td>
                             <td align="right">{{xDocumento.abonado|darFormato}}</td>
                             <td align="right">{{xDocumento.saldo|darFormato}}</td>
                             <!-- <td>{{xDocumento.cliente_id__ciudad__ciudad}}</td> -->
-                            <td>{{xDocumento.cliente_id__vendedor__nombre}}</td>
+                            <td>{{xDocumento.cliente_id__vendedor__nombre|truncatechars:15}}</td>
                             {% if xDocumento.iva__iva == "-" %}
                                  <td  align="center">{{xDocumento.iva__iva}}</td>
                             {% else %}
                                  <td>{{xDocumento.iva__iva}}</td>
                             {% endif %}
                             <!-- <td style="width:30px; color: rgb(90, 91, 92);">{{xDocumento.id|rellenar}}</td> -->
-                            <td>{{xDocumento.condicion__condicion}} a {{xDocumento.credito}}</td>
+                            {% if xDocumento.condicion__condicion == "Contado" %}
+                                <td style="color: red;">{{xDocumento.condicion__condicion}} a {{xDocumento.credito}}</td>
+                            {% else %}
+                                <td>{{xDocumento.condicion__condicion}} a {{xDocumento.credito}}</td>
+                           {% endif %}
                         </tr>
                         {% endfor %}
                     </tbody>

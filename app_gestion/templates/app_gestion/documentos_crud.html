@@ -269,8 +269,6 @@ M1 | Documentos crud
         if (form.checkValidity()) {
             e.preventDefault()
             // Validar condicion
-            console.log(document.getElementById('credito').value )
-            
 
             // validar fecha
             // if (document.getElementById('credito')) {
@@ -303,19 +301,34 @@ M1 | Documentos crud
                 })
                 return
             } // fin validar fechas
-
+            
             if (document.getElementById('credito')) {
-                if (document.getElementById('credito').value <= 3) {
-                    document.getElementById('condicion').focus();
-                    Swal.fire({
-                        position: 'center',
-                        icon: 'error',
-                        title: 'El Documento no puede tener Condición crédito, ya que vence en menos de 3 días.' + ' Verifique...!',
-                        showConfirmButton: true,
-                        //timer: 2500
-                    })
-                    return
-                } // fin validar condicion
+                if (document.getElementById('condicion').value == 2) {
+                    if (parseInt(document.getElementById('credito').value) <= 15) {
+                        document.getElementById('condicion').focus();
+                        Swal.fire({
+                            position: 'center',
+                            icon: 'error',
+                            title: 'El Documento no puede tener Condición crédito, ya que vence en menos de 15 días.' + ' Verifique...!',
+                            showConfirmButton: true,
+                            //timer: 2500
+                        })
+                        return
+                    } 
+                }
+                if (document.getElementById('condicion').value == 1) {
+                    if (parseInt(document.getElementById('credito').value) > 15) {
+                        document.getElementById('condicion').focus();
+                        Swal.fire({
+                            position: 'center',
+                            icon: 'error',
+                            title: 'El Documento no puede tener Condición contado, ya que vence en más de 15 días.' + ' Verifique...!',
+                            showConfirmButton: true,
+                            //timer: 2500
+                        })
+                        return
+                    } 
+                }
             }
 
             // validar numero de docuemnto no exista
@@ -409,7 +422,7 @@ M1 | Documentos crud
             document.getElementById('credito').value = diferenciaEnDias
 
             // llenar campo condicion
-            if (diferenciaEnDias <= 3) {
+            if (diferenciaEnDias <= 15) {
                 document.getElementById('condicion').value = 1 //Contado
             } else {
                 document.getElementById('condicion').value = 2
@@ -553,8 +566,9 @@ M1 | Documentos crud
     }
     
     window.addEventListener("load", (event) => {
-        
-        hoy.click();
+        if( document.getElementById('hoy')){
+            hoy.click();
+        }
     });
 
 </script>

@@ -24,6 +24,7 @@ from django.db.models import Q
 from decimal import *
 import os
 from django.contrib.auth import logout
+
 # from weasyprint import HTML
 
 
@@ -1228,7 +1229,7 @@ def Historial_pagosView(request, xCliente, fecha_ini, fecha_fin):
     
     if request.method == 'GET':
         # print("--------- Parametros recibidos GET ----------") 
-        fecha_ini  = date.today() - timedelta(days=30)
+        fecha_ini  = date.today() - timedelta(days=90)
         fecha_fin  = date.today() 
         xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
         xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
@@ -1237,8 +1238,8 @@ def Historial_pagosView(request, xCliente, fecha_ini, fecha_fin):
         xFecha_ini = fecha_ini
         xFecha_fin = fecha_fin 
     
-    qPagos=Pago.objects.filter(fecha__range=(fecha_ini, fecha_fin)).values('id','cliente_id','referencia','fecha','monto','monto_procesar','forma__forma', 'tasa','cliente__nombre','observacion', 'seguimiento', 'forma_id','tipo')
-
+    qPagos=Pago.objects.filter(fecha__range=(fecha_ini, fecha_fin)).values('id','cliente_id','referencia','fecha','monto','monto_procesar','forma__forma', 'tasa','cliente__nombre','observacion', 'seguimiento', 'forma_id','banco_destino__nombre','tipo','creado').order_by('-fecha')
+    
     if xCliente == 0 :
        xPagos=qPagos.all()
     else:
@@ -1924,3 +1925,44 @@ def obtener_pagosView(request):
 def cerrarView(request):
     logout(request)
     return redirect('/')
+
+@login_required
+def historial_pagos_detalle_docView(request, id):
+    xUsuario = request.user
+
+    xDoc = xDoc
+    xMonto = Decimal(xMonto)
+  
+    # print(xMonto)
+    xPagos_detalle = Pago_detalle.objects.filter(documento_id = id).values('documento__fecha','pago__fecha', 'monto_procesar','pago__referencia','pago__forma__forma').order_by('pago__fecha', 'id')
+   
+    xFecha = xPagos_detalle[0]["documento__fecha"]
+    data_lista = []
+    data_lista.append({"fecha":xFecha, "referencia": xDoc, "forma": "-", "pago": 0, "monto": "-","balance": xMonto })
+    # print("----------- Encabezado ------------------")
+    # print(data_lista)
+    primero = True
+    balance = xMonto
+    for xDetalle in xPagos_detalle:
+        # print("----------- Detalle ------------------")
+        # print(data_lista)
+              
+        xDetalle["fecha"] = xDetalle["pago__fecha"] 
+        xDetalle["referencia"] = xDetalle["pago__referencia"]
+        xDetalle["forma"] = xDetalle["pago__forma__forma"]
+        xDetalle["monto"] = xDetalle["monto_procesar"]
+      
+        balance -= xDetalle["monto_procesar"]
+        xDetalle["balance"] = balance
+        data_lista.append(xDetalle) # Se agrega cada registro a la lista
+        
+
+    # print(data_lista)
+        
+    context = {
+        'xUsuario': xUsuario,
+        'xPagos_detalle': data_lista,
+        'xDoc': xDoc,
+    }
+    
+    return render(request, 'app_gestion/estado_cuentas_detalle_doc.html', context)

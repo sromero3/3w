@@ -82,7 +82,7 @@ M1 | Documentos
                             <td>{{xDocumento.vencimiento|date:"d/m/y"}}</td>
                             <td align="center">{{xDocumento.dias_v}}</td>
                         
-                            <td>{{xDocumento.cliente__nombre|truncatechars:25   }}
+                            <td>{{xDocumento.cliente__nombre|truncatechars:45   }}
                                 <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
                                         data-bs-html="true" data-bs-title="{{xDocumento.cliente__nombre}}<br>"></i>
                                     </i></a>
@@ -90,7 +90,7 @@ M1 | Documentos
                             <td align="right">{{xDocumento.monto|darFormato}}</td>
                             <td align="right">{{xDocumento.abonado|darFormato}}</td>
                             <td align="right">{{xDocumento.saldo|darFormato}}</td>
-                            <td>{{xDocumento.cliente_id__vendedor__nombre|truncatechars:25}}</td>
+                            <td>{{xDocumento.cliente_id__vendedor__nombre|truncatechars:20}}</td>
                             <td>{{xDocumento.condicion__condicion}} a {{xDocumento.credito}}</td>
                             {% if xDocumento.iva__iva == "-" %}
                                 <td  align="center">{{xDocumento.iva__iva}}</td>

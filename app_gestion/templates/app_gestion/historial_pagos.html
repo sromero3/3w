@@ -47,10 +47,13 @@ M1 | Historial de pagos
                         <tr>
                             <th>Cliente</th>
                             <th>Fecha</th>
+                            <th>Procesado</th>
                             <th>Referencia</th>
                             <th>Seguimiento</th>
                             <th>Forma</th>
+                            <th>A Cuenta</th>
                             <th>Monto $</th>
+                            <th>Doc</th>
                             <th>Opcion</th>
                         </tr>  
                     </thead>
@@ -58,22 +61,41 @@ M1 | Historial de pagos
                         {% for xPago in xPagos %}
                         <tr>
                             <td>{{xPago.cliente__nombre}}</td>
-                            <td>{{xPago.fecha}}</td>
+                           
+                            <td >{{xPago.fecha|date:"d-m-Y"}}</td>
+                           
+                            <td align="center">{{xPago.creado|date:"d-m-Y"}} {{xPago.creado|time}}</td>
+  
                             {% if xPago.observacion == "" %}
-                                <td>{{xPago.referencia}}</td>
+                                {% if xPago.referencia == "-" %}
+                                    <td align="center">{{xPago.referencia}}</td>
+                                {% else %}
+                                    <td>{{xPago.referencia|rellenar}}</td>
+                                {% endif %}
                             {% else %}
-                                <td>{{xPago.referencia|rellenar}}
-                                    <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
-                                            data-bs-html="true" data-bs-title="{{xPago.observacion}}<br>
-                                            "></i>
-                                        </i></a>
-                                </td>
+                                {% if xPago.referencia == "-" %}
+                                    <td align="center">{{xPago.referencia}}
+                                        <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                                data-bs-html="true" data-bs-title="{{xPago.observacion}}<br>
+                                                "></i>
+                                        </a>
+                                    </td>
+                                {% else %}
+                                    <td>{{xPago.referencia|rellenar}}
+                                        <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                                data-bs-html="true" data-bs-title="{{xPago.observacion}}<br>
+                                                "></i>
+                                        </a>
+                                    </td>
+                                {% endif %}
                             {% endif %}
+
                             {% if xPago.seguimiento == "" %}
                                 <td align="center">-</td>
                             {% else %}
                                     <td align="center"><a href="javascript:abrir_modal('{{xPago.seguimiento}}')"> <i style="font-size: small;" class="bi bi-activity"></a></i></td>
                             {% endif %}
+                            
                             {% if xPago.forma__forma == "Transferencia Bancos Nacionales" or xPago.forma__forma == "Bolivares en Efectivo" %}
                                 <td>{{xPago.forma__forma}}
                                     <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
@@ -83,7 +105,17 @@ M1 | Historial de pagos
                             {% else %}
                                 <td>{{xPago.forma__forma}}</td>
                             {% endif %}
+                           
+                            {% if xPago.banco_destino__nombre == "-" %}
+                              <td align="center">{{xPago.banco_destino__nombre}}</td>
+                            {% else %}
+                              <td>{{xPago.banco_destino__nombre}}</td>
+                            {% endif %}
+
                             <td align="right">{{xPago.monto_procesar|darFormato}}</td>
+
+                            <td align="center"><a href="{% url 'estado_cuentas_detalle_doc' xPago.id 'documento' 0 %}"> <i style="font-size: small;" class="bi bi-file-earmark"></a></i></td>
+
                             <td class="text-center" style="width:50px">
                                 {% if xPago.tipo == 1 %}
                                     <a href="{% url 'pago_cuenta_corregir' xPago.id xPago.forma_id %}">
@@ -95,6 +127,7 @@ M1 | Historial de pagos
                                     </a>
                                 {% endif %}
                             </td>
+
                         {% endfor %}
                     </tbody>
                     <tfoot>
@@ -162,7 +195,7 @@ Extra Large Moda
                     "colvis": "Visibilidad"
                 }
             },
-            "ordering": true,
+            "ordering": false,
             "responsive": true,
             "lengthChange": true,
             "autoWidth": true,
