@@ -114,7 +114,8 @@ M1 | Historial de pagos
 
                             <td align="right">{{xPago.monto_procesar|darFormato}}</td>
 
-                            <td align="center"><a href="{% url 'estado_cuentas_detalle_doc' xPago.id 'documento' 0 %}"> <i style="font-size: small;" class="bi bi-file-earmark"></a></i></td>
+                            <td align="center"><a href="{% url 'historial_pagos_detalle_doc' xPago.id xPago.monto_procesar %}"> <i style="font-size: small;" class="bi bi-file-earmark"></a></i></td>
+                            <!-- <td align="center"><a href="javascript:abrir_modal('{{xPago.seguimiento}}')"> <i style="font-size: small;" class="bi bi-activity"></a></i></td> -->
 
                             <td class="text-center" style="width:50px">
                                 {% if xPago.tipo == 1 %}

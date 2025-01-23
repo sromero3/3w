@@ -1218,7 +1218,7 @@ def Cobranza_vendedorView(request, xVendedor,  fecha_fin):
  
 
 @login_required
-def Historial_pagosView(request, xCliente, fecha_ini, fecha_fin):
+def historial_pagosView(request, xCliente, fecha_ini, fecha_fin):
     xUsuario = request.user
     if xCliente != 0:
          xCliente_seleccionado = xCliente
@@ -1927,42 +1927,19 @@ def cerrarView(request):
     return redirect('/')
 
 @login_required
-def historial_pagos_detalle_docView(request, id):
+def historial_pagos_detalle_docView(request, id, xMonto):
     xUsuario = request.user
+    
+    xPagos_detalle = Pago_detalle.objects.filter(pago_id = id).values('documento__numero','documento__fecha','pago__fecha', 'monto_procesar','pago__referencia','pago__forma__forma').order_by('pago__fecha', 'id')
 
-    xDoc = xDoc
-    xMonto = Decimal(xMonto)
-  
-    # print(xMonto)
-    xPagos_detalle = Pago_detalle.objects.filter(documento_id = id).values('documento__fecha','pago__fecha', 'monto_procesar','pago__referencia','pago__forma__forma').order_by('pago__fecha', 'id')
-   
-    xFecha = xPagos_detalle[0]["documento__fecha"]
-    data_lista = []
-    data_lista.append({"fecha":xFecha, "referencia": xDoc, "forma": "-", "pago": 0, "monto": "-","balance": xMonto })
-    # print("----------- Encabezado ------------------")
-    # print(data_lista)
-    primero = True
-    balance = xMonto
-    for xDetalle in xPagos_detalle:
-        # print("----------- Detalle ------------------")
-        # print(data_lista)
-              
-        xDetalle["fecha"] = xDetalle["pago__fecha"] 
-        xDetalle["referencia"] = xDetalle["pago__referencia"]
-        xDetalle["forma"] = xDetalle["pago__forma__forma"]
-        xDetalle["monto"] = xDetalle["monto_procesar"]
-      
-        balance -= xDetalle["monto_procesar"]
-        xDetalle["balance"] = balance
-        data_lista.append(xDetalle) # Se agrega cada registro a la lista
-        
+    xDoc = id
+    xMon = xMonto
 
-    # print(data_lista)
-        
     context = {
         'xUsuario': xUsuario,
-        'xPagos_detalle': data_lista,
+        'xPagos_detalle': xPagos_detalle,
         'xDoc': xDoc,
+        'xMon': Decimal(xMon)
     }
     
-    return render(request, 'app_gestion/estado_cuentas_detalle_doc.html', context)
+    return render(request, 'app_gestion/historial_pagos_detalle_doc.html', context)
