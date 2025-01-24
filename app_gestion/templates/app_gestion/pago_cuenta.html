@@ -226,6 +226,46 @@ M1 | Pago a cuenta
             document.getElementById('banco_destino').removeAttribute("required")
         } // fin forma 6
 
+        if (document.getElementById('forma').value == 7) {// Deposito Bancos Nacionales ($)
+            document.getElementById("div_ref").removeAttribute('hidden')
+            document.getElementById("div_ban").removeAttribute('hidden')
+            document.getElementById("div_monto_procesar").removeAttribute('hidden')
+            document.getElementById('monto').setAttribute("required", "")
+            document.getElementById('banco_destino').setAttribute("required", "")
+            document.getElementById("monto_procesar").removeAttribute('readonly')
+            document.getElementById('monto_procesar').setAttribute("required", "")
+            document.getElementById('monto').removeAttribute("required")
+            document.getElementById("monto").value = ""
+            document.getElementById('monto_procesar').value = ""
+            document.getElementById('banco_destino').setAttribute("required", "")
+            document.getElementById("div_tasa").hidden = true
+            document.getElementById("div_monto").hidden = true
+
+            // cargar bancos destinos
+            let campo = "Nacional"
+            let options = '<option value=""></option>'
+            $.ajax({
+                url: "{% url 'cargar_bancos' %}",
+                type: 'POST',
+                async: false,
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    'campo': campo,
+                },
+                datatype: 'json',
+                success: function (data) {
+                    let select_tipo = $('select[name="banco_destino"]')
+                    $.each(data, function (key, item) {
+                        options += '<option value="' + item.id + '">' + item.nombre + '</option>'
+                    })
+                    select_tipo.html(options)
+                },
+                error: function (xhr, txtStatus, error) {
+                    console.log(xhr, txtStatus, error);
+                }
+            }) // cargar bancos destinos
+        } // fin forma 7
+
     } // fin mostrar campos
 
 
@@ -346,6 +386,12 @@ M1 | Pago a cuenta
             }//validar referencia 
         }// fin de checkValidity()
     } // fin validar formulario
+
+    window.addEventListener("load", (event) => {
+        if( document.getElementById('hoy')){
+            hoy.click();
+        }
+    });
 
 </script>
 {% endblock Scripts_Adicionales %}

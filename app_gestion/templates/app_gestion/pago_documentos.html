@@ -555,10 +555,12 @@ M1 | Pago a documentos
 
     } // fin validar formulario
 
-
+    window.addEventListener("load", (event) => {
+        if( document.getElementById('hoy')){
+            hoy.click();
+        }
+    });
   
-       
- 
-
+      
 </script>
 {% endblock Scripts_Adicionales %}
