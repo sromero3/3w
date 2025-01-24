@@ -41,7 +41,8 @@ urlpatterns = [
      path('cobranza_vendedor/<int:xVendedor>/<fecha_fin>/', views.Cobranza_vendedorView, name='cobranza_vendedor'),
      path('historial_pagos/<int:xCliente>/<fecha_ini>/<fecha_fin>/', views.historial_pagosView, name='historial_pagos'),
      path('historial_pagos_detalle_doc/<int:id>/<xMonto>/', views.historial_pagos_detalle_docView, name='historial_pagos_detalle_doc'),
-     
+     path('doc_pro/<fecha_ini>/<fecha_fin>/', views.doc_proView, name='doc_pro'),
+
 
      # ajax
      path('validar_numero/', views.Validar_numeroView, name='validar_numero'), 

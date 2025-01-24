@@ -1,0 +1,179 @@
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+{% block title %}
+M1 | Documentos procesados
+{% endblock %}
+{% block styles %}
+{% endblock styles %}
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <input id="xDesde" value="{{xDesde}}" hidden/>
+                {% if xDesde == 'menu' %}
+                <h5 class="card-title">Estado de cuenta<a href="{% url 'inicio' %}" class="float-end"><i class="bi bi-house-door"
+                            title='Cerrar'></i></a></h5>
+                {% else %}
+                <h5 class="card-title">Documentos procesados<a href="javascript:history.back()" class="float-end">
+                        <i class="bi bi-arrow-return-left" title='Regresar'></i>
+                    </a></h5>
+                {% endif %}
+
+                <form id="filtros" action="" method="post" class="mb-4">
+                    {% csrf_token %}
+                    <div class="row">
+                        
+                        <div class="col-md-6">
+                            <span class="titulos">
+                                Desde</span>
+                            <input type="date" id="fecha_ini" name="fecha_ini" value="{{xFecha_ini}}" class="form-control alto" onChange="obtener_Documentos()"/>
+                        </div>
+                        <div class="col-md-6">
+                            <span class=" titulos">
+                            Hasta</span>
+                            <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}" class="form-control alto" onChange="obtener_Documentos()"/>
+                        </div>
+                    </div>
+                </form>
+                <table id="asientos" class="table table-hover table-bordered " style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Procesado</th>
+                            <th>Documento</th>
+                            <th>Condición</th>
+                            <th style="width:90px">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                      
+                        {% for xDocumento in xDocumentos %}
+                        <tr>
+                            <td>{{xDocumento.fecha|date:"d/m/y"}}</td>
+                            <td align="center">{{xDocumento.creado|date:"d-m-Y"}} {{xDocumento.creado|time}}</td>
+                            <td >{{xDocumento.numero|rellenar}}</td>
+                            <td >{{xDocumento.condicion__condicion}}</td>
+                            <td align="right">{{xDocumento.monto|darFormato}}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                     
+                       
+                        <tr>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes izquierda">T. Consulta:</td>
+                            <td id="t" class="sin-bordes"></td>
+                         
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</main><!-- End #main -->
+{% endblock content %}
+{% block Scripts_Adicionales %}
+<script>
+    $(function () {
+
+        $("#asientos").DataTable({
+
+             // Funcion para totales
+            footerCallback: function (row, data, start, end, display) {
+                var api = this.api()    
+                var x = 0
+                // Remove the formatting to get integer data for summation
+                var intVal = function (i) {
+                    x = x + 1
+                    // console.log(intVal)
+                    // console.log("ciclo:",x)
+                    // console.log("Valor de i: ",i,"tipo: ",typeof(i))
+                    return typeof i === 'string' ? i.replace(/[\$,]/g, '.') * 1 : typeof i === 'number' ? i : 0
+                }
+                // Total over all pages
+                total = api
+                    .column(4)
+                    .data()
+                    .reduce(function (a, b) {
+                        b = b.replace(".", "") // Eliminado el punto en la undad de mil
+                        //  console.log('Monto: ', intVal(b),' Acumulador: ', intVal(a))
+                        return intVal(a) + intVal(b)
+                    }, 0)
+                // Total over this page
+                pageTotal = api
+                    .column(4, { page: 'current' })
+                    .data()
+                    .reduce(function (a, b) {
+                        b = b.replace(".", "") // Eliminado el punto en la undad de mil
+                        return intVal(a) + intVal(b)
+                    }, 0)
+                // Update footer
+               
+                let pt = darFormato(pageTotal)
+                let t = darFormato(total)
+                    
+                $('#pt').html('<span style="font-size: 15px">$' + pt + '</span>')
+                $('#t').html('<span style="font-size: 15px">$' + t + '</span>')
+            
+            },
+            language: {
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ registros",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "*** No se encontró información ***",
+                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                "sInfoPostFix": "",
+                "sSearch": "Buscar:",
+                "sUrl": "",
+                "sInfoThousands": ",",
+                "sLoadingRecords": "Cargando...",
+                "oPaginate": {
+                    "sFirst": "Primero",
+                    "sLast": "Último",
+                    "sNext": "Siguiente",
+                    "sPrevious": "Anterior"
+                },
+                "oAria": {
+                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                },
+                "buttons": {
+                    "copy": "Copiar",
+                    "colvis": "Visibilidad"
+                }
+            },
+            "info": true,
+            "ordering": false,
+            // "searching": false,
+            "paging": false,
+            "responsive": true,
+            "lengthChange": true,
+            "autoWidth": true,
+            // "pageLength": 50,
+            "scrollX": true
+            // "order": [[0,"asc"]],
+            // "columnDefs": [{
+            //     "targets": [1, 2, 3, 4, 5],
+            //     "orderable": false
+            // }]
+        })
+    }) // fin tabla
+
+    // obtener asientos
+    function obtener_Documentos() {
+  
+        
+            filtros.action = `/doc_pro/${fecha_ini.value}/${fecha_fin.value}/`
+     
+        filtros.submit()
+    } // fin obtener asientos    
+
+</script>
+{% endblock Scripts_Adicionales %}

@@ -1238,7 +1238,7 @@ def historial_pagosView(request, xCliente, fecha_ini, fecha_fin):
         xFecha_ini = fecha_ini
         xFecha_fin = fecha_fin 
     
-    qPagos=Pago.objects.filter(fecha__range=(fecha_ini, fecha_fin)).values('id','cliente_id','referencia','fecha','monto','monto_procesar','forma__forma', 'tasa','cliente__nombre','observacion', 'seguimiento', 'forma_id','banco_destino__nombre','tipo','creado').order_by('-fecha')
+    qPagos=Pago.objects.filter(fecha__range=(fecha_ini, fecha_fin)).values('id','cliente_id','referencia','fecha','monto','monto_procesar','forma__forma', 'tasa','cliente__nombre','observacion', 'seguimiento', 'forma_id','banco_destino__nombre','tipo','creado').order_by('-fecha', '-creado')
     
     if xCliente == 0 :
        xPagos=qPagos.all()
@@ -1943,3 +1943,40 @@ def historial_pagos_detalle_docView(request, id, xMonto):
     }
     
     return render(request, 'app_gestion/historial_pagos_detalle_doc.html', context)
+
+@login_required
+def doc_proView(request, fecha_ini, fecha_fin):
+    xUsuario = request.user
+
+    xClientes = Cliente.objects.all()
+
+ 
+
+    if request.method == 'GET':
+        print("--------- Parametros recibidos GET ----------") 
+        # fecha_ini  = date.today() - timedelta(days=60)
+        fecha_ini  = date.today() 
+        fecha_fin  = date.today() 
+   
+        xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
+        xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
+    else:  
+        print("--------- Parametros recibidos POST ----------")
+        xFecha_ini = fecha_ini
+        xFecha_fin = fecha_fin 
+
+        # xFecha_corte_ini = datetime.strptime(fecha_ini, '%Y-%m-%d') - timedelta(days=150)
+        
+    xDocumentos = Documento.objects.filter(fecha__range=(fecha_ini, fecha_fin)).values('id','numero','fecha','monto','creado','condicion__condicion','creado').order_by('creado')
+
+    print(xDocumentos)
+
+    context = {
+        'xUsuario': xUsuario,
+        'xFecha_ini':xFecha_ini,
+        'xFecha_fin': xFecha_fin,
+        'xDocumentos': xDocumentos,
+
+    }
+ 
+    return render(request, 'app_gestion/documentos_proc.html', context)
