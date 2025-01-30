@@ -61,7 +61,8 @@ M1 | Documentos
                             <th>Fecha</th>
                             <!-- <th>hora</th> -->
                             <th>Referencia</th>
-                            <th>forma de pago</th>
+                            <th>Forma de pago</th>
+                            <th>Cta. destino</th>
                             <th style="width:20px">d/c</th>
                             <th style="width:90px">Monto</th>
                             <th style="width:90px">Saldo Cliente</th>
@@ -69,6 +70,7 @@ M1 | Documentos
                     </thead>
                     <tbody>
                         <tr>
+                            <td></td>
                             <td></td>
                             <td></td>
                             <td align="center">Saldo pendiente anterior</td>
@@ -102,6 +104,7 @@ M1 | Documentos
                                 {% endif %}
                             {% endif %}
                             <td align="center">{{xAsiento.forma}}</td>
+                            <td align="center">{{xAsiento.des}}</td>
                             <td align="center">{{xAsiento.dc}}</td>
                             <td align="right">{{xAsiento.monto_m|darFormato}}
                             <td align="right">{{xAsiento.balance|darFormato}}</td>

@@ -756,13 +756,10 @@ def Estado_cuentaView(request, id, desde, fecha_ini, fecha_fin):
     xSaldo_final = balance
     print("Saldo final del corte es  ====================>", xSaldo_final)
  
-
-
-
-     # ahora si obtengo los documentos a mostrar
+    # ahora si obtengo los documentos a mostrar
     qDocumentos = Documento.objects.filter(cliente=id).filter(fecha__range=(fecha_ini, fecha_fin)).values('id','numero','fecha','monto','creado','abonado')
     # obtengo los pagos
-    qPagos = Pago.objects.filter(cliente=id).filter(fecha__range=(fecha_ini, fecha_fin)).values('id','fecha','monto_procesar', 'forma__forma','referencia','creado')
+    qPagos = Pago.objects.filter(cliente=id).filter(fecha__range=(fecha_ini, fecha_fin)).values('id','fecha','monto_procesar', 'forma__forma','referencia','creado', 'banco_destino__nombre')
   
     balance = round(xSaldo_final, 2)
     data_lista = []
@@ -770,6 +767,7 @@ def Estado_cuentaView(request, id, desde, fecha_ini, fecha_fin):
     for xAsiento in qDocumentos:
         xAsiento["documento"] = xAsiento['numero']
         xAsiento["forma"] = "-"
+        xAsiento["des"] = "-"
         xAsiento["dc"] = "+"
         xAsiento["monto_m"] = xAsiento['monto']
         xAsiento["hora"] = xAsiento['creado'].time()
@@ -778,6 +776,7 @@ def Estado_cuentaView(request, id, desde, fecha_ini, fecha_fin):
     for xAsiento in qPagos:
         xAsiento["documento"] = xAsiento['referencia']
         xAsiento["forma"] = xAsiento['forma__forma']
+        xAsiento["des"] = xAsiento['banco_destino__nombre']
         xAsiento["dc"] = "-"
         xAsiento["monto_m"] = xAsiento['monto_procesar']
         xAsiento["hora"] = xAsiento['creado'].time()
@@ -1976,9 +1975,9 @@ def doc_proView(request, fecha_ini, fecha_fin):
 
         # xFecha_corte_ini = datetime.strptime(fecha_ini, '%Y-%m-%d') - timedelta(days=150)
         
-    xDocumentos = Documento.objects.filter(fecha__range=(fecha_ini, fecha_fin)).values('id','numero','fecha','monto','creado','condicion__condicion','creado').order_by('creado')
+    xDocumentos = Documento.objects.filter(fecha__range=(fecha_ini, fecha_fin)).values('id','numero','fecha','monto','creado','cliente__nombre','creado').order_by('creado')
 
-    print(xDocumentos)
+   
 
     context = {
         'xUsuario': xUsuario,

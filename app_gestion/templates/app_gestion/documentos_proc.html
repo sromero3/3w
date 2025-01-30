@@ -43,7 +43,7 @@ M1 | Documentos procesados
                             <th>Fecha</th>
                             <th>Procesado</th>
                             <th>Documento</th>
-                            <th>Condición</th>
+                            <th style="width:350px">Cliente</th>
                             <th style="width:90px">Monto</th>
                         </tr>
                     </thead>
@@ -54,7 +54,7 @@ M1 | Documentos procesados
                             <td>{{xDocumento.fecha|date:"d/m/y"}}</td>
                             <td align="center">{{xDocumento.creado|date:"d-m-Y"}} {{xDocumento.creado|time}}</td>
                             <td >{{xDocumento.numero|rellenar}}</td>
-                            <td >{{xDocumento.condicion__condicion}}</td>
+                            <td >{{xDocumento.cliente__nombre}}</td>
                             <td align="right">{{xDocumento.monto|darFormato}}
                         </tr>
                         {% endfor %}
