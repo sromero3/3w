@@ -436,8 +436,17 @@ def cobranzaView(request, xCliente, xVendedor, xIva, xVencido):
         xCliente_seleccionado = xCliente
     else:
         xCliente_seleccionado  = 0
+
+    if xVendedor != 0:
+        xVendedor_seleccionado = xVendedor
+        print("Mostrar clientes del vel vendor ", xVendedor_seleccionado)
+        xClientes = Cliente.objects.filter(Q( status_id=1) | Q(status_id=2)).filter(vendedor_id=xVendedor)
+    else:
+        xVendedor_seleccionado  = 0
+        xClientes = Cliente.objects.filter(Q( status_id=1) | Q(status_id=2))
+
     
-    xClientes = Cliente.objects.filter(Q( status_id=1) | Q(status_id=2))
+    # xClientes = Cliente.objects.filter(Q( status_id=1) | Q(status_id=2))
     xIva_seleccionado  = 0
     xIvas = Iva.objects.all()
     xVendedor_seleccionado  = 0
@@ -1980,3 +1989,5 @@ def doc_proView(request, fecha_ini, fecha_fin):
     }
  
     return render(request, 'app_gestion/documentos_proc.html', context)
+
+

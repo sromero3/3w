@@ -15,7 +15,11 @@ M1 | Documentos
                 
                 <form id="filtros" action="" method="post" class="row g-3">
                     {% csrf_token %}
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <label class="titulos d-flex me-2 mt-1">Palabra clave</label>
+                            <input class="form-control alto"  type="text" id="searchInput" placeholder="Escribe una palabra clave...">
+                        </div>
+                        <div class="col-md-4">
                             <label id="m" class="titulos d-flex me-2 mt-1">Cliente</label>
                             <select name="cliente" id="cliente" class="form-control d-flex alto" required
                                 onChange="obtener_documentos()">
@@ -28,7 +32,7 @@ M1 | Documentos
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="titulos d-flex me-2 mt-1">Días transcurridos</label>
                             <select name="dias" id="dias" class="form-control alto" required
                                 onChange="obtener_documentos()">
@@ -41,6 +45,7 @@ M1 | Documentos
                                 {% endfor %}
                             </select>
                         </div>
+                       
                 </form>
 
                 <div class="row">
@@ -56,7 +61,7 @@ M1 | Documentos
                             <th>Fecha</th>
                             <th>Vence</th>
                             <th>DV</th>
-                            <th style="width:200px">Cliente</th>
+                            <th style="width:350px">Cliente</th>
                             <th>Monto</th>
                             <th>Abonado</th>
                             <th>Saldo</th>
@@ -81,16 +86,11 @@ M1 | Documentos
                             <td>{{xDocumento.fecha|date:"d/m/y"}}</td>
                             <td>{{xDocumento.vencimiento|date:"d/m/y"}}</td>
                             <td align="center">{{xDocumento.dias_v}}</td>
-                        
-                            <td>{{xDocumento.cliente__nombre|truncatechars:45   }}
-                                <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
-                                        data-bs-html="true" data-bs-title="{{xDocumento.cliente__nombre}}<br>"></i>
-                                    </i></a>
-                            </td>
+                            <td>{{xDocumento.cliente__nombre}}</td>
                             <td align="right">{{xDocumento.monto|darFormato}}</td>
                             <td align="right">{{xDocumento.abonado|darFormato}}</td>
                             <td align="right">{{xDocumento.saldo|darFormato}}</td>
-                            <td>{{xDocumento.cliente_id__vendedor__nombre|truncatechars:20}}</td>
+                            <td>{{xDocumento.cliente_id__vendedor__nombre|truncatechars:15}}</td>
                             <td>{{xDocumento.condicion__condicion}} a {{xDocumento.credito}}</td>
                             {% if xDocumento.iva__iva == "-" %}
                                 <td  align="center">{{xDocumento.iva__iva}}</td>
@@ -171,9 +171,6 @@ M1 | Documentos
 
     });
 
-
-    
-
     // tool tip
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
@@ -183,6 +180,22 @@ M1 | Documentos
         filtros.action = `/documentos/${cliente.value}/${dias.value}/`
         filtros.submit()
     } // fin obtener docuemntos 
+
+    // searchInput
+    document.getElementById('searchInput').addEventListener('input', function() {
+    var keyword = this.value.toLowerCase();
+    var select = document.getElementById('cliente');
+    var options = select.getElementsByTagName('option');
+
+    for (var i = 0; i < options.length; i++) {
+        var option = options[i];
+        if (option.value.toLowerCase().includes(keyword) || option.text.toLowerCase().includes(keyword)) {
+            option.style.display = 'block';
+        } else {
+            option.style.display = 'none';
+        }
+    }
+    });
 
   </script>
 {% endblock Scripts_Adicionales %}

@@ -86,3 +86,52 @@ if (window.innerWidth <= 600) { // Quitar la clase cuando el ancho de la pantall
     </body>
 
     </html>
+
+
+
+    <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
+        data-bs-html="true" data-bs-title="{{xDocumento.cliente__nombre}}<br>"></i>
+    </i></a>
+
+
+    document.getElementById('searchInput').addEventListener('input', function() {
+        var keyword = this.value.toLowerCase();
+        var select = document.getElementById('cliente');
+        var options = select.getElementsByTagName('option');
+    
+        for (var i = 0; i < options.length; i++) {
+            var option = options[i];
+            if (option.value.toLowerCase().includes(keyword) || option.text.toLowerCase().includes(keyword)) {
+                option.style.display = 'block';
+            } else {
+                option.style.display = 'none';
+            }
+        }
+        select.focus();
+        });
+
+
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js" integrity="sha256-+C0A5Ilqmu4QcSPxrlGpaZxJ04VjsRjKu+G82kl5UJk=" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css" integrity="sha256-ze/OEYGcFbPRmvCnrSeKbRTtjG4vGLHXgOqsyLFTRjg=" crossorigin="anonymous" />
+        
+         <label id="m" class="titulos d-flex me-2 mt-1">Cliente</label>
+        <select id="select-state">
+            <option value="0" selected>Todos</option>
+                {% for xCliente in xClientes %}
+                <option value={{xCliente.id}} {% if xCliente.id == xCliente_seleccionado %} selected
+                    {%endif %}>
+                    {{xCliente.nombre}}
+                </option>
+                {% endfor %}
+        </select> 
+
+        <script>
+           $(document).ready(function() {
+            $('select').selectize({
+                // sortField: 'text',
+                theme: 'bootstrap5',
+            });
+        });
+        </script>

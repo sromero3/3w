@@ -17,6 +17,13 @@ M1 | Documentos crud
                     {% csrf_token %}
                     <!-- ------------------------------------ agregando ------------------------------------- -->
                     {% if xOpcion == 'Agregando' %}
+                    <div class="col-md-6">
+                        <label class="titulos d-flex me-2 mt-1">Palabra clave</label>
+                        <input class="form-control alto"  type="text" id="searchInput" placeholder="Escribe una palabra clave...">
+                    </div>
+                    <div class="col-md-6">
+                        
+                    </div>
                     <div class="col-6">
                         <span class="titulos">
                             Cliente</span><span id="nuevo" class="boton-ajustado-a-la-derecha"
@@ -86,6 +93,11 @@ M1 | Documentos crud
                     {% endif %} <!-- fin agregando -->
                     <!-- ------------------------------------ editando ------------------------------------- -->
                     {% if xOpcion == 'Editando' %}
+                    <div class="col-md-6">
+                        <label class="titulos d-flex me-2 mt-1">Palabra clave</label>
+                        <input class="form-control alto"  type="text" id="searchInput" placeholder="Escribe una palabra clave...">
+                    </div>
+                    <div class="col-md-6"></div>
                     <div class="col-6">
                         <span class="titulos">
                             Cliente</span>
@@ -569,6 +581,21 @@ M1 | Documentos crud
         if( document.getElementById('hoy')){
             hoy.click();
         }
+    });
+
+    document.getElementById('searchInput').addEventListener('input', function() {
+    var keyword = this.value.toLowerCase();
+    var select = document.getElementById('cliente');
+    var options = select.getElementsByTagName('option');
+
+    for (var i = 0; i < options.length; i++) {
+        var option = options[i];
+        if (option.value.toLowerCase().includes(keyword) || option.text.toLowerCase().includes(keyword)) {
+            option.style.display = 'block';
+        } else {
+            option.style.display = 'none';
+        }
+    }
     });
 
 </script>

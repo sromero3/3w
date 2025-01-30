@@ -18,8 +18,34 @@ M1 | Cobranza
 
                 <form id="filtros" action="" method="post" class="row g-3">
                     {% csrf_token %}
-                        <div class="col-md-6">
-                            <label id="m" class="titulos d-flex me-2 mt-1">Cliente</label>
+
+
+
+
+                    <div class="col-md-6">
+                        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+                        <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js" integrity="sha256-+C0A5Ilqmu4QcSPxrlGpaZxJ04VjsRjKu+G82kl5UJk=" crossorigin="anonymous"></script>
+                        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css" integrity="sha256-ze/OEYGcFbPRmvCnrSeKbRTtjG4vGLHXgOqsyLFTRjg=" crossorigin="anonymous" />
+                        
+                        <label id="m" class="titulos d-flex me-2 mt-1">Cliente</label>
+                        <select name="cliente" id="cliente" class="form-control alto" required
+                        onfocus="limpiar()" onChange="obtener_documentos()">
+                            <option value="0" selected>Todos</option>
+                                {% for xCliente in xClientes %}
+                                <option value={{xCliente.id}} {% if xCliente.id == xCliente_seleccionado %} selected {%endif %}>
+                                    {{xCliente.nombre}}
+                                </option>
+                                {% endfor %}
+                        </select> 
+                        
+                      
+                        
+                     
+
+                    </div>
+
+                        <!-- <div class="col-md-6"> -->
+                            <!-- <label id="m" class="titulos d-flex me-2 mt-1">Cliente</label>
                             <select name="cliente" id="cliente" class="form-control d-flex alto" required
                                 onChange="obtener_documentos()">
                                 <option value="0" selected>Todos</option>
@@ -29,8 +55,8 @@ M1 | Cobranza
                                     {{xCliente.nombre}}
                                 </option>
                                 {% endfor %}
-                            </select>
-                        </div>
+                            </select> -->
+                        <!-- </div> -->
                         <div class="col-md-6">
                             <label class="titulos d-flex me-2 mt-1">Vend.</label>
                             <select name="vendedor" id="vendedor" class="form-control d-flex alto" required
@@ -84,7 +110,7 @@ M1 | Cobranza
                             <th>Fecha</th>
                             <th>Vence</th>
                             <th>DV</th>
-                            <th style="width:300px">Cliente</th>
+                            <th style="width:350px">Cliente</th>
                             <th>Monto</th>
                             <th>Abonado</th>
                             <th>Pendiente</th>
@@ -277,7 +303,8 @@ M1 | Cobranza
             "responsive": true,
             "lengthChange": true,
             "autoWidth": true,
-            "pageLength": 100,
+            "pageLength": 500,
+            "lengthMenu": [100, 200, 300, 400, 500],
             "scrollX": true,
             "order": [[3, "asc"]],
             "columnDefs": [{
@@ -292,10 +319,23 @@ M1 | Cobranza
        }  ,200 );
     });
 
+    // selectize
+    $(document).ready(function() {
+        var selectizeInstance = $('#cliente').selectize({
+            // sortField: 'text',
+        });
+
+        // Evento click para limpiar el select input
+        var selectizeControl = selectizeInstance[0].selectize;
+        selectizeControl.$control.on('click', function() {
+            selectizeControl.clear();
+        });
+    });
+
 
     // obtener docuemntos
     function obtener_documentos() {
-        // console.log(document.getElementById('cliente').value)
+        console.log(document.getElementById('cliente').value)
         let ven
         checkBox = document.getElementById("vencido")
         if (checkBox.checked == true) {
@@ -303,8 +343,13 @@ M1 | Cobranza
         } else {
             ven = "0"
         }
+      
         filtros.action = `/cobranza/${cliente.value}/${vendedor.value}/${iva.value}/${ven}/`
-        filtros.submit()
+        if (document.getElementById('cliente').value!=''){
+            filtros.submit()
+
+}
+        
     } // fin obtener docuemntos
 
     // tool tip

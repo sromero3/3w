@@ -256,7 +256,9 @@ M1 | Pago a cuenta
                 success: function (data) {
                     let select_tipo = $('select[name="banco_destino"]')
                     $.each(data, function (key, item) {
-                        options += '<option value="' + item.id + '">' + item.nombre + '</option>'
+                        if (item.id == 2 ||  item.id == 3){
+                            options += '<option value="' + item.id + '">' + item.nombre + '</option>'
+                        }
                     })
                     select_tipo.html(options)
                 },
