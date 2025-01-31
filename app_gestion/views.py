@@ -1197,7 +1197,7 @@ def Cobranza_vendedorView(request, xVendedor,  fecha_fin):
     else:  
         # print("--------- Parametros recibidos POST ----------")
         xFecha_fin = fecha_fin
-        qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).filter(cliente_id__vendedor__id=xVendedor, vencimiento__lte=xFecha_fin).values('id','cliente_id','numero','credito','fecha','dias_v','vencimiento','monto','cliente_id__vendedor__id','abonado','saldo','cliente__nombre').order_by('cliente__nombre').order_by('vencimiento')
+        qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).filter(cliente_id__vendedor__id=xVendedor, vencimiento__lte=xFecha_fin).values('id','cliente_id','numero','credito','fecha','dias_v','vencimiento','monto','cliente_id__vendedor__id','abonado','saldo','cliente__nombre','iva__iva').order_by('cliente__nombre').order_by('vencimiento')
     
         # for x in qDocumentos:
         #  print("Documento ",x['numero'],x['vencimiento'])
@@ -1975,7 +1975,8 @@ def doc_proView(request, fecha_ini, fecha_fin):
 
         # xFecha_corte_ini = datetime.strptime(fecha_ini, '%Y-%m-%d') - timedelta(days=150)
         
-    xDocumentos = Documento.objects.filter(fecha__range=(fecha_ini, fecha_fin)).values('id','numero','fecha','monto','creado','cliente__nombre','creado').order_by('creado')
+    xDocumentos = Documento.objects.filter(fecha__range=(fecha_ini, fecha_fin)).annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','numero','fecha','monto','creado','cliente__nombre','creado','condicion__condicion').order_by('creado')
+    # xDocumentos = Documento.objects.filter(fecha__range=(fecha_ini, fecha_fin)).annotate(saldo = F('monto') - F('abonado')).values('id','numero','fecha','monto','creado','cliente__nombre','creado','abonado','saldo').order_by('creado')
 
    
 

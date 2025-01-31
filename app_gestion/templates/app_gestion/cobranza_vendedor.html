@@ -51,13 +51,15 @@ M1 | Cobranza x vendedores
                             <th>Cliente</th>
                             <th>Documento</th>
                             <th>Fecha</th>
-                            <th>DC</th>
+                            <!-- <th>DC</th> -->
+                            <th>Iva</th>
                             <th>Cliente</th>
                             <th>Vence</th>
                             <th>DV</th>
                             <th>Monto</th>
                             <th>Abonado</th>
                             <th>Pendiente</th>
+                      
                         </tr>
                     </thead>
                     <tbody>
@@ -66,13 +68,15 @@ M1 | Cobranza x vendedores
                             <td></td>
                             <td>{{xDocumento.numero|rellenar}}</td>
                             <td>{{xDocumento.fecha|date:"d/m/y"}}</td>
-                            <td align="center">{{xDocumento.credito}}</td>
+                            <td align="right">{{xDocumento.iva__iva}}</td>
+                            <!-- <td align="center">{{xDocumento.credito}}</td> -->
                             <td>{{xDocumento.cliente__nombre}}</td>
                             <td>{{xDocumento.vencimiento|date:"d/m/y"}}</td>
                             <td align="center">{{xDocumento.dias_v}}</td>
                             <td align="right">{{xDocumento.monto|darFormato}}</td>
                             <td align="right">{{xDocumento.abonado|darFormato}}</td>
                             <td align="right">{{xDocumento.saldo|darFormato}}</td>
+                     
 
                         </tr>
                         {% endfor %}
