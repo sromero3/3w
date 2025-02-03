@@ -1991,3 +1991,65 @@ def doc_proView(request, fecha_ini, fecha_fin):
     return render(request, 'app_gestion/documentos_proc.html', context)
 
 
+@login_required
+def saldo_favorView(request, xCliente, xVendedor, xIva, xVencido):
+    xUsuario = request.user
+    # print("--------- Parametros recibidos GET ----------")
+
+    if xCliente != 0:
+        xCliente_seleccionado = xCliente
+    else:
+        xCliente_seleccionado  = 0
+
+    if xVendedor != 0:
+        xVendedor_seleccionado = xVendedor
+        print("Mostrar clientes del vel vendor ", xVendedor_seleccionado)
+        xClientes = Cliente.objects.filter(Q( status_id=1) | Q(status_id=2)).filter(vendedor_id=xVendedor)
+    else:
+        xVendedor_seleccionado  = 0
+        xClientes = Cliente.objects.filter(Q( status_id=1) | Q(status_id=2))
+
+    
+    xIva_seleccionado  = 0
+    xIvas = Iva.objects.all()
+    xVendedor_seleccionado  = 0
+    xVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
+    
+    xVencido_seleccionado = 0
+
+    if request.method == 'POST':
+        # print("--------- Parametros recibidos POST ----------")
+        xCliente_seleccionado  = request.POST.get('cliente')
+        xVendedor_seleccionado = request.POST.get('vendedor')
+        xIva_seleccionado = request.POST.get('iva') 
+        if request.POST.get('vencido') == "on":
+          #   xVencido = 1
+            xVencido_seleccionado = 1
+        else:
+          #   xVencido = 0
+            xVencido_seleccionado = 0
+
+
+    actualizar_dias_vencido()
+   
+    qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__lt=0).values('id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado','saldo','dias_v','condicion__condicion','credito')
+ 
+    if xCliente == 0 and xVendedor == 0 and xIva == 0:
+       xDocumentos=qDocumentos
+     
+    xDoc_encontrados = xDocumentos.count()
+ 
+    context = {
+        'xUsuario': xUsuario,
+        'xDocumentos': xDocumentos,
+        'xClientes': xClientes,
+        'xCliente_seleccionado': int(xCliente_seleccionado),
+        'xIvas': xIvas,
+        'xIva_seleccionado': int(xIva_seleccionado),
+        'xVendedores': xVendedores,
+        'xVendedor_seleccionado': int(xVendedor_seleccionado),
+        'xVencido_seleccionado': xVencido_seleccionado,
+        'xDoc_encontrados': xDoc_encontrados 
+    }
+    
+    return render(request, 'app_gestion/saldo_favor.html', context)

@@ -42,6 +42,8 @@ urlpatterns = [
      path('historial_pagos/<int:xCliente>/<fecha_ini>/<fecha_fin>/', views.historial_pagosView, name='historial_pagos'),
      path('historial_pagos_detalle_doc/<int:id>/<xMonto>/', views.historial_pagos_detalle_docView, name='historial_pagos_detalle_doc'),
      path('doc_pro/<fecha_ini>/<fecha_fin>/', views.doc_proView, name='doc_pro'),
+     path('saldo_favor/<int:xCliente>/<int:xVendedor>/<int:xIva>/<int:xVencido>/', views.saldo_favorView, name='saldo_favor'),
+
 
 
      # ajax

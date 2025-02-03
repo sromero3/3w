@@ -133,7 +133,11 @@ M1 | Cobranza x vendedores
         paging: false,
         searching: false,
         info: false,
-        order: [[6, 'asc']],
+        order: [[4,  'asc']],
+          "columnDefs": [{
+                "targets": [0,1,2,3,4,5,7,8,9],
+                "orderable": false
+            }],
         rowGroup: {
             dataSrc: 4,
             endRender: function (rows, group) {
@@ -156,6 +160,8 @@ M1 | Cobranza x vendedores
                 );
             }
         }
+
+        
     }); // fin data table
 
     // obtener docuemntos

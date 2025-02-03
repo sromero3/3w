@@ -1,5 +1,5 @@
 {% load static %}
-<header id="header" class="header fixed-top d-flex align-items-center">
+<header id="header" style="background-color: #172135;" class="header fixed-top d-flex align-items-center">
   <div class="d-flex align-items-center justify-content-between">
     <a href="#" class="logo d-flex align-items-center">
       <img src="{% static 'app_website/custom-files/assets_m1/img/logo1.png' %}" alt="" data-aos="fade-in">
@@ -129,6 +129,11 @@
         <li>
           <a href="{% url 'estado_cuenta' 0 'menu' ' ' ' ' %}">
             <span>Estado de cuenta</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'saldo_favor' 0 0 0 0 %}">
+            <span>Clientes con saldo a favor</span>
           </a>
         </li>
 
