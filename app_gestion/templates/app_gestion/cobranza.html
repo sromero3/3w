@@ -13,99 +13,73 @@ M1 | Cobranza
         <div class="card" id="data-section" style="opacity: 0;">
             <div class="card-body">
 
-                <h5 class="card-title">Cobranza <a href="{% url 'inicio' %}" class="float-end"><i class="bi bi-house-door"
-                            title='Cerrar'></i></a></h5>
+                <h5 class="card-title">Cobranza <a href="{% url 'inicio' %}" class="float-end"><i
+                            class="bi bi-house-door" title='Cerrar'></i></a></h5>
 
                 <form id="filtros" action="" method="post" class="row g-3">
                     {% csrf_token %}
 
-
-
-
                     <div class="col-md-6">
-                        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-                        <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js" integrity="sha256-+C0A5Ilqmu4QcSPxrlGpaZxJ04VjsRjKu+G82kl5UJk=" crossorigin="anonymous"></script>
-                        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css" integrity="sha256-ze/OEYGcFbPRmvCnrSeKbRTtjG4vGLHXgOqsyLFTRjg=" crossorigin="anonymous" />
-                        
                         <label id="m" class="titulos d-flex me-2 mt-1">Cliente</label>
-                        <select name="cliente" id="cliente" class="form-control alto" required
-                        onfocus="limpiar()" onChange="obtener_documentos()">
+                        <select name="cliente" id="cliente" required onfocus="limpiar()"
+                            onChange="obtener_documentos()">
                             <option value="0" selected>Todos</option>
-                                {% for xCliente in xClientes %}
-                                <option value={{xCliente.id}} {% if xCliente.id == xCliente_seleccionado %} selected {%endif %}>
-                                    {{xCliente.nombre}}
-                                </option>
-                                {% endfor %}
-                        </select> 
-                        
-                      
-                        
-                     
-
+                            {% for xCliente in xClientes %}
+                            <option value={{xCliente.id}} {% if xCliente.id == xCliente_seleccionado %} selected {%endif %}>
+                                {{xCliente.nombre}}
+                            </option>
+                            {% endfor %}
+                        </select>
                     </div>
-
-                        <!-- <div class="col-md-6"> -->
-                            <!-- <label id="m" class="titulos d-flex me-2 mt-1">Cliente</label>
-                            <select name="cliente" id="cliente" class="form-control d-flex alto" required
-                                onChange="obtener_documentos()">
-                                <option value="0" selected>Todos</option>
-                                {% for xCliente in xClientes %}
-                                <option value={{xCliente.id}} {% if xCliente.id == xCliente_seleccionado %} selected
-                                    {%endif %}>
-                                    {{xCliente.nombre}}
-                                </option>
-                                {% endfor %}
-                            </select> -->
-                        <!-- </div> -->
-                        <div class="col-md-6">
-                            <label class="titulos d-flex me-2 mt-1">Vend.</label>
-                            <select name="vendedor" id="vendedor" class="form-control d-flex alto" required
-                                onChange="obtener_documentos()">
-                                <option value="0" selected>Todos</option>
-                                {% for xVendedor in xVendedores %}
-                                <option value={{xVendedor.id}} {% if xVendedor.id == xVendedor_seleccionado %} selected
-                                    {%endif %}>
-                                    {{xVendedor.nombre}}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="titulos d-flex me-2 mt-1">Iva</label>
-                            <select name="iva" id="iva" class="form-control d-flex alto" required
-                                onChange="obtener_documentos()">
-                                <option value="0" selected>Todos</option>
-                                {% for xIva in xIvas %}
-                                <option value={{xIva.id}} {% if xIva.id == xIva_seleccionado %} selected {% endif %}>
-                                    {{xIva.iva}}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-6" style="padding-top: 10px">
-                            <label class="titulos  me-2 mt-1">Vencidos</label>
-                            {% if xVencido_seleccionado == 0 %}
-                            <input name="vencido" class="form-check-input" type="checkbox" id="vencido" style="padding-top: 20px"
-                                onChange="obtener_documentos()">
-                            {% else %}
-                            <input name="vencido" class="form-check-input" type="checkbox" id="vencido" checked
-                                onChange="obtener_documentos()">
-                            {% endif %}
-                        </div>
-                        <div class="row">
-                            <div class="mt-1 pb-2 col-lg-3 col-sm-12">
-                                <span id="enlaces" hidden>
-                                    <a id="url_pago_cuenta">Pago a cuenta<a/><br>
-                                    <a id="url_pago_documentos">Pago a documentos<a/><br>
+                    <div class="col-md-6">
+                        <label class="titulos d-flex me-2 mt-1">Vend.</label>
+                        <select name="vendedor" id="vendedor" class="form-control d-flex alto" required
+                            onChange="obtener_documentos()">
+                            <option value="0" selected>Todos</option>
+                            {% for xVendedor in xVendedores %}
+                            <option value={{xVendedor.id}} {% if xVendedor.id == xVendedor_seleccionado %} selected
+                                {%endif %}>
+                                {{xVendedor.nombre}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="titulos d-flex me-2 mt-1">Iva</label>
+                        <select name="iva" id="iva" class="form-control d-flex alto" required
+                            onChange="obtener_documentos()">
+                            <option value="0" selected>Todos</option>
+                            {% for xIva in xIvas %}
+                            <option value={{xIva.id}} {% if xIva.id == xIva_seleccionado %} selected {% endif %}>
+                                {{xIva.iva}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6" style="padding-top: 10px">
+                        <label class="titulos  me-2 mt-1">Vencidos</label>
+                        {% if xVencido_seleccionado == 0 %}
+                        <input name="vencido" class="form-check-input" type="checkbox" id="vencido"
+                            style="padding-top: 20px" onChange="obtener_documentos()">
+                        {% else %}
+                        <input name="vencido" class="form-check-input" type="checkbox" id="vencido" checked
+                            onChange="obtener_documentos()">
+                        {% endif %}
+                    </div>
+                    <div class="row">
+                        <div class="mt-1 pb-2 col-lg-3 col-sm-12">
+                            <span id="enlaces" hidden>
+                                <a id="url_pago_cuenta">Pago a cuenta<a /><br>
+                                    <a id="url_pago_documentos">Pago a documentos<a /><br>
+                            </span>
+                            <div id="enlaces2" hidden>
+                                <span>
+                                    <a id="url_estado">Estado de cuenta<a />
                                 </span>
-                                <div id="enlaces2" hidden>
-                                    <span >
-                                        <a id="url_estado">Estado de cuenta<a/>
-                                    </span>
                             </div>
-                                <input type="text" id="xDoc_encontrados" value="{{xDoc_encontrados}}" hidden>
-                            </div>
+                            <input type="text" id="xDoc_encontrados" value="{{xDoc_encontrados}}" hidden>
                         </div>
+                    </div>
                 </form>
                 <table id="cobranza" class="table table-hover table-bordered" style="width:100%">
                     <thead>
@@ -128,15 +102,19 @@ M1 | Cobranza
                         {% for xDocumento in xDocumentos %}
                         <tr>
                             {% if xDocumento.observacion == "" %}
-                                <td>{{xDocumento.numero|rellenar}}</td>
+                            <td>{{xDocumento.numero|rellenar}}</td>
                             {% else %}
-                                <td>{{xDocumento.numero|rellenar}}
-                                    <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
-                                            data-bs-html="true" data-bs-title="{{xDocumento.observacion}}<br>"></i>
-                                        </i></a>
-                                </td>
+                            <td>{{xDocumento.numero|rellenar}}
+                                <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip"
+                                        data-bs-placement="bottom" data-bs-html="true"
+                                        data-bs-title="{{xDocumento.observacion}}<br>"></i>
+                                    </i></a>
+                            </td>
                             {% endif %}
-                            <td>{{xDocumento.fecha|date:"d/m/y"}}<a href="javascript:abrir_modal( '{{xDocumento.fecha|date:"Y-m-d"}}','{{xDocumento.vencimiento|date:"Y-m-d"}}','{{xDocumento.id}}' )"> <i style="font-size: small;" class="bi bi-pencil"></a></i></td>
+                            <td>{{xDocumento.fecha|date:"d/m/y"}}<a
+                                    href="javascript:abrir_modal( '{{xDocumento.fecha|date:"
+                                    Y-m-d"}}','{{xDocumento.vencimiento|date:"Y-m-d"}}','{{xDocumento.id}}' )"> <i
+                                        style="font-size: small;" class="bi bi-pencil"></a></i></td>
                             <td>{{xDocumento.vencimiento|date:"d/m/y"}}</td>
                             <td align="center">{{xDocumento.dias_v}}</td>
                             <td>{{xDocumento.cliente__nombre}}</td>
@@ -146,16 +124,16 @@ M1 | Cobranza
                             <!-- <td>{{xDocumento.cliente_id__ciudad__ciudad}}</td> -->
                             <td>{{xDocumento.cliente_id__vendedor__nombre|truncatechars:15}}</td>
                             {% if xDocumento.iva__iva == "-" %}
-                                 <td  align="center">{{xDocumento.iva__iva}}</td>
+                            <td align="center">{{xDocumento.iva__iva}}</td>
                             {% else %}
-                                 <td>{{xDocumento.iva__iva}}</td>
+                            <td>{{xDocumento.iva__iva}}</td>
                             {% endif %}
                             <!-- <td style="width:30px; color: rgb(90, 91, 92);">{{xDocumento.id|rellenar}}</td> -->
                             {% if xDocumento.condicion__condicion == "Contado" %}
-                                <td style="color: red;">{{xDocumento.condicion__condicion}} a {{xDocumento.credito}}</td>
+                            <td style="color: red;">{{xDocumento.condicion__condicion}} a {{xDocumento.credito}}</td>
                             {% else %}
-                                <td>{{xDocumento.condicion__condicion}} a {{xDocumento.credito}}</td>
-                           {% endif %}
+                            <td>{{xDocumento.condicion__condicion}} a {{xDocumento.credito}}</td>
+                            {% endif %}
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -197,143 +175,149 @@ M1 | Cobranza
 
 </main><!-- End #main -->
 
-    <button type="button" id="modal_fechas" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#smallModal"
-        hidden>
-        Small Modal
-    </button>
-    <!-- modal -->
-    <div class="modal fade" id="smallModal" tabindex="-1" style="margin-top: 100px;">
-        <div class="modal-dialog modal-sm">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="card-title">Actualizando fechas</h5>
+<button type="button" id="modal_fechas" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#smallModal"
+    hidden>
+    Small Modal
+</button>
+<!-- modal -->
+<div class="modal fade" id="smallModal" tabindex="-1" style="margin-top: 100px;">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="card-title">Actualizando fechas</h5>
+            </div>
+            <form id="modal-form" action="" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <span class="titulos">Fecha</span>
+                    <input type="date" id="modal_f" class="form-control alto" required />
+
+                    <span class=" titulos">Vence</span>
+                    <input type="date" id="modal_v" class="form-control alto" required />
+
+                    <input type="text" id="modal_i" hidden>
                 </div>
-                <form  id="modal-form" action="" method="post">
-                    {% csrf_token %}
-                    <div class="modal-body">
-                        <span class="titulos">Fecha</span>
-                        <input type="date" id="modal_f" class="form-control alto" required/>
-                        
-                        <span class=" titulos">Vence</span>
-                        <input type="date" id="modal_v" class="form-control alto" required/>
-                        
-                        <input type="text" id="modal_i" hidden >
-                    </div>
-                    <div class="modal-footer justify-content-center">
-                        <button type="submit"   class="btn btn-primary" id="gurdar_fechas" onclick="guardar_fechas(event)">Guardar</button>
-                        <button type="button" class="btn btn-secondary" id="cerrar" data-bs-dismiss="modal">Descartar</button>
-                    </div>
-                </form>
-            </div> <!-- fin modal content -->
-        </div> <!-- fin modal-dialog -->
-    </div><!-- fin modal-->
+                <div class="modal-footer justify-content-center">
+                    <button type="submit" class="btn btn-primary" id="gurdar_fechas"
+                        onclick="guardar_fechas(event)">Guardar</button>
+                    <button type="button" class="btn btn-secondary" id="cerrar"
+                        data-bs-dismiss="modal">Descartar</button>
+                </div>
+            </form>
+        </div> <!-- fin modal content -->
+    </div> <!-- fin modal-dialog -->
+</div><!-- fin modal-->
 
 
 {% endblock content %}
 {% block Scripts_Adicionales %}
 <script>
- // cuando cargue los datos
- $( document ).ready(function() { 
-    $(function () {
-        $("#cobranza").DataTable({
-            // Funcion para totales
-            footerCallback: function (row, data, start, end, display) {
-                var api = this.api()    
-                var x = 0
-                // Remove the formatting to get integer data for summation
-                var intVal = function (i) {
-                    x = x + 1
-                    // console.log(intVal)
-                    // console.log("ciclo:",x)
-                    // console.log("Valor de i: ",i,"tipo: ",typeof(i))
-                    return typeof i === 'string' ? i.replace(/[\$,]/g, '.') * 1 : typeof i === 'number' ? i : 0
-                }
-                // Total over all pages
-                total = api
-                    .column(7)
-                    .data()
-                    .reduce(function (a, b) {
-                        b = b.replace(".", "") // Eliminado el punto en la undad de mil
-                        //  console.log('Monto: ', intVal(b),' Acumulador: ', intVal(a))
-                        return intVal(a) + intVal(b)
-                    }, 0)
-                // Total over this page
-                pageTotal = api
-                    .column(7, { page: 'current' })
-                    .data()
-                    .reduce(function (a, b) {
-                        b = b.replace(".", "") // Eliminado el punto en la undad de mil
-                        return intVal(a) + intVal(b)
-                    }, 0)
-                // Update footer
-               
-                let pt = darFormato(pageTotal)
-                let t = darFormato(total)
-                    
-                $('#pt').html('<span style="font-size: 15px">$' + pt + '</span>')
-                $('#t').html('<span style="font-size: 15px">$' + t + '</span>')
+    // cuando cargue los datos
+    $(document).ready(function () {
+        $(function () {
+            $("#cobranza").DataTable({
+                // Funcion para totales
+                footerCallback: function (row, data, start, end, display) {
+                    var api = this.api()
+                    var x = 0
+                    // Remove the formatting to get integer data for summation
+                    var intVal = function (i) {
+                        x = x + 1
+                        // console.log(intVal)
+                        // console.log("ciclo:",x)
+                        // console.log("Valor de i: ",i,"tipo: ",typeof(i))
+                        return typeof i === 'string' ? i.replace(/[\$,]/g, '.') * 1 : typeof i === 'number' ? i : 0
+                    }
+                    // Total over all pages
+                    total = api
+                        .column(7)
+                        .data()
+                        .reduce(function (a, b) {
+                            b = b.replace(".", "") // Eliminado el punto en la undad de mil
+                            //  console.log('Monto: ', intVal(b),' Acumulador: ', intVal(a))
+                            return intVal(a) + intVal(b)
+                        }, 0)
+                    // Total over this page
+                    pageTotal = api
+                        .column(7, { page: 'current' })
+                        .data()
+                        .reduce(function (a, b) {
+                            b = b.replace(".", "") // Eliminado el punto en la undad de mil
+                            return intVal(a) + intVal(b)
+                        }, 0)
+                    // Update footer
 
-            },
-            language: {
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "*** No se encontró información ***",
-                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                "sInfoPostFix": "",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "Primero",
-                    "sLast": "Último",
-                    "sNext": "Siguiente",
-                    "sPrevious": "Anterior"
+                    let pt = darFormato(pageTotal)
+                    let t = darFormato(total)
+
+                    $('#pt').html('<span style="font-size: 15px">$' + pt + '</span>')
+                    $('#t').html('<span style="font-size: 15px">$' + t + '</span>')
+
                 },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                language: {
+                    "sProcessing": "Procesando...",
+                    "sLengthMenu": "Mostrar _MENU_ registros",
+                    "sZeroRecords": "No se encontraron resultados",
+                    "sEmptyTable": "*** No se encontró información ***",
+                    "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                    "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                    "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                    "sInfoPostFix": "",
+                    "sSearch": "Buscar:",
+                    "sUrl": "",
+                    "sInfoThousands": ",",
+                    "sLoadingRecords": "Cargando...",
+                    "oPaginate": {
+                        "sFirst": "Primero",
+                        "sLast": "Último",
+                        "sNext": "Siguiente",
+                        "sPrevious": "Anterior"
+                    },
+                    "oAria": {
+                        "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+                        "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                    },
+                    "buttons": {
+                        "copy": "Copiar",
+                        "colvis": "Visibilidad"
+                    }
                 },
-                "buttons": {
-                    "copy": "Copiar",
-                    "colvis": "Visibilidad"
-                }
-            },
-           
-            "ordering": false,
-            "responsive": true,
-            "lengthChange": true,
-            "autoWidth": true,
-            "pageLength": 500,
-            "lengthMenu": [100, 200, 300, 400, 500],
-            "scrollX": true,
-            // "order": [[3, "asc"]],
-            // "columnDefs": [{
-            //     "targets": [0, 5, 6, 7],
-            //     "orderable": false
-            // }]
+
+                "ordering": false,
+                "responsive": true,
+                "lengthChange": true,
+                "autoWidth": true,
+                "pageLength": 500,
+                "lengthMenu": [100, 200, 300, 400, 500],
+                "scrollX": true,
+                // "order": [[3, "asc"]],
+                // "columnDefs": [{
+                //     "targets": [0, 5, 6, 7],
+                //     "orderable": false
+                // }]
+            })
         })
-    })
-    
-    setTimeout(() => {
-        document.getElementById('data-section').style.opacity = 1;
-       }  ,200 );
+
+        setTimeout(() => {
+            document.getElementById('data-section').style.opacity = 1;
+        }, 200);
     });
 
     // selectize
-    $(document).ready(function() {
+    $(document).ready(function () {
+        // Activacion
         var selectizeInstance = $('#cliente').selectize({
             // sortField: 'text',
         });
 
         // Evento click para limpiar el select input
         var selectizeControl = selectizeInstance[0].selectize;
-        selectizeControl.$control.on('click', function() {
+        selectizeControl.$control.on('click', function () {
             selectizeControl.clear();
         });
+        // Agregar manualmente una flecha al control de Selectize
+        $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+
     });
 
 
@@ -347,23 +331,23 @@ M1 | Cobranza
         } else {
             ven = "0"
         }
-      
+
         filtros.action = `/cobranza/${cliente.value}/${vendedor.value}/${iva.value}/${ven}/`
-        if (document.getElementById('cliente').value!=''){
+        if (document.getElementById('cliente').value != '') {
             filtros.submit()
 
-}
-        
+        }
+
     } // fin obtener docuemntos
 
     // tool tip
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-    
+
     // documente load
     document.addEventListener('DOMContentLoaded', function () {
 
-        if(Number(document.getElementById("xDoc_encontrados").value) > 0 && (document.getElementById("cliente").value) != 0 ){
+        if (Number(document.getElementById("xDoc_encontrados").value) > 0 && (document.getElementById("cliente").value) != 0) {
             let cliente_select = document.getElementById("cliente")
             let id_cliente = cliente_select.options[cliente_select.selectedIndex].value
             let texto_cliente = cliente_select.options[cliente_select.selectedIndex].text
@@ -392,8 +376,8 @@ M1 | Cobranza
         }
 
     }) // documente load
- 
-    function abrir_modal(f,v,i) {
+
+    function abrir_modal(f, v, i) {
         document.getElementById('modal_f').value = f
         document.getElementById('modal_v').value = v
         document.getElementById('modal_i').value = i
@@ -401,8 +385,8 @@ M1 | Cobranza
     }
 
     // guardar fechas
-    function guardar_fechas(e){
-        
+    function guardar_fechas(e) {
+
         // Valida el modal
         const form = document.getElementById('modal-form'); // tomo el nombre del formulario
         if (form.checkValidity()) { // Si es valido //
@@ -410,50 +394,50 @@ M1 | Cobranza
             e.preventDefault();
 
             let op_exitosa = false
-            let f = document.getElementById('modal_f').value 
-            let v = document.getElementById('modal_v').value 
+            let f = document.getElementById('modal_f').value
+            let v = document.getElementById('modal_v').value
             let campo = document.getElementById('modal_i').value
-           
+
             // validar fechas
-            var fechaf = new Date(f); 
+            var fechaf = new Date(f);
             var fechav = new Date(v);
-            if (fechaf > fechav) { 
+            if (fechaf > fechav) {
                 document.getElementById('modal_v').focus();
-                    Swal.fire({
-                        position: 'center',
-                        icon: 'error',
-                        title: 'la fecha de vencimiento no pude ser menor que la fecha' + ' Verifique...!',
-                        showConfirmButton: true,
-                        //timer: 2500
-                    })
-                    return 
+                Swal.fire({
+                    position: 'center',
+                    icon: 'error',
+                    title: 'la fecha de vencimiento no pude ser menor que la fecha' + ' Verifique...!',
+                    showConfirmButton: true,
+                    //timer: 2500
+                })
+                return
             } // fin validar fechas
 
             $.ajax({
-                    url: "{% url 'actualizar_fechas' %}",
-                    type: 'POST',
-                    async: false,
-                    data: {
-                        csrfmiddlewaretoken: '{{ csrf_token }}',
-                        'campo': campo,
-                        'f': f,
-                        'v': v,
-                    },
-                    datatype: 'json',
-                    success: function (data) {
-                        // console.log('RESULTADO', data.status, typeof data.status)
-                        op_exitosa = data.status
-                    },
-                    error: function (xhr, status, error) {
-                    }
-                }) 
-                // console.log(op_exitosa)
-        
+                url: "{% url 'actualizar_fechas' %}",
+                type: 'POST',
+                async: false,
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    'campo': campo,
+                    'f': f,
+                    'v': v,
+                },
+                datatype: 'json',
+                success: function (data) {
+                    // console.log('RESULTADO', data.status, typeof data.status)
+                    op_exitosa = data.status
+                },
+                error: function (xhr, status, error) {
+                }
+            })
+            // console.log(op_exitosa)
+
             cerrar.click();
             let ven
             checkBox = document.getElementById("vencido")
             if (checkBox.checked == true) {
-               ven = "1"
+                ven = "1"
             } else {
                 ven = "0"
             }
@@ -463,7 +447,7 @@ M1 | Cobranza
             return false;
         }// fin validar modal
     } // fin guardar fechas
-    
+
 
 
 </script>

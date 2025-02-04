@@ -1387,77 +1387,102 @@ input[type=number]::-webkit-outer-spin-button {
   } */
 }
 
-.form-control.selectize-control {
-  padding: 0;
-  /* height: auto; */
-  /* border: none; */
-  /* background: 0 0; */
-  /* -webkit-box-shadow: none; */
-  box-shadow: none;
-  /* -webkit-border-radius: 0; */
-  /* -moz-border-radius: 0; */
-  border-radius: 10 !important;
-  height: 52px !important;
-  padding: .195rem .25rem !important;
-}
 
-.selectize-input {
-    border: 1px solid #dadada !important;
-    padding: 6px 8px !important;
-    display: inline-block;
-    width: 100%;
-    overflow: hidden;
-    position: relative;
-    z-index: 1;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-    -webkit-box-shadow: none;
-    box-shadow: none;
-    -webkit-border-radius: 4px;
-    -moz-border-radius: 4px;
-    border-radius: 6px !important;
-}
-.selectize-control.single .selectize-input.input-active, .selectize-input {
-    background: #ffffff;
-    cursor: text;
-    display: inline-block;
-}
-.selectize-dropdown, .selectize-dropdown.form-control {
-  height: auto;
-  padding: 0;
-  margin: 2px 0 0 0;
-  z-index: 1000;
-  background: #fff;
-  border: 1px solid #ccc;
-  border: 1px solid rgba(0, 0, 0, .15);
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
-  border-radius: 4px;
-  -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, .175);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, .175);
-}
 
+
+
+
+
+/* Estilo del contenedor del dropdown */
 .selectize-dropdown {
-  position: absolute;
-  z-index: 10;
-  border: 1px solid #d0d0d0;
-  background: #ffffff;
-  margin: -1px 0 0 0;
-  border-top: 0 none;
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
-  -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
-  -webkit-border-radius: 0 0 4px 4px;
-  -moz-border-radius: 0 0 4px 4px;
-  border-radius: 0 0 4px 4px;
+  background-color: #ffffff; /* Color de fondo */
+  border: 1px solid #141414 !important; /* Color del borde */
+  border-radius: 4px; /* Radio de borde */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Sombra */
+ 
 }
-.selectize-dropdown, .selectize-input, .selectize-input input {
+
+/* Estilo de las opciones del dropdown */
+.selectize-dropdown .option {
+  padding: 8px 12px; /* Relleno */
+  background-color: #ffffff; /* Color de fondo */
+  color: #333333; /* Color del texto */
+  cursor: pointer; /* Cursor */
+ 
+}
+
+/* Estilo del hover de las opciones */
+.selectize-dropdown .option:hover {
+  background-color: #f1f1f1; /* Color de fondo al hacer hover */
+  color: #333333; /* Color del texto al hacer hover */
+}
+
+/* Estilo de la opción seleccionada */
+
+.selectize-dropdown .option.active {
+  background-color: #0b5dc9; /* Color de fondo del elemento seleccionado */
+  color: #ffffff; /* Color del texto del elemento seleccionado */
+}
+
+/* Ajustar el alto del selectize-input */
+.selectize-input {
+  min-height: 32px !important;
+  height: 32px !important; /* Ajusta esto al alto deseado */
+  padding: 6px 4px 0px 10px !important; /* Ajusta el relleno si es necesario */
+  line-height: 24px; /* Ajusta la altura de línea para centrar el texto */
+  border-radius: var(--bs-border-radius) !important;
+}
+
+/* Asegúrate de que el contenedor también tiene la altura correcta */
+.selectize-control {
+  height: 32px !important; /* Ajusta esto al alto deseado */
+}
+
+/* Estilo del input cuando está enfocado */
+.selectize-input.focus {
+  color: var(--bs-body-color) !important;
+  /* background-color: var(--bs-body-bg); */
+  border-color: #86b7fe !important;
+  outline: 0 !important;
+  box-shadow: 0 0 0 .25rem rgba(24, 117, 255, 0.25) !important; 
+}
+
+/* Estilo del input cuando está deshabilitado */
+.selectize-input.disabled {
+  background-color: #e9ecef; /* Color de fondo cuando está deshabilitado */
+  color: #6c757d; /* Color del texto cuando está deshabilitado */
+}
+
+/* Cambiar el color de fondo y el color del texto de las coincidencias */
+.selectize-dropdown .option[data-selectable] .highlight {
+  background-color: rgba(0, 123, 255, 0.25) !important; /* Cambia esto al color de fondo que desees, aquí se usa amarillo */
+   /* Cambia esto al color del texto que desees, aquí se usa negro */
+}
+
+/* Ocultar la flecha del select */
+.selectize-control .selectize-input::after {
+  display: none !important;
+}
+
+.custom-arrow{
+  font-size: 14px;
   color: #333;
-  font-family: inherit;
-  font-size: inherit;
-  line-height: 20px;
-  -webkit-font-smoothing: inherit;
+  position: absolute;
+  right: 10px;  /* Ajusta la distancia del borde derecho */
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
