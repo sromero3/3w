@@ -301,7 +301,7 @@ M1 | Cobranza
         setTimeout(() => {
             document.getElementById('data-section').style.opacity = 1;
         }, 200);
-    });
+    }); // fin data table
 
     // selectize
     $(document).ready(function () {
@@ -335,7 +335,6 @@ M1 | Cobranza
         filtros.action = `/cobranza/${cliente.value}/${vendedor.value}/${iva.value}/${ven}/`
         if (document.getElementById('cliente').value != '') {
             filtros.submit()
-
         }
 
     } // fin obtener docuemntos

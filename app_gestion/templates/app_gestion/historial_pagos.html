@@ -19,8 +19,7 @@ M1 | Historial de pagos
                         <div class="col-4" style="margin-bottom: 12px;">
                             <span class="titulos">
                                 Cliente</span>
-                                <select name="cliente" id="cliente" class="form-control d-flex alto" required
-                                onChange="obtener_pagos()">
+                                <select name="cliente" id="cliente" required onfocus="limpiar()"                                onChange="obtener_pagos()">
                                 <option value="0" selected>Todos</option>
                                 {% for xCliente in xClientes %}
                                 <option value={{xCliente.id}} {% if xCliente.id == xCliente_seleccionado %} selected {%endif %}>
@@ -28,7 +27,6 @@ M1 | Historial de pagos
                                 </option>
                                 {% endfor %}
                             </select>
-                      
                         </div>
                         <div class="col-md-4">
                             <span class="titulos">
@@ -208,13 +206,33 @@ Extra Large Moda
                 "orderable": false
             }]
         })
-    })
+    }) //fin data table
+
+      // selectize
+      $(document).ready(function () {
+        // Activacion
+        var selectizeInstance = $('#cliente').selectize({
+            // sortField: 'text',
+        });
+
+        // Evento click para limpiar el select input
+        var selectizeControl = selectizeInstance[0].selectize;
+        selectizeControl.$control.on('click', function () {
+            selectizeControl.clear();
+        });
+        // Agregar manualmente una flecha al control de Selectize
+        $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+
+    });
+
 
     // obtener docuemntos
     function obtener_pagos() {
         // console.log(document.getElementById('cliente').value)
         filtros.action = `/historial_pagos/${cliente.value}/${fecha_ini.value}/${fecha_fin.value}/`
-        filtros.submit()
+        if (document.getElementById('cliente').value != '') {
+            filtros.submit()
+        }
     } // fin obtener docuemntos
 
     
