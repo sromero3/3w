@@ -19,10 +19,10 @@ M1 | Cobranza x vendedores
                     style="width:90%;margin-bottom: 8px !important;">
                     {% csrf_token %}
                     <div class="row">
-                        <div class="col-4" style="margin-bottom: 12px;">
+                        <div class="col-6" style="margin-bottom: 12px;">
                             <span class="titulos">
                                 Vendedor</span>
-                            <select name="vendedor" id="vendedor" class="form-control d-flex alto" required
+                            <select name="vendedor" id="vendedor"  required
                                 onChange="obtener_documentos()">
                                 <option value="0" selected></option>
                                 {% for xVendedor in xVendedores %}
@@ -31,29 +31,28 @@ M1 | Cobranza x vendedores
                                 </option>
                                 {% endfor %}
                             </select>
-
                         </div>
                         <!-- <div class="col-md-4">
                             <span class="titulos">
                                 Desde</span>
                             <input type="date" id="fecha_ini" name="fecha_ini" value="{{xFecha_ini}}" class="form-control alto" onChange="obtener_documentos()"/>
                         </div> -->
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <span class=" titulos">
                                 Hasta</span>
                             <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}"
                                 class="form-control alto" onChange="obtener_documentos()" />
                         </div>
                     </div>
-                </form>                <table id="documentos" class="table table-hover table-bordered" style="width:90%;">
+                </form>                
+                
+                <table id="documentos" class="table table-hover table-bordered" style="width:90%;">
                     <thead>
                         <tr>
                             <th>Cliente</th>
                             <th>Fecha</th>
                             <th>Documento</th>
-                            
                             <!-- <th>DC</th> -->
-                            
                             <th>Cliente</th>
                             <th>Vence</th>
                             <th>DV</th>
@@ -61,7 +60,6 @@ M1 | Cobranza x vendedores
                             <th>Monto</th>
                             <th>Abonado</th>
                             <th>Pendiente</th>
-                      
                         </tr>
                     </thead>
                     <tbody>
@@ -70,18 +68,19 @@ M1 | Cobranza x vendedores
                             <td></td>
                             <td>{{xDocumento.fecha|date:"d/m/y"}}</td>
                             <td>{{xDocumento.numero|rellenar}}</td>
-                            
                             <!-- <td align="center">{{xDocumento.credito}}</td> -->
                             <td>{{xDocumento.cliente__nombre}}</td>
-                            <td>{{xDocumento.vencimiento|date:"d/m/y"}}</td>
-                            <td align="center">{{xDocumento.dias_v}}</td>
+                            {% if xDocumento.dias_v < 0 %}
+                                <td style="color: red;">{{xDocumento.vencimiento|date:"d/m/y"}}</td>
+                                <td align="center" style="color: red;">{{xDocumento.dias_v}}</td>
+                            {% else %}
+                                <td>{{xDocumento.vencimiento|date:"d/m/y"}}</td>
+                                <td align="right">{{xDocumento.dias_v}}</td>
+                            {% endif %}
                             <td align="right">{{xDocumento.iva__iva}}</td>
-
                             <td align="right">{{xDocumento.monto|darFormato}}</td>
                             <td align="right">{{xDocumento.abonado|darFormato}}</td>
                             <td align="right">{{xDocumento.saldo|darFormato}}</td>
-                     
-
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -173,7 +172,9 @@ M1 | Cobranza x vendedores
         // console.log(document.getElementById('cliente').value)
         // filtros.action = `/cobranza_vendedor/${vendedor.value}/${fecha_ini.value}/${fecha_fin.value}/`
         filtros.action = `/cobranza_vendedor/${vendedor.value}/${fecha_fin.value}/`
-        filtros.submit()
+        if (document.getElementById('vendedor').value != '') {
+            filtros.submit()
+        }
     } // fin obtener docuemntos
 
     // generar PDF
@@ -190,7 +191,7 @@ M1 | Cobranza x vendedores
         // Obtener el nombre del vendedor para nombre del archivo
         const vendedor_select = document.getElementById('vendedor');
         const xVendedor = vendedor_select.options[vendedor_select.selectedIndex].dataset.nombre
-
+        console.log('xVendedor ',xVendedor )
         // Usar html2canvas para renderizar el contenido como una imagen
         html2canvas(document.getElementById('card-body-areaPDF')).then((canvas) => {
             const imgData = canvas.toDataURL('image/png');
@@ -265,6 +266,21 @@ M1 | Cobranza x vendedores
     //     console.log('Error al obtener el archivo PDF:', error);
     //     });
     // });
+        // selectize
+        $(document).ready(function () {
+        // Activacion
+        var selectizeInstance = $('#vendedor').selectize({
+            //  opciones
+            // options: dataset,
+        });
+        $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+        // Evento click para limpiar el select input
+        var selectizeControl = selectizeInstance[0].selectize;
+        selectizeControl.$control.on('click', function () {
+            selectizeControl.clear();
+            $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+        });
+    });
 
 </script>
 {% endblock Scripts_Adicionales %}

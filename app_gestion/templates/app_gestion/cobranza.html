@@ -111,8 +111,7 @@ M1 | Cobranza
                             </td>
                             {% endif %}
                             <td>{{xDocumento.fecha|date:"d/m/y"}}<a
-                                    href="javascript:abrir_modal( '{{xDocumento.fecha|date:"
-                                    Y-m-d"}}','{{xDocumento.vencimiento|date:"Y-m-d"}}','{{xDocumento.id}}' )"> <i
+                                    href="javascript:abrir_modal( '{{xDocumento.fecha|date:"Y-m-d"}}','{{xDocumento.vencimiento|date:"Y-m-d"}}','{{xDocumento.id}}' )"> <i
                                         style="font-size: small;" class="bi bi-pencil"></a></i></td>
                             <td>{{xDocumento.vencimiento|date:"d/m/y"}}</td>
                             <td align="center">{{xDocumento.dias_v}}</td>
