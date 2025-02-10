@@ -1291,7 +1291,7 @@ h6 {
 
 
 
-.form-control {
+.form-control-dropdown {
   appearance: auto;
 }
 
@@ -1392,71 +1392,66 @@ input[type=number]::-webkit-outer-spin-button {
 
 
 
-
+/* ------------------------------- selectize -----------------------------------------*/
+/* Ajustar el alto del selectize-input */
+.selectize-input {
+  border: 1px solid #dee2e6 !important;
+  height: 32px !important; /* Ajusta esto al alto deseado */
+  padding: 6px 2px 0px 6px !important; 
+  line-height: 44px; /* Ajusta la altura de línea para centrar el texto */
+  border-radius: var(--bs-border-radius) !important;
+  
+}
 /* Estilo del contenedor del dropdown */
 .selectize-dropdown {
-  background-color: #ffffff; /* Color de fondo */
-  border: 1px solid #141414 !important; /* Color del borde */
-  border-radius: 4px; /* Radio de borde */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Sombra */
- 
+  background-color: #ffffff; 
+  border: 1px solid #141414 !important; 
+  border-radius: 4px; 
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
-
+.selectize-dropdown-content{
+  max-height: 600px !important; 
+}
 /* Estilo de las opciones del dropdown */
 .selectize-dropdown .option {
-  padding: 8px 12px; /* Relleno */
+  padding: 8px 12px; 
   background-color: #ffffff; /* Color de fondo */
   color: #333333; /* Color del texto */
   cursor: pointer; /* Cursor */
- 
-}
+ padding: 4px 0px 6px 4px !important; 
 
-/* Estilo del hover de las opciones */
-.selectize-dropdown .option:hover {
-  background-color: #f1f1f1; /* Color de fondo al hacer hover */
-  color: #333333; /* Color del texto al hacer hover */
 }
 
 /* Estilo de la opción seleccionada */
-
 .selectize-dropdown .option.active {
-  background-color: #0b5dc9; /* Color de fondo del elemento seleccionado */
-  color: #ffffff; /* Color del texto del elemento seleccionado */
-}
-
-/* Ajustar el alto del selectize-input */
-.selectize-input {
-  min-height: 32px !important;
-  height: 32px !important; /* Ajusta esto al alto deseado */
-  padding: 6px 4px 0px 10px !important; /* Ajusta el relleno si es necesario */
-  line-height: 24px; /* Ajusta la altura de línea para centrar el texto */
-  border-radius: var(--bs-border-radius) !important;
+  background-color: #0b5dc9;
+  color: #ffffff;
+  cursor: pointer; /* Cursor */
 }
 
 /* Asegúrate de que el contenedor también tiene la altura correcta */
-.selectize-control {
-  height: 32px !important; /* Ajusta esto al alto deseado */
-}
+/* .selectize-control {
+  height: 32px !important;
+} */
 
 /* Estilo del input cuando está enfocado */
 .selectize-input.focus {
   color: var(--bs-body-color) !important;
-  /* background-color: var(--bs-body-bg); */
   border-color: #86b7fe !important;
   outline: 0 !important;
   box-shadow: 0 0 0 .25rem rgba(24, 117, 255, 0.25) !important; 
+  cursor: pointer; /* Cursor */
 }
 
 /* Estilo del input cuando está deshabilitado */
 .selectize-input.disabled {
-  background-color: #e9ecef; /* Color de fondo cuando está deshabilitado */
-  color: #6c757d; /* Color del texto cuando está deshabilitado */
+  background-color: #e9ecef; 
+  color: #6c757d;
 }
 
 /* Cambiar el color de fondo y el color del texto de las coincidencias */
 .selectize-dropdown .option[data-selectable] .highlight {
-  background-color: rgba(0, 123, 255, 0.25) !important; /* Cambia esto al color de fondo que desees, aquí se usa amarillo */
-   /* Cambia esto al color del texto que desees, aquí se usa negro */
+  background-color: rgba(0, 123, 255, 0.25) !important; 
 }
 
 /* Ocultar la flecha del select */
@@ -1464,22 +1459,29 @@ input[type=number]::-webkit-outer-spin-button {
   display: none !important;
 }
 
+/*le pone el arrow down al selectize */
 .custom-arrow{
   font-size: 14px;
-  color: #333;
+  color: black;
   position: absolute;
-  right: 10px;  /* Ajusta la distancia del borde derecho */
+  right: 10px;  
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
 }
 
-
-
-
-
-
-
+/* ------------------------------- select -----------------------------------------*/
+/*le pone el arrow down a los selcts normales*/
+.custom-select {
+  appearance: none; 
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url('https://api.iconify.design/ep/arrow-right.svg?color=black&rotate=90deg'); 
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  padding-right: 30px; 
+}
 
 
 

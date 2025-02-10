@@ -13,12 +13,12 @@ M1 | Vendedores
             <div class="card-body">
                 <h5 class="card-title">Vendedores<a href="{% url 'inicio'%}" class="float-end"><i class="bi bi-house-door" title='Cerrar'></i></a></h5>
                 
-                <form id="filtros" action="" method="post" class="mb-4">
+                <form id="filtros" action="" method="post" class="row g-3">
                     {% csrf_token %}
-                    <div class="row">
-                        <div class="col-lg-3 col-sm-12 d-flex">
+               
+                        <div class="col-md-6">
                             <label id="m" class="titulos d-flex me-2 mt-1">Status</label>
-                            <select name="f_status" id="f_status" class="form-control d-flex alto" required
+                            <select name="f_status" id="f_status" class="form-control custom-select d-flex alto" required
                                 onChange="obtener_vendedores()">
                                 <option value="0" selected>Todos</option>
                                 {% for xStatu in xStatus_select %}
@@ -29,11 +29,11 @@ M1 | Vendedores
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-lg-3 col-sm-12 d-flex">
+                        <div class="col-md-6">
                             <label class="titulos d-flex ms-2 me-2 mt-1">Ciudad</label>
-                            <select name="f_ciudad" id="f_ciudad" class="form-control d-flex alto" required
+                            <select name="f_ciudad" id="f_ciudad" 
                                 onChange="obtener_vendedores()">
-                                <option value="0" selected>Todos</option>
+                                <option value="0" selected>TODAS</option>
                                 {% for xCiudad in xCiudades %}
                                 <option value={{xCiudad.id}} {% if xCiudad.id == xCiudad_seleccionado %} selected
                                     {%endif %}>
@@ -42,6 +42,7 @@ M1 | Vendedores
                                 {% endfor %}
                             </select>
                         </div>
+
                 </form>
 
                 <div class="row">
@@ -138,8 +139,26 @@ M1 | Vendedores
     // obtener docuemntos
     function obtener_vendedores() {
         filtros.action = `/vendedores/${f_status.value}/${f_ciudad.value}/`
-        filtros.submit()
+        if (document.getElementById('f_ciudad').value != '') {
+            filtros.submit()
+        }
+
     } // fin obtener docuemntos  
+
+    // selectize
+        $(document).ready(function () {
+        // Activacion
+        var selectizeInstance = $('#f_ciudad').selectize({
+            //  opciones
+        });
+        $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+        // Evento click para limpiar el select input
+        var selectizeControl = selectizeInstance[0].selectize;
+        selectizeControl.$control.on('click', function () {
+            selectizeControl.clear();
+            $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+        });
+    });
   
 </script>
 {% endblock Scripts_Adicionales %}

@@ -15,15 +15,12 @@ M1 | Documentos
                 
                 <form id="filtros" action="" method="post" class="row g-3">
                     {% csrf_token %}
-                        <div class="col-md-4">
-                            <label class="titulos d-flex me-2 mt-1">Palabra clave</label>
-                            <input class="form-control alto"  type="text" id="searchInput" placeholder="Escribe una palabra clave...">
-                        </div>
-                        <div class="col-md-4">
+                    
+                        <div class="col-md-6">
                             <label id="m" class="titulos d-flex me-2 mt-1">Cliente</label>
-                            <select name="cliente" id="cliente" class="form-control d-flex alto" required
+                            <select name="cliente" id="cliente" required"
                                 onChange="obtener_documentos()">
-                                <option value="0" selected>Todos</option>
+                                <option value="0" selected>TODOS</option>
                                 {% for xCliente in xClientes_select %}
                                 <option value={{xCliente.id}} {% if xCliente.id == xCliente_seleccionado %} selected
                                     {%endif %}>
@@ -32,11 +29,11 @@ M1 | Documentos
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="titulos d-flex me-2 mt-1">Días transcurridos</label>
-                            <select name="dias" id="dias" class="form-control alto" required
+                            <select name="dias" id="dias" class="form-control custom-select d-flex alto" required
                                 onChange="obtener_documentos()">
-                                <option value="0" selected>Todos</option>
+                                <option value="0" selected>TODOS</option>
                                 {% for xDia in xDias_select %}
                                 <option value={{xDia.id}} {% if xDia.id == xDia_seleccionado %} selected
                                     {%endif %}>
@@ -171,6 +168,20 @@ M1 | Documentos
 
     });
 
+      // selectize
+      $(document).ready(function () {
+        // Activacion
+        var selectizeInstance = $('#cliente').selectize({
+        });
+        $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+        // Evento click para limpiar el select input
+        var selectizeControl = selectizeInstance[0].selectize;
+        selectizeControl.$control.on('click', function () {
+            selectizeControl.clear();
+            $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+        });
+    });
+
     // tool tip
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
@@ -178,24 +189,11 @@ M1 | Documentos
     // obtener docuemntos
     function obtener_documentos() {
         filtros.action = `/documentos/${cliente.value}/${dias.value}/`
-        filtros.submit()
-    } // fin obtener docuemntos 
-
-    // searchInput
-    document.getElementById('searchInput').addEventListener('input', function() {
-    var keyword = this.value.toLowerCase();
-    var select = document.getElementById('cliente');
-    var options = select.getElementsByTagName('option');
-
-    for (var i = 0; i < options.length; i++) {
-        var option = options[i];
-        if (option.value.toLowerCase().includes(keyword) || option.text.toLowerCase().includes(keyword)) {
-            option.style.display = 'block';
-        } else {
-            option.style.display = 'none';
+        if (document.getElementById('cliente').value != '') {
+            filtros.submit()
         }
-    }
-    });
+
+    } // fin obtener docuemntos 
 
   </script>
 {% endblock Scripts_Adicionales %}

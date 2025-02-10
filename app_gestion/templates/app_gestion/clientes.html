@@ -11,46 +11,46 @@ M1 | Cobranza
     <div class="col-lg-12">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Clientes<a href="{% url 'inicio'%}" class="float-end"><i class="bi bi-house-door" title='Cerrar'></i></a></h5>
-                
-                <form id="filtros" action="" method="post" class="mb-4">
+                <h5 class="card-title">Clientes<a href="{% url 'inicio'%}" class="float-end"><i class="bi bi-house-door"
+                            title='Cerrar'></i></a></h5>
+
+                <form id="filtros" action="" method="post" class="row g-3">
                     {% csrf_token %}
-                    <div class="row">
-                        <div class="col-lg-3 col-sm-12 d-flex">
-                            <label id="m" class="titulos d-flex me-2 mt-1">Status</label>
-                            <select name="f_status" id="f_status" class="form-control d-flex alto" required
-                                onChange="obtener_clientes()">
-                                <option value="0" selected>Todos</option>
-                                {% for xStatu in xStatus_select %}
-                                <option value={{xStatu.id}} {% if xStatu.id == xStatu_seleccionado %} selected
-                                    {%endif %}>
-                                    {{xStatu.statu}}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-lg-3 col-sm-12 d-flex">
-                            <label class="titulos d-flex ms-2 me-2 mt-1">Vend.</label>
-                            <select name="f_vendedor" id="f_vendedor" class="form-control d-flex alto" required
-                                onChange="obtener_clientes()">
-                                <option value="0" selected>Todos</option>
-                                {% for xVendedor in xVendedores %}
-                                <option value={{xVendedor.id}} {% if xVendedor.id == xVendedor_seleccionado %} selected
-                                    {%endif %}>
-                                    {{xVendedor.nombre}}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
+
+                    <div class="col-md-6">
+                        <label id="m" class="titulos d-flex me-2 mt-1">Status</label>
+                        <select name="f_status" id="f_status" class="form-control custom-select d-flex alto" required
+                            onChange="obtener_clientes()">
+                            <option value="0" selected>Todos</option>
+                            {% for xStatu in xStatus_select %}
+                            <option value={{xStatu.id}} {% if xStatu.id == xStatu_seleccionado %} selected {%endif %}>
+                                {{xStatu.statu}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div> 
+                    <div class="col-md-6">
+                        <label class="titulos d-flex ms-2 me-2 mt-1">Vend.</label>
+                        <select name="f_vendedor" id="f_vendedor" 
+                            onChange="obtener_clientes()">
+                            <option value="0" selected>TODOS</option>
+                            {% for xVendedor in xVendedores %}
+                            <option value={{xVendedor.id}} {% if xVendedor.id == xVendedor_seleccionado %} selected {%endif %}>
+                                {{xVendedor.nombre}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </form>
 
                 <div class="row">
                     <div class="col-lg-12" style="text-align: center;margin-top: 10px;">
-                        <h6 > <a href="{% url 'add_cliente' %}" ><i class="bi bi-people"  title='Agregar un documento'></i><span>+</span></a></h6>
+                        <h6> <a href="{% url 'add_cliente' %}"><i class="bi bi-people"
+                                    title='Agregar un documento'></i><span>+</span></a></h6>
 
                     </div>
                 </div>
-                
+
                 <table id="clientes" class="table table-hover table-bordered" style="width:100%">
                     <thead>
                         <tr>
@@ -85,10 +85,10 @@ M1 | Cobranza
 {% endblock content %}
 {% block Scripts_Adicionales %}
 <script>
- 
+
     $(function () {
         $("#clientes").DataTable({
-  
+
             language: {
                 "sProcessing": "Procesando...",
                 "sLengthMenu": "Mostrar _MENU_ registros",
@@ -138,8 +138,26 @@ M1 | Cobranza
     // obtener docuemntos
     function obtener_clientes() {
         filtros.action = `/clientes/${f_status.value}/${f_vendedor.value}/`
-        filtros.submit()
+        if (document.getElementById('f_vendedor').value != '') {
+            filtros.submit()
+        }
+
     } // fin obtener docuemntos  
-  
+   
+    // selectize
+      $(document).ready(function () {
+        // Activacion
+        var selectizeInstance = $('#f_vendedor').selectize({
+            //  opciones
+        });
+        $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+        // Evento click para limpiar el select input
+        var selectizeControl = selectizeInstance[0].selectize;
+        selectizeControl.$control.on('click', function () {
+            selectizeControl.clear();
+            $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+        });
+    });
+
 </script>
 {% endblock Scripts_Adicionales %}

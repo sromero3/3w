@@ -49,13 +49,15 @@ M1 | Cobranza x vendedores
                     <thead>
                         <tr>
                             <th>Cliente</th>
-                            <th>Documento</th>
                             <th>Fecha</th>
+                            <th>Documento</th>
+                            
                             <!-- <th>DC</th> -->
-                            <th>Iva</th>
+                            
                             <th>Cliente</th>
                             <th>Vence</th>
                             <th>DV</th>
+                            <th>Iva</th>
                             <th>Monto</th>
                             <th>Abonado</th>
                             <th>Pendiente</th>
@@ -66,13 +68,15 @@ M1 | Cobranza x vendedores
                         {% for xDocumento in xDocumentos %}
                         <tr>
                             <td></td>
-                            <td>{{xDocumento.numero|rellenar}}</td>
                             <td>{{xDocumento.fecha|date:"d/m/y"}}</td>
-                            <td align="right">{{xDocumento.iva__iva}}</td>
+                            <td>{{xDocumento.numero|rellenar}}</td>
+                            
                             <!-- <td align="center">{{xDocumento.credito}}</td> -->
                             <td>{{xDocumento.cliente__nombre}}</td>
                             <td>{{xDocumento.vencimiento|date:"d/m/y"}}</td>
                             <td align="center">{{xDocumento.dias_v}}</td>
+                            <td align="right">{{xDocumento.iva__iva}}</td>
+
                             <td align="right">{{xDocumento.monto|darFormato}}</td>
                             <td align="right">{{xDocumento.abonado|darFormato}}</td>
                             <td align="right">{{xDocumento.saldo|darFormato}}</td>
@@ -133,13 +137,13 @@ M1 | Cobranza x vendedores
         paging: false,
         searching: false,
         info: false,
-        order: [[4,  'asc']],
+        order: [[3,  'asc']],
           "columnDefs": [{
                 "targets": [0,1,2,3,4,5,7,8,9],
                 "orderable": false
             }],
         rowGroup: {
-            dataSrc: 4,
+            dataSrc: 3,
             endRender: function (rows, group) {
                 suma = 0;
                 for (i = 0; i < rows.data().pluck(9).length; i++) {
