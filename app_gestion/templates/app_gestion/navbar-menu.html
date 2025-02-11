@@ -1,5 +1,6 @@
 {% load static %}
 <header id="header" style="background-color: #172135;" class="header fixed-top d-flex align-items-center">
+<!-- <header id="header" class="header fixed-top d-flex align-items-center"> -->
   <div class="d-flex align-items-center justify-content-between">
     <a href="#" class="logo d-flex align-items-center">
       <img src="{% static 'app_website/custom-files/assets_m1/img/logo1.png' %}" alt="" data-aos="fade-in">
@@ -122,7 +123,7 @@
           </a>
         </li>
         <li>
-          <a href="{% url 'cobranza_vendedor' 0  ' ' %}">
+          <a href="{% url 'cobranza_vendedor' 0  ' ' 0 %}">
             <span>Cobranza x vendedor</span>
           </a>
         </li>

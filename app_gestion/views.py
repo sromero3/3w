@@ -1173,16 +1173,18 @@ def MigrarView(request):
 
 
 @login_required
-def Cobranza_vendedorView(request, xVendedor,  fecha_fin):
-
+def Cobranza_vendedorView(request, xVendedor,  fecha_fin, xCliente):
 
     xUsuario = request.user
-    if xVendedor != 0:
-        xVendedor_seleccionado = xVendedor
-    else:
-        xVendedor_seleccionado   = 0
 
+    xVendedor_seleccionado = xVendedor
     xVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
+
+    xCliente_seleccionado = xCliente
+    if xVendedor != 0:
+        xClientes = Cliente.objects.filter(Q( status_id=1) | Q(status_id=2)).filter(vendedor_id=xVendedor)
+    else:
+        xClientes = Cliente.objects.filter(Q( status_id=1) | Q(status_id=2))
 
     actualizar_dias_vencido()
     
@@ -1197,8 +1199,12 @@ def Cobranza_vendedorView(request, xVendedor,  fecha_fin):
     else:  
         # print("--------- Parametros recibidos POST ----------")
         xFecha_fin = fecha_fin
-        qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).filter(cliente_id__vendedor__id=xVendedor, vencimiento__lte=xFecha_fin).values('id','cliente_id','numero','credito','fecha','dias_v','vencimiento','monto','cliente_id__vendedor__id','abonado','saldo','cliente__nombre','iva__iva').order_by('cliente__nombre').order_by('vencimiento')
-    
+        if xCliente == 0:
+            qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).filter(cliente_id__vendedor__id=xVendedor, vencimiento__lte=xFecha_fin).values('id','cliente_id','numero','credito','fecha','dias_v','vencimiento','monto','cliente_id__vendedor__id','abonado','saldo','cliente__nombre','iva__iva').order_by('cliente__nombre').order_by('vencimiento')
+        else:
+            qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).filter(cliente_id__vendedor__id=xVendedor, vencimiento__lte=xFecha_fin, cliente_id=xCliente).values('id','cliente_id','numero','credito','fecha','dias_v','vencimiento','monto','cliente_id__vendedor__id','abonado','saldo','cliente__nombre','iva__iva').order_by('cliente__nombre').order_by('vencimiento')
+
+        # Si sequire empezar desde el doc mas viejo
         # for x in qDocumentos:
         #  print("Documento ",x['numero'],x['vencimiento'])
         #  print(qDocumentos[0]['vencimiento'])
@@ -1218,6 +1224,8 @@ def Cobranza_vendedorView(request, xVendedor,  fecha_fin):
         'xVendedores': xVendedores,
         'xVendedor_seleccionado': int(xVendedor_seleccionado),
         # 'xFecha_ini': xFecha_ini,
+        'xClientes': xClientes,
+        'xCliente_seleccionado': int(xCliente_seleccionado),
         'xFecha_fin': xFecha_fin,
     }
 

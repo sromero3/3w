@@ -1414,12 +1414,10 @@ input[type=number]::-webkit-outer-spin-button {
 }
 /* Estilo de las opciones del dropdown */
 .selectize-dropdown .option {
-  padding: 8px 12px; 
   background-color: #ffffff; /* Color de fondo */
   color: #333333; /* Color del texto */
   cursor: pointer; /* Cursor */
- padding: 4px 0px 6px 4px !important; 
-
+  padding: 4px 0px 6px 4px !important; 
 }
 
 /* Estilo de la opción seleccionada */

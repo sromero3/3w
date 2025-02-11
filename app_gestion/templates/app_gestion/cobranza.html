@@ -21,7 +21,7 @@ M1 | Cobranza
 
                     <div class="col-md-6">
                         <label id="m" class="titulos d-flex me-2 mt-1">Cliente</label>
-                        <select name="cliente" id="cliente" required" onChange="obtener_documentos()">
+                        <select name="cliente" id="cliente" required onChange="obtener_documentos()">
                             <option value="0" selected>TODOS</option>
                             {% for xCliente in xClientes %}
                             <option value={{xCliente.id}} {% if xCliente.id == xCliente_seleccionado %} selected {%endif %}>
@@ -137,7 +137,6 @@ M1 | Cobranza
                     </tbody>
                     <tfoot>
                         <tr>
-
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
@@ -294,12 +293,12 @@ M1 | Cobranza
                 //     "orderable": false
                 // }]
             })
-        })
+        }) // fin data table
 
         setTimeout(() => {
             document.getElementById('data-section').style.opacity = 1;
         }, 200);
-    }); // fin data table
+    }); // fin document.ready
 
     // selectize
     $(document).ready(function () {

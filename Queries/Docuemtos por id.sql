@@ -1,3 +1,3 @@
-SELECT * FROM public.app_gestion_documentos
-WHERE app_gestion_documentos.id = 180
+SELECT * FROM public.app_gestion_pagos
+WHERE app_gestion_pagos.id = 40
 ORDER BY id ASC 
