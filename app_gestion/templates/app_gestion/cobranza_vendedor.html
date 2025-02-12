@@ -44,7 +44,7 @@ M1 | Cobranza x vendedores
                                 class="form-control" style="height: 34px;" onChange="obtener_documentos()" />
                         </div>
                         <div class="col-md-4">
-                            <label id="m" class="titulos d-flex me-2 mt-1">Cliente</label>
+                            <label id="m" class="titulos d-flex me-2 mt-1">Cliente del vendedor</label>
                             <select name="cliente" id="cliente" required onChange="obtener_documentos()">
                                 <option value="0" selected>TODOS</option>
                                 {% for xCliente in xClientes %}
@@ -100,11 +100,16 @@ M1 | Cobranza x vendedores
                     </tfoot>
                 </table>
             </div>
+            <div class="row justify-content-end" style="width:90%; margin: -16px 0px 10px 6px;">
+                <div class="col-auto">
+                  <button id="boton" class="btn btn-primary" style="opacity: 1; width: auto;" onclick="generarPDF()">Generar PDF</button>
+                </div>
+            </div>
         </div>
+        
     </div>
 
-    <button id="boton" style="opacity: 0;" class="btn btn-primary d-flex justify-content-center align-items-center float-end" style="width: auto;"
-        onclick="generarPDF()">Generar PDF</button>
+   
 
     <!-- <button id="share-button">Compartir</button> -->
 </main><!-- End #main -->
@@ -149,6 +154,7 @@ M1 | Cobranza x vendedores
             paging: false,
             searching: false,
             info: false,
+            // scrollX: true,
             order: [[3, 'asc']],
             "columnDefs": [{
                 "targets": [0, 1, 2, 3, 4, 5, 7, 8, 9],
@@ -179,7 +185,13 @@ M1 | Cobranza x vendedores
 
         }); // fin data table
 
-        // selectize activacion
+        //  da tiempo para que carguen los estilos
+        setTimeout(() => {
+            document.getElementById('data-section').style.opacity = 1;
+            document.getElementById('boton').style.opacity = 1;
+        }, 200);
+
+        // selectize
         var selectizeInstance = $('#vendedor').selectize({});
         $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
         
@@ -196,11 +208,6 @@ M1 | Cobranza x vendedores
             selectizeControl2.clear();
             $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
         });
-
-        setTimeout(() => {
-            document.getElementById('data-section').style.opacity = 1;
-            document.getElementById('boton').style.opacity = 1;
-        }, 200);
 
     }); // fin document.ready
 
@@ -224,9 +231,15 @@ M1 | Cobranza x vendedores
         // Obtener el contenido del elemento del DOM
         const content = document.getElementById('card-body-areaPDF').innerHTML;
         // Obtener el nombre del vendedor para nombre del archivo
-        const vendedor_select = document.getElementById('vendedor');
-        const xVendedor = vendedor_select.options[vendedor_select.selectedIndex].dataset.nombre
-        console.log('xVendedor ', xVendedor)
+        // const vendedor_select = document.getElementById('vendedor');
+        // const xVendedor = vendedor_select.options[vendedor_select.selectedIndex].dataset.nombre
+    
+        // Obtener el nombre del vendedor para nombre del archivo
+        var selectize = $('#vendedor')[0].selectize; // Obtienes la instancia del selectize
+        var selectedOption = selectize.getItem(selectize.getValue()); // Obtienes el item seleccionado
+        var nombreVendedor = selectedOption.text(); // Extrae el nombre
+        var nombreLimpio = nombreVendedor.trim().replace(/^_+|_+$/g, '')
+
         // Usar html2canvas para renderizar el contenido como una imagen
         html2canvas(document.getElementById('card-body-areaPDF')).then((canvas) => {
             const imgData = canvas.toDataURL('image/png');
@@ -250,13 +263,12 @@ M1 | Cobranza x vendedores
             // window.open(url, '_blank');
 
             // Descargar el PDF automáticamente
-            const nombre_doc = xVendedor + '.pdf';
+            const nombre_doc = nombreLimpio  + '.pdf';
             //  const nombre_doc = 'archivo' + '.pdf';
             doc.save(nombre_doc);
 
             // const file = new File([pdfOutput], nombre_doc, { type: 'application/pdf' });
             // sharePDF(file);
-
         });
     } //fin generar pdf
 
@@ -302,10 +314,5 @@ M1 | Cobranza x vendedores
     //     });
     // });
 
-    // selectize
-    // $(document).ready(function () {
-       
-    // });
-
-</script>
+ </script>
 {% endblock Scripts_Adicionales %}
