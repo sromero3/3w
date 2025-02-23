@@ -107,14 +107,18 @@ M1 | Cobranza
                                 <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip"
                                         data-bs-placement="bottom" data-bs-html="true"
                                         data-bs-title="{{xDocumento.observacion}}<br>"></i>
-                                    </i></a>
+                                </a>
                             </td>
                             {% endif %}
                             <td>{{xDocumento.fecha|date:"d/m/y"}}<a
                                     href="javascript:abrir_modal( '{{xDocumento.fecha|date:"Y-m-d"}}','{{xDocumento.vencimiento|date:"Y-m-d"}}','{{xDocumento.id}}' )"> <i
                                         style="font-size: small;" class="bi bi-pencil"></a></i></td>
                             <td>{{xDocumento.vencimiento|date:"d/m/y"}}</td>
-                            <td align="center">{{xDocumento.dias_v}}</td>
+                            {% if xDocumento.dias_v < 0  %}
+                                <td style="color: red;">{{xDocumento.dias_v}} </td>
+                            {% else %}
+                                <td>{{xDocumento.dias_v}}</td>
+                            {% endif %}
                             <td>{{xDocumento.cliente__nombre}}</td>
                             <td align="right">{{xDocumento.monto|darFormato}}</td>
                             <td align="right">{{xDocumento.abonado|darFormato}}</td>
