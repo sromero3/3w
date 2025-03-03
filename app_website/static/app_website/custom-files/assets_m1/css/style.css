@@ -237,7 +237,7 @@ h6 {
 
 .card-title {
   padding: 20px 0 15px 0;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 500;
   color: #012970;
   font-family: "Poppins", sans-serif;
@@ -1483,6 +1483,38 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 
+/* .pdf-content {
+  width: 100%;
+  max-width: 1300px; 
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .pdf-content {
+      width: 100%;
+      max-width: 100%;
+      font-size: 14px; 
+  }
+} */
+
+
+.agrandar{
+  font-size: 17px !important;
+}
+
+
+
+/* .pdf-content {
+  width: 100%;
+  max-width: 230mm; 
+}
+
+@media screen and (max-width: 600px) {
+  .pdf-content {
+      width: 100%;
+   
+  }
+} */
 
 
 

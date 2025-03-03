@@ -319,7 +319,7 @@ def add_documentoView(request):
                 # guardar pago
                 pago = Pago(fecha = request.POST.get('fecha'), cliente_id = request.POST.get('cliente'), referencia = "Abono excedente Doc: "+xNumero,
                             monto = 0, monto_procesar = Decimal(xE), forma_id = 5, tasa = 0, banco_destino_id = 6, usuario_id = request.user.id,
-                            actualizado = hoy)
+                            tipo = 1, actualizado = hoy)
                 pago.save() 
                 xPago_id = pago.id     
                 # guardar detelle del pago

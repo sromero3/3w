@@ -472,7 +472,7 @@ table.table-bordered.dataTable th {
   padding-top: 2px;
   padding-bottom: 2px;
   color:black;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 table.table-bordered.dataTable td {
@@ -519,3 +519,4 @@ table.dataTable tr.dtrg-group.dtrg-end th {
   text-align: right;
   font-weight:bold;
 }
+

@@ -10,19 +10,18 @@ M1 | Cobranza x vendedores
 <main id="main" class="main" style="margin-top: 40px;">
     <div class="col-lg-12">
         <div class="card" id="data-section" style="opacity: 0;">
-            <div class="card-body" id="card-body-areaPDF" style="margin-left: 100px;">
-                <h5 class="card-title">Cobranza x vendedor<a href="javascript:history.back()" class="float-end">
+            <div class="card-body" id="card-body-areaPDF" style="width: 60%; margin: 0 auto;">
+                <h5 class="card-title" style="margin-top: 50px;">COBRANZA X VENDEDOR<a href="javascript:history.back()" class="float-end" >
                         <i class="bi bi-arrow-return-left" title='Regresar'></i>
                     </a></h5>
 
-                <form id="filtros" action="" method="post" class="mb-4"
-                    style="width:90%;margin-bottom: 8px !important;">
+                <form id="filtros" action="" method="post" class="mb-4" style="margin-bottom: 8px !important;">
                     {% csrf_token %}
 
                     <div class="row">
                         <div class="col-md-4" style="margin-bottom: 12px;">
-                            <span class="titulos">
-                                Vendedor</span>
+                            <span style="font-size: large;"><b>
+                                    VENDEDOR</b></span>
                             <select name="vendedor" id="vendedor" onChange="obtener_documentos()">
                                 <option value="0" selected></option>
                                 {% for xVendedor in xVendedores %}
@@ -38,15 +37,16 @@ M1 | Cobranza x vendedores
                             <input type="date" id="fecha_ini" name="fecha_ini" value="{{xFecha_ini}}" class="form-control alto" onChange="obtener_documentos()"/>
                         </div> -->
                         <div class="col-md-4">
-                            <span class=" titulos">
-                                Hasta</span>
-                            <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}"
+                            <span style="font-size: large;"><b>
+                                    HASTA</b></span>
+                            <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}" 
                                 class="form-control" style="height: 34px;" onChange="obtener_documentos()" />
                         </div>
                         <div class="col-md-4">
-                            <label id="m" class="titulos d-flex me-2 mt-1">Cliente del vendedor</label>
+                            <span style="font-size: large;"><b>
+                                    CLIENTE DEL VENDEDOR</b></span>
                             <select name="cliente" id="cliente" required onChange="obtener_documentos()">
-                                <option value="0" selected>TODOS</option>
+                                <option  value="0" selected>TODOS</option>
                                 {% for xCliente in xClientes %}
                                 <option value={{xCliente.id}} {% if xCliente.id == xCliente_seleccionado %} selected {%endif %}>
                                     {{xCliente.nombre}}
@@ -58,40 +58,39 @@ M1 | Cobranza x vendedores
                     </div>
                 </form>
 
-                <table id="documentos" class="table table-hover table-bordered" style="width:90%;">
+                <table id="documentos" class="table table-hover table-bordered" style="width:100%;">
                     <thead>
-                        <tr>
-                            <th>Cliente</th>
-                            <th>Fecha</th>
-                            <th>Documento</th>
-                            <!-- <th>DC</th> -->
-                            <th>Cliente</th>
-                            <th>Vence</th>
-                            <th>DV</th>
-                            <th>Iva</th>
-                            <th>Monto</th>
-                            <th>Abonado</th>
-                            <th>Pendiente</th>
+                        <tr> 
+                            <th class="agrandar" style="width:10px">-</th>
+                            <th class="agrandar" style="width:60px">FECHA</th>
+                            <th class="agrandar" style="width:55px">DOCUMENTO</th>
+                            <th class="agrandar">CLIENTE</th>
+                            <th class="agrandar" style="width:60px">VENCE</th>
+                            <th class="agrandar" style="width:10px">DV</th>
+                            <th class="agrandar" style="width:30px">IVA</th>
+                            <th class="agrandar" style="width:40px">MONTO</th>
+                            <th class="agrandar" style="width:40px">ABONADO</th>
+                            <th class="agrandar" style="width:40px">PENDIENTE</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for xDocumento in xDocumentos %}
-                        <tr>
+                        <tr >
                             <td></td>
-                            <td>{{xDocumento.fecha|date:"d/m/y"}}</td>
-                            <td>{{xDocumento.numero|rellenar}}</td>
-                            <td>{{xDocumento.cliente__nombre}}</td>
-                            {% if xDocumento.dias_v < 0 %} <td style="color: red;">
-                                {{xDocumento.vencimiento|date:"d/m/y"}}</td>
-                                <td align="center" style="color: red;">{{xDocumento.dias_v}}</td>
-                                {% else %}
-                                <td>{{xDocumento.vencimiento|date:"d/m/y"}}</td>
-                                <td align="right">{{xDocumento.dias_v}}</td>
-                                {% endif %}
-                                <td align="right">{{xDocumento.iva__iva}}</td>
-                                <td align="right">{{xDocumento.monto|darFormato}}</td>
-                                <td align="right">{{xDocumento.abonado|darFormato}}</td>
-                                <td align="right">{{xDocumento.saldo|darFormato}}</td>
+                            <td class="agrandar">{{xDocumento.fecha|date:"d/m/y"}}</td>
+                            <td class="agrandar">{{xDocumento.numero|rellenar}}</td>
+                            <td style="width:900px">{{xDocumento.cliente__nombre}}</td>
+                            {% if xDocumento.dias_v < 0 %} 
+                                <td class="agrandar" style="color: red;">{{xDocumento.vencimiento|date:"d/m/y"}}</td>
+                                <td class="agrandar" align="center" style="color: red;">{{xDocumento.dias_v}}</td>
+                            {% else %}
+                                <td class="agrandar">{{xDocumento.vencimiento|date:"d/m/y"}}</td>
+                                <td class="agrandar" align="center">&nbsp;{{xDocumento.dias_v}}</td>
+                            {% endif %}
+                            <td align="right">{{xDocumento.iva__iva}}</td>
+                            <td class="agrandar" align="right">{{xDocumento.monto|darFormato}}</td>
+                            <td class="agrandar" align="right">{{xDocumento.abonado|darFormato}}</td>
+                            <td class="agrandar" align="right">{{xDocumento.saldo|darFormato}}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -100,16 +99,17 @@ M1 | Cobranza x vendedores
                     </tfoot>
                 </table>
             </div>
-            <div class="row justify-content-end" style="width:90%; margin: -16px 0px 10px 6px;">
+            <div class="row justify-content-end" style="width:80%; margin: -16px 0px 10px -8px;">
                 <div class="col-auto">
-                  <button id="boton" class="btn btn-primary" style="opacity: 1; width: auto;" onclick="generarPDF()">Generar PDF</button>
+                    <button id="boton" class="btn btn-primary" style="opacity: 1; width: auto;"
+                        onclick="generarPDF()">Generar PDF</button>
                 </div>
             </div>
         </div>
-        
+
     </div>
 
-   
+
 
     <!-- <button id="share-button">Compartir</button> -->
 </main><!-- End #main -->
@@ -154,7 +154,8 @@ M1 | Cobranza x vendedores
             paging: false,
             searching: false,
             info: false,
-            // scrollX: true,
+            pageLength: 30,
+            scrollX: false,
             order: [[3, 'asc']],
             "columnDefs": [{
                 "targets": [0, 1, 2, 3, 4, 5, 7, 8, 9],
@@ -168,7 +169,6 @@ M1 | Cobranza x vendedores
                         suma += quitarFormato(rows.data().pluck(9)[i]) * 1;
                         // console.log('Dato', i ,typeof(t), suma);
                     }
-
                     // var suma =
                     //     rows
                     //         .data()
@@ -176,9 +176,15 @@ M1 | Cobranza x vendedores
                     //         .reduce((a, b) => a +  b.reduce((a, b) => a + b.replace(/[^\d]/g, '') * 1, 0) / rows.count();
 
                     // Use the DataTables number formatter
+                    // return (
+                    //     'Total cliente: ' +
+                    //     DataTable.render.number(null, null, 2, '$').display(suma)
+                    // );
                     return (
-                        'Total cliente: ' +
-                        DataTable.render.number(null, null, 2, '$').display(suma)
+                        '<span class="agrandar">' +
+                        'TOTAL CLIENTE: ' +
+                        DataTable.render.number(null, null, 2, '$').display(suma) +
+                        '</span>'
                     );
                 }
             }
@@ -194,7 +200,7 @@ M1 | Cobranza x vendedores
         // selectize
         var selectizeInstance = $('#vendedor').selectize({});
         $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
-        
+
         var selectizeControl = selectizeInstance[0].selectize; // click para limpiar el select input
         selectizeControl.$control.on('click', function () {
             selectizeControl.clear();
@@ -219,34 +225,49 @@ M1 | Cobranza x vendedores
         }
     } // fin obtener docuemntos
 
-    // generar PDF
+
+
+
+
     function generarPDF() {
         const { jsPDF } = window.jspdf;
+
+        // Ajustar el contenido del elemento del DOM
+        const contentElement = document.getElementById('card-body-areaPDF');
+        contentElement.classList.add('pdf-content');
+
+        // Calcula la altura del contenido
+        const contentHeight = (contentElement.scrollHeight * 29 / 100);
+        if (contentHeight > 500) {
+            LargoHoja = 550
+        } else {
+            LargoHoja = 297
+        }
+
         const doc = new jsPDF({
             orientation: 'portrait',
             unit: 'mm',
-            format: 'a4'
+            format: [210, LargoHoja]
         });
 
-        // Obtener el contenido del elemento del DOM
-        const content = document.getElementById('card-body-areaPDF').innerHTML;
+        // Ajusta la altura de la página según la altura del contenido
+        const pdfHeight = contentHeight
+
         // Obtener el nombre del vendedor para nombre del archivo
-        // const vendedor_select = document.getElementById('vendedor');
-        // const xVendedor = vendedor_select.options[vendedor_select.selectedIndex].dataset.nombre
-    
-        // Obtener el nombre del vendedor para nombre del archivo
-        var selectize = $('#vendedor')[0].selectize; // Obtienes la instancia del selectize
-        var selectedOption = selectize.getItem(selectize.getValue()); // Obtienes el item seleccionado
-        var nombreVendedor = selectedOption.text(); // Extrae el nombre
-        var nombreLimpio = nombreVendedor.trim().replace(/^_+|_+$/g, '')
+        var selectize = $('#vendedor')[0].selectize;
+        var selectedOption = selectize.getItem(selectize.getValue());
+        var nombreVendedor = selectedOption.text();
+        var nombreLimpio = nombreVendedor.trim().replace(/^_+|_+$/g, '');
 
         // Usar html2canvas para renderizar el contenido como una imagen
-        html2canvas(document.getElementById('card-body-areaPDF')).then((canvas) => {
+        html2canvas(contentElement, {
+            scale: 1, 
+            useCORS: true
+        }).then((canvas) => {
             const imgData = canvas.toDataURL('image/png');
 
-            // Configurar márgenes
             const margin = 0;
-            const pageWidth = 232;
+            const pageWidth = 210;
             const pageHeight = doc.internal.pageSize.getHeight();
             // const imgWidth = pageWidth - 2 * margin;
             const imgWidth = pageWidth;
@@ -259,18 +280,16 @@ M1 | Cobranza x vendedores
             const pdfOutput = doc.output('blob');
             const url = URL.createObjectURL(pdfOutput);
 
-            // Abrir el PDF en una nueva ventana o pestaña del navegador
-            // window.open(url, '_blank');
-
             // Descargar el PDF automáticamente
-            const nombre_doc = nombreLimpio  + '.pdf';
-            //  const nombre_doc = 'archivo' + '.pdf';
+            const nombre_doc = nombreLimpio + '.pdf';
             doc.save(nombre_doc);
-
-            // const file = new File([pdfOutput], nombre_doc, { type: 'application/pdf' });
-            // sharePDF(file);
         });
-    } //fin generar pdf
+    }
+
+
+
+
+
 
     // compartir
     // async function sharePDF(file) {
@@ -289,7 +308,7 @@ M1 | Cobranza x vendedores
     //     }
     // }
 
-    // Enviar navegator.share 
+    // Enviar navegator.share
     // document.getElementById('share-button').addEventListener('click', function() {
     // fetch('ruta/al/archivo.pdf')
     //     .then(response => response.blob())
@@ -314,5 +333,5 @@ M1 | Cobranza x vendedores
     //     });
     // });
 
- </script>
+</script>
 {% endblock Scripts_Adicionales %}

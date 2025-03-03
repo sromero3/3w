@@ -1,3 +1,3 @@
 SELECT * FROM public.app_gestion_documentos
-WHERE app_gestion_documentos.cliente_id = 154
+WHERE app_gestion_documentos.cliente_id = 191
 ORDER BY id ASC 
