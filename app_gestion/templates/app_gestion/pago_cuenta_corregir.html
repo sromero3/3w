@@ -36,15 +36,6 @@ M1 | Pago a cuenta
                     </div>
                     <div class="col-6">
                         <span class="titulos">{{form.forma.label}}</span>
-                        <!-- <select name="forma" id="forma" class="form-control alto d-flex" required disabled
-                            onChange="mostrar_campos()">
-                            <option value="" selected></option>
-                            {% for xForma in xFormas %}
-                            <option id={{xForma.id}} value="{{xForma.id}}" {% if xForma.id == rFormaId %} selected {% endif %}>
-                                {{xForma.forma}}
-                            </option>
-                            {% endfor %}
-                        </select> -->
                         <input type="text" class="form-control alto" id="forma" name="forma"
                             value="{{rForma}}" data-forma_id="{{rFormaId}}" readonly style="background-color:#e5e8ed;">
                     </div>

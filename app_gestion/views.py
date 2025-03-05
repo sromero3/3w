@@ -236,7 +236,7 @@ def documentosView(request, xCliente, xDias):
         xDia_seleccionado  = request.POST.get('dias')
 
     actualizar_dias_vencido()
-    qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).values('saldo','id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','condicion__condicion','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado', 'dias_v','credito').order_by('-id')
+    qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).values('saldo','id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','condicion__condicion','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado', 'dias_v','credito','seguimiento').order_by('-id')
 
    
     if xCliente == 0 and xDias == 0:
@@ -291,10 +291,9 @@ def add_documentoView(request):
         request.POST['monto'] = quitarFormato(request.POST['monto'])
         request.POST['vencimiento'] = datetime.strptime(request.POST['vencimiento'], '%Y-%m-%d')
        
-        # for field in form:
-        #      print("Field:", field.name, "-> ", field.errors)
-
-        hoy = datetime.now()
+        hoy = timezone.now()
+        hoy2 = datetime.now()
+        hoyStr = hoy2.strftime('%d/%m/%Y %H:%M')
 
         if form.is_valid():
             fecha_actual = datetime.now()
@@ -304,6 +303,8 @@ def add_documentoView(request):
             documento.dias_v = diferencia.days + 1
             documento.credito = request.POST['credito']
             documento.actualizado = hoy
+            documento.seguimiento = "<b>-" + request.user.username + " a las " + hoyStr + "</b>" + "<br>"
+            documento.seguimiento =  documento.seguimiento +  "&nbsp Creado" + "<br>"
             documento.save()
 
             # Buscar en excedentes
@@ -395,9 +396,7 @@ def Editar_documentoView(request, id):
         # print(request.POST['monto'])
         request.POST['vencimiento'] = datetime.strptime(request.POST['vencimiento'], '%Y-%m-%d')
         request.POST['fecha'] = datetime.strptime(request.POST['fecha'], '%Y-%m-%d')
-        for field in form:
-             print("Field:", field.name, "-> ", field.errors)
-        
+             
         if form.is_valid():
             fecha_actual = datetime.now()
             documento = form.save(commit=False)
@@ -541,7 +540,7 @@ def Pago_cuentaView(request, id, cliente):
             request, "No ha fijado ninguna tasa de cambio")
         return redirect('inicio')
     
-    hoy = datetime.now()
+    hoy = timezone.now()
 
     form = asentar_pagoForm(request.POST)
     if request.method == 'POST':
@@ -1309,7 +1308,7 @@ def Pago_documentosView(request, id, cliente):
         request.POST['monto_procesar'] = quitarFormato(request.POST['monto_procesar'])
         strMonto_procesar = darFormato(request.POST['monto_procesar'])
 
-        hoy = datetime.now()
+        hoy = timezone.now()
              
         if form.is_valid():
             # recorrer el post para ver que documentos traen abono 
@@ -1409,7 +1408,7 @@ def Add_tasaView(request):
         form = tasaForm(request.POST)
    
         if form.is_valid():
-            hoy = datetime.now()
+            hoy = timezone.now()
             hoyStr = hoy.strftime('%d/%m/%Y %H:%M')
             tasa = form.save(commit=False)
             tasa.monto = float(request.POST.get('monto'))
@@ -2061,3 +2060,69 @@ def saldo_favorView(request, xCliente, xVendedor, xIva, xVencido):
     }
     
     return render(request, 'app_gestion/saldo_favor.html', context)
+
+
+
+@login_required
+def Pago_reversarView(request, id):
+    xUsuario = request.user
+   
+    # Obtengo el pago eliminar
+    xPago = Pago.objects.get(id=id)
+
+    rCliente = Cliente.objects.get(id=xPago.cliente.id)
+    rMonto = xPago.monto
+    rMonto_procesar = xPago.monto_procesar
+    rFormaId = xPago.forma_id
+    rForma = PagoForma.objects.get(id=xPago.forma.id)
+    rBancodestinoId = xPago.banco_destino_id
+    rRef = xPago.referencia
+    rFecha =xPago.fecha.strftime('%d/%m/%Y')    
+    
+    
+    if request.method == 'POST':
+        hoy = timezone.now()
+        hoy2 = datetime.now()
+        hoyStr = hoy2.strftime('%d/%m/%Y %H:%M')
+        # Reversar los documentos afectados en pago_detalle 
+        xPago_detalles = Pago_detalle.objects.filter(pago_id=id)
+        for xPago_detalle in xPago_detalles:
+            #print("Se reversara y se borrara el pago: ",xPago_detalle.documento_id, xPago_detalle.monto_procesar)
+            # Actualida abonado en Documento y dejar seguimiento
+            xDoc = Documento.objects.get(id=xPago_detalle.documento_id)
+            xDoc.abonado = xDoc.abonado - xPago_detalle.monto_procesar
+            xDoc.actualizado = hoy
+             # guardar seguimiento en el documento
+            xMonto = darFormato(xPago_detalle.monto_procesar)
+            xDoc.seguimiento = xDoc.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "</b>" + "<br>"
+            xDoc.seguimiento = xDoc.seguimiento + "&nbsp Se reversó: " + xMonto + "$" + "<br>" 
+            xDoc.seguimiento = xDoc.seguimiento + "&nbsp Motivo: " + request.POST.get('observacion') + "<br>"
+            xDoc.save()
+            # Borro el pago_detalle
+            xPago_detalle.delete()
+        # Borarr el pago
+        xPago.delete()
+        
+        # Borrar el excedente si el pago causo excedente
+        try:
+            xExc = Excedente.objects.get(doc_id=xPago_detalle.documento_id)
+            xExc.delete()
+        except Excedente.DoesNotExist:
+            # print("No hay excedente")
+            pass
+   
+        return redirect('historial_pagos', 0, ' ', ' ')
+  
+    context = {
+        'xUsuario':xUsuario,
+        'rFormaId': rFormaId,
+        'rMonto_procesar': darFormato(rMonto_procesar),
+        'rMonto': rMonto,
+        'rRef': rRef,
+        'rCliente': rCliente,
+        'rForma': rForma,
+        'rFormaId': rFormaId,
+        'rBancodestinoId': rBancodestinoId,
+        'rFecha': rFecha
+    }
+    return render(request, 'app_gestion/pago_reversar.html', context)

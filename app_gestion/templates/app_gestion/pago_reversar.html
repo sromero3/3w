@@ -1,0 +1,138 @@
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+
+{% block title %}
+M1 | Reversar pago
+{% endblock %}
+
+{% block styles %}
+{% endblock styles %}
+
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px">
+
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+
+                <h5 class="card-title">Reversar pago<a href="javascript:history.back()" class="float-end">
+                        <i class="bi bi-arrow-return-left" title='Regresar'></i>
+                    </a></h5>
+
+                <form id="pago_reversar" action="" method="post" class="row g-3">
+                    {% csrf_token %}
+
+                    <div class="col-6">
+                        <span class="titulos">
+                            Cliente</span>
+                        <input type="text" class="form-control alto" id="cliente" name="cliente" value="{{rCliente}}"
+                            readonly style="background-color:#e5e8ed;">
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">
+                            Fecha </span>
+                        <input type="text" class="form-control alto" id="fecha" value="{{rFecha}}" readonly
+                            style="background-color:#e5e8ed;">
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">forma de pago</span>
+                        <input type="text" class="form-control alto" id="forma" name="forma" value="{{rForma}}"
+                            data-forma_id="{{rFormaId}}" readonly style="background-color:#e5e8ed;">
+                    </div>
+
+                    <div id="div_ref" class="col-md-6">
+                        <span class="titulos"> Referencia</span>
+                        <input type="text" class="form-control alto" id="rRef" value="{{rRef}}" readonly
+                            style="background-color:#e5e8ed;">
+                    </div>
+
+                    <div class="col-md-6">
+                    </div>
+
+                    <div id="div_monto_procesar" class="col-md-6">
+                        <span class="titulos">Monto procesado $</span>
+                        <input type="text" id="monto_procesar" name="monto_procesar" class="form-control input-numero alto" readonly
+                            maxlength="10" value="{{rMonto_procesar}}" readonly
+                            style="background-color:#e5e8ed;"></input>
+                    </div>
+                    
+                    <div class="col-12 pb-4">
+                        <span class="titulos">Observación</span>
+                        <textarea class="form-control" name="observacion" rows="3" required placeholder="Ingrese un motivo"></textarea>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" id="guardar" class="btn btn-primary"
+                            onclick="validar(event)">Reversar</button> 
+                        <button type="button" class="btn btn-secondary"
+                            onclick="javascript:history.back()">Descartar</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+</main><!-- End #main -->
+
+
+{% endblock content %}
+{% block Scripts_Adicionales %}
+<script>
+
+ 
+    // validar formulario
+    function validar(e) {
+        const form = document.getElementById('pago_reversar') // tomo el nombre del formulario
+
+        if (form.checkValidity()) {
+
+            e.preventDefault()
+
+            // Condirmar
+            let c = document.getElementById('cliente').value
+            let m = document.getElementById('monto_procesar').value
+            Swal.fire({
+                title: '¿ Esta seguro de Reversar este pago ?',
+                html: `<h1>${m}$</h1><br>A ${c} `,
+                showDenyButton: true,
+                // showCancelButton: true,
+                confirmButtonText: "Reversar",
+                denyButtonText: `Descartar`
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: '¿ El sistema reversará el pago ?',
+                        html: `<h1>${m}$</h1><br><span style="color: red">Proceda si está seguro...</span>`,
+                        showDenyButton: true,
+                        confirmButtonText: "Proceder",
+                        denyButtonText: `Descartar`,
+                       
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById('pago_reversar').submit()
+                        } else {
+                            return false
+                        }
+                    })// fin reConfirmar
+
+                    // document.getElementById('pago_reversar').submit()
+                } else {
+                    return false
+                }
+            })// fin Confirmar
+
+        }// fin de checkValidity()
+
+    } // fin validar formulario
+
+    $(document).ready(function () {
+        // FormatearNumerosInputs2(document.getElementById(monto_procesar))
+     
+    })
+
+
+
+</script>
+{% endblock Scripts_Adicionales %}

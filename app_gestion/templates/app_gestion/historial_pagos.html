@@ -118,14 +118,20 @@ M1 | Historial de pagos
                             <td class="text-center" style="width:50px">
                                 {% if xPago.tipo == 1 %}
                                     <a href="{% url 'pago_cuenta_corregir' xPago.id xPago.forma_id %}">
-                                        <i class="bi bi-pencil"></i>
+                                        <i style="font-size: small;" class="bi bi-pencil"></i>
                                     </a>
                                 {% else %}
                                     <a href="{% url 'pago_documentos_corregir' xPago.id xPago.forma_id %}">
-                                        <i class="bi bi-pencil"></i>
+                                        <i style="font-size: small;" class="bi bi-pencil"></i>
                                     </a>
                                 {% endif %}
+
+                               
+                                <a href="{% url 'pago_reversar' xPago.id %}" title="Reversar pago"> &nbsp;
+                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                </a>
                             </td>
+                       
 
                         {% endfor %}
                     </tbody>
@@ -146,7 +152,7 @@ Extra Large Moda
     <div class="modal-dialog modal-xl">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" style="color:#012970">Seguimiento</h5>
+          <h5 class="modal-title" style="color:#012970">Seguimiento del Documento</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">

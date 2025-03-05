@@ -193,6 +193,7 @@ class Documento(models.Model):
     monto = models.DecimalField(max_digits=8, decimal_places=2)
     abonado = models.DecimalField(max_digits=8, decimal_places=2,default=0)
     observacion = models.TextField(max_length=1000, blank=True,null=True, verbose_name="Observación")
+    seguimiento = models.TextField(blank=True)
     iva = models.ForeignKey(Iva, on_delete=models.CASCADE)
     creado = models.DateTimeField(auto_now_add=True, null=False)
     actualizado = models.DateTimeField(null=False)
@@ -207,7 +208,7 @@ class Documento(models.Model):
         verbose_name = "Documento"
         verbose_name_plural = "Documentos"
         # ordering = ["vencimiento","-id"]  
-        ordering = ["vencimiento","fecha","-id"]  
+        ordering = ["vencimiento","fecha","id"]  
 
 
 

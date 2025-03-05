@@ -66,6 +66,7 @@ M1 | Documentos
                             <th>Condición</th>
                             <th>Iva</th>
                             <th>Opcion</th>
+                            <th>Seguimiento</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -99,6 +100,11 @@ M1 | Documentos
                                     <i class="bi bi-pencil"></i>
                                 </a>
                             </td>
+                            {% if xDocumento.seguimiento == "" %}
+                              <td align="center">-</td>
+                            {% else %}
+                                <td align="center"><a href="javascript:abrir_modal('{{xDocumento.seguimiento}}')"> <i style="font-size: small;" class="bi bi-activity"></a></i></td>
+                            {% endif %}
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -110,6 +116,27 @@ M1 | Documentos
         </div>
     </div>
 </main><!-- End #main -->
+<button type="button" id="boton_modal" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#miModal"
+hidden>
+Extra Large Moda
+</button>
+<!-- Modal -->
+<div class="modal fade" id="miModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" style="color:#012970">Seguimiento</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <h6 id="t"></h6>
+        </div>
+        <div class="modal-footer">
+          <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
+        </div>
+      </div>
+    </div>
+  </div><!-- End Extra Large Modal-->
 {% endblock content %}
 {% block Scripts_Adicionales %}
 <script>
@@ -194,6 +221,11 @@ M1 | Documentos
         }
 
     } // fin obtener docuemntos 
+
+    function abrir_modal(seguimiento) {
+        document.getElementById('t').innerHTML = seguimiento
+        boton_modal.click();
+    }
 
   </script>
 {% endblock Scripts_Adicionales %}

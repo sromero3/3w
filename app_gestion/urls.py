@@ -28,6 +28,8 @@ urlpatterns = [
      path('pago_documentos_corregir/<int:id>/<int:forma_id>/', views.Pago_documentos_corregirView, name='pago_documentos_corregir'),
      path('guardar_tasa/', views.Guardar_tasaView, name='guardar_tasa'),
      path('cerrar/', views.cerrarView, name='cerrar'),
+     path('pago_reversar/<int:id>/', views.Pago_reversarView, name='pago_reversar'),
+
 
      path('tasas/', views.tasasView, name='tasas'),
      path('add_tasa/', views.Add_tasaView, name='add_tasa'),
