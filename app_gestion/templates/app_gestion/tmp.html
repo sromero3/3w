@@ -1,61 +1,14 @@
 
 
-function generarPDF() {
-    const { jsPDF } = window.jspdf;
+if fechaStr != str(oFecha):
+pago.seguimiento = pago.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" + "</b>"
+hay_cambio = True
+pago.seguimiento = pago.seguimiento + "&nbsp Corrigió fecha de: "+ str(oFecha) + " a "+ fechaStr +"<br>"
 
-    // Ajustar el contenido del elemento del DOM
-    const contentElement = document.getElementById('card-body-areaPDF');
-    contentElement.classList.add('pdf-content');
-
-    // Calcula la altura del contenido
-    const contentHeight = (contentElement.scrollHeight * 29 / 100);
-    if (contentHeight > 500) {
-        LargoHoja = 550
-    } else {
-        LargoHoja = 297
-    }
-
-    const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: [210, LargoHoja]
-    });
-
-    // Ajusta la altura de la página según la altura del contenido
-    const pdfHeight = contentHeight
-
-    // Obtener el nombre del vendedor para nombre del archivo
-    var selectize = $('#vendedor')[0].selectize;
-    var selectedOption = selectize.getItem(selectize.getValue());
-    var nombreVendedor = selectedOption.text();
-    var nombreLimpio = nombreVendedor.trim().replace(/^_+|_+$/g, '');
-
-    // Usar html2canvas para renderizar el contenido como una imagen
-    html2canvas(contentElement, {
-        scale: 1, 
-        useCORS: true
-    }).then((canvas) => {
-        const imgData = canvas.toDataURL('image/png');
-
-        const margin = 0;
-        const pageWidth = 210;
-        const pageHeight = doc.internal.pageSize.getHeight();
-        // const imgWidth = pageWidth - 2 * margin;
-        const imgWidth = pageWidth;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-        // Agregar la imagen al PDF con márgenes personalizados
-        doc.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
-
-        // Crear un Blob del PDF
-        const pdfOutput = doc.output('blob');
-        const url = URL.createObjectURL(pdfOutput);
-
-        // Descargar el PDF automáticamente
-        const nombre_doc = nombreLimpio + '.pdf';
-        doc.save(nombre_doc);
-    });
-}
-
-
-
+nMonto_p = round(Decimal(request.POST.get('monto_procesar')),2)
+if nMonto_p != oMonto_p:
+Corrigio_monto = True
+if hay_cambio == False:
+    pago.seguimiento = pago.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" +  "</b>"
+    hay_cambio = True
+pago.seguimiento =  pago.seguimiento + "&nbsp Corrigió monto de: "+ darFormato(oMonto_p) + " a "+ strMonto_procesar +"<br>"

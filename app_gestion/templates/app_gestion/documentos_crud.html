@@ -94,15 +94,16 @@ M1 | Documentos crud
                     <div class="col-6">
                         <span class="titulos">
                             Cliente</span>
-                            <select  name="cliente" id="cliente" required class="demo-default" 
+                            <select  name="cliente" id="cliente" required class="demo-default" onchange="javascript:llenar_nombre()">  
                             <!-- <option selected></option> -->
                             {% for xCliente in xClientes %}
-                            <option id={{xCliente.id}} value="{{xCliente.id}}" {% if xCliente.id == rClienteId %} selected
+                            <option id={{xCliente.id}} value="{{xCliente.id}}" data-nombre="{{ xCliente.nombre }}" {% if xCliente.id == rClienteId %} selected
                                 {% endif %}>
                                 {{xCliente.nombre}}
                             </option>
                             {% endfor %}
                         </select>
+                        <input hidden name="nombre_cliente" id="nombreClienteInput">
                     </div>
                     <div class="col-6">
                         <span class="titulos">Número</span>
@@ -123,7 +124,8 @@ M1 | Documentos crud
                     </div>
                     <div class="col-6">
                         <span class="titulos">{{form.monto.label}}</span>
-                        {{form.monto}}
+                        <!-- {{form.monto}} -->
+                        <input name="monto" id="id_monto" class="form-control input-numero alto" value="{{rMonto}}" required maxlength="10" onblur="FormatearNumerosInputs(this)">
                     </div>
                     <div class="col-6">
                         <span class="titulos">
@@ -245,6 +247,13 @@ M1 | Documentos crud
 {% endif %}
 
 <script>
+
+    function llenar_nombre() {
+        let cliente_select = document.getElementById("cliente")
+        let texto_cliente = cliente_select.options[cliente_select.selectedIndex].text
+        document.getElementById("nombreClienteInput").value = texto_cliente 
+    }
+
     checkPattern("id_monto")
     // Si editando dar formato
     if (document.getElementById('id_monto').value != "") {

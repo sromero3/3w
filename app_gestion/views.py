@@ -380,11 +380,12 @@ def Editar_documentoView(request, id):
     # Obtengo el registro a editar
     xDocumento = Documento.objects.get(id=id)
     rClienteId = xDocumento.cliente.id
+    rClienteNombre = xDocumento.cliente.nombre
     rIvaId = xDocumento.iva.id
     rCondicionId = xDocumento.condicion.id
     rNum = xDocumento.numero
+    rMonto = xDocumento.monto
   
-   
     form = agregar_documentoForm(instance=xDocumento)
 
     if request.method == 'POST':
@@ -399,12 +400,21 @@ def Editar_documentoView(request, id):
              
         if form.is_valid():
             fecha_actual = datetime.now()
+            hoyStr = fecha_actual.strftime('%d/%m/%Y %H:%M')
             documento = form.save(commit=False)
             diferencia = request.POST['vencimiento'] - fecha_actual 
             documento.dias_v = diferencia.days + 1
             dias_credito =  request.POST['vencimiento'] - request.POST['fecha']
             documento.credito = dias_credito.days
-
+            if rClienteId != int(request.POST['cliente']):
+                documento.seguimiento = documento.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" + "</b>"
+                documento.seguimiento = documento.seguimiento + "&nbsp cambió el cliente de: "+ rClienteNombre + " a "+ request.POST.get("nombre_cliente") +"<br>"
+  
+            nMonto = round(Decimal(request.POST.get('monto')),2)
+            if rMonto != nMonto: 
+                documento.seguimiento = documento.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" + "</b>"
+                documento.seguimiento = documento.seguimiento + "&nbsp cambió el monto de: "+ darFormato(rMonto) + " a "+ darFormato(request.POST.get("monto")) +"<br>"
+            
             documento.save()
             return redirect('documentos',0, 1)
         else:
@@ -421,7 +431,9 @@ def Editar_documentoView(request, id):
         'rIvaId': rIvaId,
         'rCondicionId':rCondicionId,
         'rNum': rNum,
+        'rMonto': darFormato(rMonto),
     }
+    
 
     return render(request, 'app_gestion/documentos_crud.html', context)
 
