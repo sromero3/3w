@@ -1,14 +1,3 @@
 
 
-if fechaStr != str(oFecha):
-pago.seguimiento = pago.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" + "</b>"
-hay_cambio = True
-pago.seguimiento = pago.seguimiento + "&nbsp Corrigió fecha de: "+ str(oFecha) + " a "+ fechaStr +"<br>"
-
-nMonto_p = round(Decimal(request.POST.get('monto_procesar')),2)
-if nMonto_p != oMonto_p:
-Corrigio_monto = True
-if hay_cambio == False:
-    pago.seguimiento = pago.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" +  "</b>"
-    hay_cambio = True
-pago.seguimiento =  pago.seguimiento + "&nbsp Corrigió monto de: "+ darFormato(oMonto_p) + " a "+ strMonto_procesar +"<br>"
+onclick="javascript:window.location='/documentos/0/1'">Regresar</button>

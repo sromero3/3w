@@ -416,7 +416,7 @@ def Editar_documentoView(request, id):
                 documento.seguimiento = documento.seguimiento + "&nbsp cambió el monto de: "+ darFormato(rMonto) + " a "+ darFormato(request.POST.get("monto")) +"<br>"
             
             documento.save()
-            return redirect('documentos',0, 1)
+            return redirect('documentos', rClienteId, 1)
         else:
             messages.error(
                 request, "Su operación no se puedo efectuar debido a problemas en el Servidor. El formulario no es válido")
