@@ -122,7 +122,7 @@ class Condicion(models.Model):
     condicion = models.CharField(max_length=10)
 
     def __str__(self):
-        return str(self.tipo) # que campo va a retornar al llamar el objeto
+        return str(self.condicion) # que campo va a retornar al llamar el objeto
 
     class Meta:
         db_table = "app_gestion_condicion" # Nombre en PostgreSQL

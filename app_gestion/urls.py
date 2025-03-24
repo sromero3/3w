@@ -15,6 +15,7 @@ urlpatterns = [
      path('documentos/<int:xCliente>/<int:xDias>/', views.documentosView, name='documentos'),
      path('add_documento/', views.add_documentoView, name='add_documento'),
      path('editar_documento/<int:id>/', views.Editar_documentoView, name='editar_documento'),
+     path('eliminar_documento/<int:id>/', views.Eliminar_documentoView, name='eliminar_documento'),
      path('clientes/<int:xStatus>/<int:xVendedor>/', views.ClientesView, name='clientes'),
      path('add_cliente/', views.add_clienteView, name='add_cliente'),
      path('editar_cliente/<int:id>/', views.Editar_clienteView, name='editar_cliente'),

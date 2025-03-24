@@ -14,19 +14,22 @@ M1 | Documentos crud
                 <!-- <h5 class="card-title">{{ xOpcion }} un Documento<a href="{% url 'documentos' 0 1 %}" -->
                 <h5 class="card-title">{{ xOpcion }} un Documento<a href="javascript:history.back()"
                         class="float-end"><i class="bi bi-arrow-return-left" title='Regresar'></i></a></h5>
-              
+               
                 <form id="documento_form" action="" method="post" class="row g-3">
+                    
+                    <input id="opcion" value="{{ xOpcion }}" hidden/>
                     {% csrf_token %}
                     <!-- ------------------------------------ agregando ------------------------------------- -->
                     {% if xOpcion == 'Agregando' %}
-                                      
+
                     <!-- </div> -->
                     <div class="col-6">
                         <span class="titulos">
                             Cliente</span><span id="nuevo" class="boton-ajustado-a-la-derecha"
                             title="Agrgara un cliente" onclick="javascript:openModal.click()">AGREGAR</span>
-                            <select  name="cliente" id="cliente" required class="demo-default" 
-                            <option value="0" selected></option>                           <option selected></option>
+                        <select name="cliente" id="cliente" required class="demo-default" <option value="0" selected>
+                            </option>
+                            <option selected></option>
                             {% for xCliente in xClientes %}
                             <option value={{xCliente.id}}>
                                 {{xCliente.nombre}}
@@ -52,7 +55,8 @@ M1 | Documentos crud
                     </div>
                     <div class="col-1">
                         <span class="titulos">Dias</span>
-                        <input type="text" name="credito" id="credito" class="form-control d-flex alto" readonly style="align-items: center;" required>
+                        <input type="text" name="credito" id="credito" class="form-control d-flex alto" readonly
+                            style="align-items: center;" required>
                     </div>
                     <div id="div_ref" class="col-md-6">
                         <span class="titulos"> {{form.monto.label}}</span>
@@ -90,15 +94,15 @@ M1 | Documentos crud
                     {% endif %} <!-- fin agregando -->
                     <!-- ------------------------------------ editando ------------------------------------- -->
                     {% if xOpcion == 'Editando' %}
-                                 
+
                     <div class="col-6">
                         <span class="titulos">
                             Cliente</span>
-                            <select  name="cliente" id="cliente" required class="demo-default" onchange="javascript:llenar_nombre()">  
+                        <select name="cliente" id="cliente" required class="demo-default"
+                            onchange="javascript:llenar_nombre()">
                             <!-- <option selected></option> -->
                             {% for xCliente in xClientes %}
-                            <option id={{xCliente.id}} value="{{xCliente.id}}" data-nombre="{{ xCliente.nombre }}" {% if xCliente.id == rClienteId %} selected
-                                {% endif %}>
+                            <option id={{xCliente.id}} value="{{xCliente.id}}" data-nombre="{{ xCliente.nombre }}" {% if xCliente.id == rClienteId %} selected {% endif %}>
                                 {{xCliente.nombre}}
                             </option>
                             {% endfor %}
@@ -125,7 +129,8 @@ M1 | Documentos crud
                     <div class="col-6">
                         <span class="titulos">{{form.monto.label}}</span>
                         <!-- {{form.monto}} -->
-                        <input name="monto" id="id_monto" class="form-control input-numero alto" value="{{rMonto}}" required maxlength="10" onblur="FormatearNumerosInputs(this)">
+                        <input name="monto" id="id_monto" class="form-control input-numero alto" value="{{rMonto}}"
+                            required maxlength="10" onblur="FormatearNumerosInputs(this)">
                     </div>
                     <div class="col-6">
                         <span class="titulos">
@@ -158,13 +163,61 @@ M1 | Documentos crud
                         {{form.observacion}}
                     </div>
                     {% endif %} <!-- fin editando -->
+
+ <!-- ------------------------------------ eliminando ------------------------------------- -->
+                    {% if xOpcion == 'Eliminando' %}
+                   
+                    <div class="col-6">
+                        <span class="titulos">
+                            Cliente</span>
+                        <input type="text" id="cliente" value="{{rCliente}}"
+                            class="form-control alto" disabled/>
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">Número</span>
+                        <input type="text" id="numero" value="{{rNum}}" class="form-control alto" disabled>
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">{{form.fecha.label}}</span>
+                        <input type="text" id="fecha" value="{{rFecha}}" class="form-control alto" disabled>
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">{{form.vencimiento.label}}</span>
+                        <input type="text" name="vence" value="{{rVencimiento}}" class="form-control alto" disabled>
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">{{form.monto.label}}</span>
+                        <input name="monto" id="id_monto" value="{{rMonto}}" class="form-control input-numero alto" 
+                            disabled maxlength="10">
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">
+                            Iva</span>
+                        <input name="iva" id="iva" value="{{rIva}}" class="form-control d-flex alto" disabled />
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">
+                            Condición</span>
+                        <input name="condicion" id="condicion" value="{{rCondicion}}" class="form-control d-flex alto" disabled/>
+                    </div>
+
+                    <div class="col-12 pb-4">
+                        <span class="titulos">
+                            {{form.observacion.label}}</span>
+                            <textarea name="rObserva" id="iva" class="form-control d-flex" row="3" disabled>{{rObserva}}  </textarea>
+                    </div>
+                    {% endif %} <!-- fin eliminado -->
+
                     <!-- Botones -->
                     <div class="text-center">
-                        <button type="submit" id="guardar" class="btn btn-primary"
+                        <button id="GuardarButton" type="submit" id="guardar" class="btn btn-primary"
                             onclick="validar(event)">Guardar</button>
+                        <button id="EliminarButton" type="submit" class="btn btn-danger" hidden
+                        onclick="eliminar(event)">Eliminar</button>
                         <button type="button" class="btn btn-secondary"
                             onclick="javascript:history.back()">Regresar</button>
-                        </div>
+                        
+                    </div>
                 </form>
             </div>
         </div>
@@ -172,7 +225,8 @@ M1 | Documentos crud
 </main><!-- End #main -->
 
 <!-- cliente Modal -->
-<button id="openModal" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#clienteModal" hidden>
+<button id="openModal" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#clienteModal"
+    hidden>
     AGREGAR
 </button>
 <div class="modal fade" id="clienteModal" tabindex="-1" style="margin-top: 100px">
@@ -200,12 +254,12 @@ M1 | Documentos crud
                             </select>
                         </div>
                         <div class="col-md-9 float-start">
-                            <input type="text" id="m_ced_rif" class="form-control alto" required  maxlength="10" >
+                            <input type="text" id="m_ced_rif" class="form-control alto" required maxlength="10">
                         </div>
                     </div>
                     <div class="col-6">
                         <span class="titulos">Nombre</span>
-                        <input type="text" id="m_nombre" class="form-control alto" required  maxlength="40" >
+                        <input type="text" id="m_nombre" class="form-control alto" required maxlength="40">
                     </div>
                     <div class="col-6">
                         <span class="titulos">
@@ -219,15 +273,15 @@ M1 | Documentos crud
                             {% endfor %}
                         </select>
                     </div>
-                
+
                     <div class="modal-footer justify-content-center">
                         <button type="submit" class="btn btn-primary" id="gurdar_vendedor"
                             onclick="validar_cliente(event)">Guardar</button>
                         <button type="button" class="btn btn-secondary" id="cerrar_cliente"
                             data-bs-dismiss="modal">Descartar</button>
                     </div>
-                </form>  <!-- fin Modal form-->
-            </div>   <!-- fin modal body-->
+                </form> <!-- fin Modal form-->
+            </div> <!-- fin modal body-->
         </div> <!-- fin modal content -->
     </div> <!-- fin modal-dialog -->
 </div><!-- End cliente Modal-->
@@ -251,7 +305,7 @@ M1 | Documentos crud
     function llenar_nombre() {
         let cliente_select = document.getElementById("cliente")
         let texto_cliente = cliente_select.options[cliente_select.selectedIndex].text
-        document.getElementById("nombreClienteInput").value = texto_cliente 
+        document.getElementById("nombreClienteInput").value = texto_cliente
     }
 
     checkPattern("id_monto")
@@ -278,22 +332,28 @@ M1 | Documentos crud
 
     // selectize
     $(document).ready(function () {
-        // Activacion
-        var selectizeInstance = $('#cliente').selectize({
-            // sortField: 'text',
-            // maxOptions: 20
-        });
-        // Evento click para limpiar el select input
-        var selectizeControl = selectizeInstance[0].selectize;
-        selectizeControl.$control.on('click', function () {
-            selectizeControl.clear();
-            $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
-        });
-        // Agregar manualmente una flecha al control de Selectize
-        $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+    
+        if (document.getElementById('opcion').value == "Eliminando") {
+                EliminarButton.removeAttribute('hidden');
+                GuardarButton.setAttribute('hidden', 'true');
+            } else {
+               
+                var selectizeInstance = $('#cliente').selectize({
+                    // sortField: 'text',
+                    // maxOptions: 20
+                });
+                // Evento click para limpiar el select input
+                var selectizeControl = selectizeInstance[0].selectize;
+                selectizeControl.$control.on('click', function () {
+                    selectizeControl.clear();
+                    $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+                });
+                // Agregar manualmente una flecha al control de Selectize
+                $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+            
+            }
     });
 
-   
 
     // validar formulario
     function validar(e) {
@@ -334,7 +394,7 @@ M1 | Documentos crud
                 })
                 return
             } // fin validar fechas
-            
+
             if (document.getElementById('credito')) {
                 if (document.getElementById('condicion').value == 2) {
                     if (parseInt(document.getElementById('credito').value) <= 15) {
@@ -347,7 +407,7 @@ M1 | Documentos crud
                             //timer: 2500
                         })
                         return
-                    } 
+                    }
                 }
                 if (document.getElementById('condicion').value == 1) {
                     if (parseInt(document.getElementById('credito').value) > 15) {
@@ -360,7 +420,7 @@ M1 | Documentos crud
                             //timer: 2500
                         })
                         return
-                    } 
+                    }
                 }
             }
 
@@ -368,7 +428,7 @@ M1 | Documentos crud
             let Var_rNum = document.getElementById('rNum').value
             let Var_numero = document.getElementById('id_numero').value
             // Si editaron el numero de doc valido
-            if (Var_rNum != Var_numero) { 
+            if (Var_rNum != Var_numero) {
                 let existe = false
                 let campo = $('#id_numero').val()
                 $.ajax({
@@ -443,7 +503,7 @@ M1 | Documentos crud
             if (esFechaValida(Vencimiento) == false) {
                 return
             }
-         
+
             // Calcular la diferencia en milisegundos
             var diferenciaEnMilisegundos = Vencimiento - Fecha;
 
@@ -486,10 +546,10 @@ M1 | Documentos crud
                     'campo': campo,
                 },
                 datatype: 'json',
-                success: function(data) {
+                success: function (data) {
                     existe = data.status
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                 }
             })
             if (existe) {
@@ -540,31 +600,31 @@ M1 | Documentos crud
                     }
                 }) // fin Confirmar 
             } // fin existe  
-         } // fin de checkValidity()
+        } // fin de checkValidity()
     } // fin validar cliente
 
     // agregar una cliente
     function agregar_cliente() {
         // tomo el nombre del formulario
-        const form_c = document.getElementById('cliente_form') 
+        const form_c = document.getElementById('cliente_form')
         $.ajax({
             url: "{% url 'agregar_cliente_desde_agregar_documento' %}",
             type: 'POST',
             async: false,
             data: {
                 csrfmiddlewaretoken: '{{ csrf_token }}',
-                'ced_rif': $('#m_prefijo_r').val()+$('#m_ced_rif').val(),
+                'ced_rif': $('#m_prefijo_r').val() + $('#m_ced_rif').val(),
                 'nombre': $('#m_nombre').val(),
                 'vendedor_id': $('#m_vendedor').val()
             },
             datatype: 'json',
-            success: function(data) {
+            success: function (data) {
                 //console.log('RESULTADO', data.id)
                 form_c.reset()
                 cerrar_cliente.click()
                 obtener_clientes(data.id) // cargar el cleinte agregado
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 console.log(xhr.responseText)
             }
         }) // fin ajax
@@ -572,48 +632,48 @@ M1 | Documentos crud
 
     // obtener los los clientes
     function obtener_clientes(id) {
-    let options = '<option></option>';
-    $.ajaxSetup({
-        data: {
-            csrfmiddlewaretoken: '{{ csrf_token }}'
-        },
-    });
-    $.ajax({
-        url: "{% url 'obtener_clientes' %}",
-        type: 'POST',
-        datatype: 'json',
-        success: function(data) {
-            let select_cliente = $('select[name="cliente"]');
+        let options = '<option></option>';
+        $.ajaxSetup({
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+        });
+        $.ajax({
+            url: "{% url 'obtener_clientes' %}",
+            type: 'POST',
+            datatype: 'json',
+            success: function (data) {
+                let select_cliente = $('select[name="cliente"]');
 
-            // Destruir cualquier instancia previa de selectize
-            if (select_cliente.hasClass('selectized')) {
-                select_cliente[0].selectize.destroy();
+                // Destruir cualquier instancia previa de selectize
+                if (select_cliente.hasClass('selectized')) {
+                    select_cliente[0].selectize.destroy();
+                }
+
+                $.each(data, function (key, item) {
+                    let selected = id == item.id ? "selected" : "";
+                    options += `<option value="${item.id}" ${selected}>${item.nombre}</option>`;
+                });
+
+                select_cliente.html(options);
+
+                // Inicializar selectize después de agregar las opciones
+                let selectizeInstance = select_cliente.selectize()[0].selectize;
+
+                // Seleccionar la opción correspondiente
+                if (id) {
+                    selectizeInstance.setValue(id);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.log(xhr.responseText);
             }
+        });
+    }
 
-            $.each(data, function(key, item) {
-                let selected = id == item.id ? "selected" : "";
-                options += `<option value="${item.id}" ${selected}>${item.nombre}</option>`;
-            });
 
-            select_cliente.html(options);
-
-            // Inicializar selectize después de agregar las opciones
-            let selectizeInstance = select_cliente.selectize()[0].selectize;
-
-            // Seleccionar la opción correspondiente
-            if (id) {
-                selectizeInstance.setValue(id);
-            }
-        },
-        error: function(xhr, status, error) {
-            console.log(xhr.responseText);
-        }
-    });
-}
-
-    
     window.addEventListener("load", (event) => {
-        if( document.getElementById('hoy')){
+        if (document.getElementById('hoy')) {
             hoy.click();
         }
     });
@@ -632,6 +692,48 @@ M1 | Documentos crud
     //     }
     // }
     // });
+
+
+    // wliminar
+
+    function eliminar(e) {
+        const form = document.getElementById('documento_form') // tomo el nombre del formulario
+      
+            e.preventDefault()
+ 
+     
+            // Confirmar
+            let c = document.getElementById('cliente').value
+            let m = document.getElementById('id_monto').value
+            let n = document.getElementById('numero').value
+            Swal.fire({
+                title: '¿ Esta seguro de Eliminar ?',
+                html: `DOC: ${n}<br>DE: ${c}<br><h1>${m}$</h1> `,
+                showDenyButton: true,
+                // showCancelButton: true,
+                confirmButtonText: "Eliminar",
+                denyButtonText: `Descartar`
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: '¿ El sistema eliminará el Documento ?',
+                        html: `<h1>${n}</h1><br><span style="color: red">Proceda si está seguro...</span>`,
+                        showDenyButton: true,
+                        confirmButtonText: "Proceder",
+                        denyButtonText: `Descartar`,
+
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById('documento_form').submit()
+                        } else {
+                            return false
+                        }
+                    })
+                }
+            }) // fin reConfirmar
+        }
+
+
 
 </script>
 {% endblock Scripts_Adicionales %}

@@ -439,6 +439,46 @@ def Editar_documentoView(request, id):
 
 
 @login_required
+def Eliminar_documentoView(request, id):
+    xUsuario = request.user
+    xOpcion = "Eliminando"
+ 
+    # Obtengo el registro 
+    xDocumento = Documento.objects.get(id=id)
+    rClienteId = xDocumento.cliente.id
+    rCliente = xDocumento.cliente
+    rNum = xDocumento.numero
+    rFecha = xDocumento.vencimiento.strftime('%d/%m/%Y')
+    rVencimiento = xDocumento.vencimiento.strftime('%d/%m/%Y')
+    rMonto = xDocumento.monto
+    rIva = xDocumento.iva
+    rCondicion = xDocumento.condicion
+    rObserva = xDocumento.observacion
+         
+    form = agregar_documentoForm(instance=xDocumento)
+
+    if request.method == 'POST':
+        xDocumento.delete()
+        return redirect('documentos', rClienteId, 1)
+
+    context = {
+        'form': form,
+        'xOpcion': xOpcion,
+        'rCliente': rCliente,
+        'rIva': rIva,
+        'rIvaId': rIva,
+        'rObserva':rObserva,
+        'rNum': rNum,
+        'rMonto': darFormato(rMonto),
+        'rFecha': rFecha,
+        'rVencimiento': rVencimiento,
+        'rCondicion': rCondicion
+    }
+    
+
+    return render(request, 'app_gestion/documentos_crud.html', context)
+
+@login_required
 def cobranzaView(request, xCliente, xVendedor, xIva, xVencido):
     xUsuario = request.user
     # print("--------- Parametros recibidos GET ----------")
@@ -2138,3 +2178,5 @@ def Pago_reversarView(request, id):
         'rFecha': rFecha
     }
     return render(request, 'app_gestion/pago_reversar.html', context)
+
+
