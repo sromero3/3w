@@ -57,3 +57,22 @@ def actualizar_dias_vencido():
 
           print(" se actualiazo dias_v ")
     return 
+
+def buscar_fecha_pagado(doc_id):
+    
+     # para campos repetidos
+    xPago_detalles = Pago_detalle.objects.filter(documento_id=doc_id).values('pago__fecha', 'pago__monto', 'documento_id','pago__forma_id','pago__forma__forma','monto_procesar','pago__tasa')
+    if xPago_detalles.exists():
+        for xPago_detalle in xPago_detalles:
+
+            return {
+                'fecha': xPago_detalle['pago__fecha'],
+                'en': xPago_detalle['pago__forma_id'],
+                'montoBs': xPago_detalle['pago__monto'],
+                'tasa': xPago_detalle['pago__tasa']
+            }
+
+    else:
+        data = {'status': False}
+
+   

@@ -47,6 +47,8 @@ urlpatterns = [
      path('doc_pro/<fecha_ini>/<fecha_fin>/', views.doc_proView, name='doc_pro'),
      path('saldo_favor/<int:xCliente>/<int:xVendedor>/<int:xIva>/<int:xVencido>/', views.saldo_favorView, name='saldo_favor'),
 
+    # Comisiones  
+     path('calcular_comision/<int:xVendedor_id>/<fecha_ini>/<fecha_fin>/<int:porcentaje>/', views.Calcular_comisionView, name='calcular_comision'),
 
 
      # ajax

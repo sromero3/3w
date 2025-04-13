@@ -751,7 +751,6 @@ def Estado_cuentaView(request, id, desde, fecha_ini, fecha_fin):
     xId = id
 
     if request.method == 'GET':
-        print("--------- Parametros recibidos GET ----------") 
         fecha_ini  = date.today() - timedelta(days=60)
         fecha_fin  = date.today() 
    
@@ -759,7 +758,6 @@ def Estado_cuentaView(request, id, desde, fecha_ini, fecha_fin):
         xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
         xFecha_corte_ini  = fecha_ini - timedelta(days=1)
     else:  
-        print("--------- Parametros recibidos POST ----------")
         xFecha_ini = fecha_ini
         xFecha_fin = fecha_fin 
 
@@ -855,13 +853,12 @@ def Estado_cuentaView(request, id, desde, fecha_ini, fecha_fin):
         'xClientes': xClientes,
         'xId':xId,
         'xDesde': desde,
-        'xFecha_ini':xFecha_ini,
+        'xFecha_ini': xFecha_ini,
         'xFecha_fin': xFecha_fin,
         'xAsientos': data_lista_ordenada,
         'xSaldo_inicial': xSaldo_final
 
     }
- 
     return render(request, 'app_gestion/estado_de_cuenta.html', context)
 
 # validar mumero de documento
@@ -2178,5 +2175,135 @@ def Pago_reversarView(request, id):
         'rFecha': rFecha
     }
     return render(request, 'app_gestion/pago_reversar.html', context)
+
+# @login_required
+# def Calcular_comisionView(request, xCliente, fecha_ini, fecha_fin):
+#     xUsuario = request.user
+#     if xCliente != 0:
+#          xCliente_seleccionado = xCliente
+#     else:
+#         xCliente_seleccionado   = 0
+    
+#     xClientes = Cliente.objects.all()
+    
+#     if request.method == 'GET':
+#         # print("--------- Parametros recibidos GET ----------") 
+#         fecha_ini  = date.today() - timedelta(days=90)
+#         fecha_fin  = date.today() 
+#         xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
+#         xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
+#     else:  
+#         # print("--------- Parametros recibidos POST ----------")
+#         xFecha_ini = fecha_ini
+#         xFecha_fin = fecha_fin 
+    
+#     qPagos=Pago.objects.filter(fecha__range=(fecha_ini, fecha_fin)).values('id','cliente_id','referencia','fecha','monto','monto_procesar','forma__forma', 'tasa','cliente__nombre','observacion', 'seguimiento', 'forma_id','cliente__vendedor_id'
+#     ,'tipo','creado').order_by('-fecha', '-creado')
+
+    
+    
+#     if xCliente == 0 :
+#     #    xPagos=qPagos.all()
+#        xPagos=qPagos.filter(cliente__vendedor_id=9)
+#        print(qPagos)
+#     else:
+#         xPagos=qPagos.filter(cliente__vendedor_id=9)
+
+#     context = {
+#         'xUsuario': xUsuario,
+#         'xPagos': xPagos,
+#         'xClientes': xClientes,
+#         'xCliente_seleccionado': int(xCliente_seleccionado),
+#         'xFecha_ini': xFecha_ini,
+#         'xFecha_fin': xFecha_fin,
+#      }
+ 
+#     return render(request, 'app_gestion/calcular_comision.html', context)
+
+
+
+@login_required
+def Calcular_comisionView(request, xVendedor_id, fecha_ini, fecha_fin, porcentaje):
+    xUsuario = request.user
+    xVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
+    xId = xVendedor_id
+
+    if request.method == 'GET':
+        # print("--------- Parametros recibidos GET ----------") 
+        # print("--->", xVendedor_id, fecha_ini, fecha_fin, porcentaje)
+        fecha_ini  = date.today() - timedelta(days=4)
+        fecha_fin  = date.today() 
+        xPorcentaje = 4
+    
+        xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
+        xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
+    else:  
+        xFecha_ini = fecha_ini
+        xFecha_fin = fecha_fin
+        xPorcentaje = porcentaje
+        xFecha_ini_comprable = datetime.strptime(fecha_ini, '%Y-%m-%d').date()
+        xFecha_fin_comprable = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
+       
+    qDocumentos = Documento.objects.filter(cliente__vendedor=xVendedor_id).annotate(saldo = F('monto') - F('abonado')).filter(saldo__lte=1).values('id','fecha','numero','cliente__nombre','monto','saldo','dias_v').order_by('fecha','numero')
+  
+    data_lista_bs = []  
+    total_bs = 0
+    data_lista_usd = []
+    total_usd = 0
+    for xAsiento in qDocumentos:
+       
+        # buscar la fecha cuando quedo en 0 y los detalles del pago
+        resultado = buscar_fecha_pagado(xAsiento["id"]) 
+        if resultado['fecha'] < xFecha_ini_comprable or resultado['fecha'] > xFecha_fin_comprable:
+            continue
+
+        if xAsiento['dias_v'] < -15:
+           xPor = Decimal(xPorcentaje/2)
+        else:
+            xPor = xPorcentaje
+        xAsiento["documento"] = xAsiento['numero']
+        xAsiento["pagado"] = resultado['fecha'] 
+        xAsiento["xPor"] = xPor
+      
+        if resultado['en'] == 1 or resultado['en'] == 4:
+            # xAsiento["en"] = 'Bs'
+            xAsiento["tasa"] = resultado['tasa']
+            xAsiento["base"] = resultado['montoBs']
+            xAsiento["comision"] = round(resultado['montoBs'] * xPor / 100, 2)
+            total_bs += xAsiento["comision"]
+            # xAsiento["totalBs"] = total_bs
+            data_lista_bs.append(xAsiento)
+            
+        else:
+            # xAsiento["en"] = '$'
+            xAsiento["tasa"] = '-'
+            xAsiento["base"] = xAsiento['monto']
+            xAsiento["comision"] = round(xAsiento['monto'] * xPor / 100, 2)
+            total_usd += xAsiento["comision"]
+            # xAsiento["total"] = total_usd
+            data_lista_usd.append(xAsiento)
+        
+        # data_lista.append(xAsiento) # Se agrega cada registro a la lista
+  
+    # data_lista = data_lista_bs 
+    # data_lista_ordenada = sorted(data_lista, key=itemgetter('en','forma','pagado'))
+    # data_lista_usd = data_lista_usd 
+    # data_lista_ordenada_usd = sorted(data_lista_usd , key=itemgetter('en','forma','pagado'))
+
+
+    context = {
+        'xUsuario': xUsuario,
+        'xId':xId,
+        'xFecha_ini': xFecha_ini,
+        'xFecha_fin': xFecha_fin,
+        'xAsientos_bs': data_lista_bs ,
+        'xAsientos_usd': data_lista_usd,
+        'xVendedores': xVendedores,
+        'xPorcentaje': xPorcentaje,
+        'total_bs': total_bs,
+        'total_usd': total_usd
+    }
+    return render(request, 'app_gestion/calcular_comision.html', context)
+
 
 

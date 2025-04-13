@@ -111,6 +111,27 @@
         <span>&nbsp;&nbsp;Vendedores</span>
       </a>
     </li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" data-bs-target="#componentsC-nav" data-bs-toggle="collapse" href="#">
+        <i class="bi bi-columns-gap"></i>
+        <span>&nbsp;&nbsp;Comisiones</span><i class="bi bi-chevron-down ms-auto"></i>
+      </a>
+      <ul id="componentsC-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+        <li>
+          <a href="{% url 'calcular_comision' 0  ' ' ' ' 0%}">
+            <span>Calcular</span>
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <span>Parametros</span>
+          </a>
+        </li>
+    
+      </ul>
+    </li><!-- fin comisiones Nav -->
+
     <li class="nav-item">
       <a class="nav-link collapsed" data-bs-target="#components-nav" data-bs-toggle="collapse" href="#">
         <i class="bi bi-card-text"></i>
@@ -137,9 +158,6 @@
             <span>Clientes con saldo a favor</span>
           </a>
         </li>
-
-       
-
       </ul>
     </li><!-- fin consultas Nav -->
 

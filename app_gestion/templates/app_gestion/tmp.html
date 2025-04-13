@@ -1,3 +1,684 @@
 
+@login_required
+def Calcular_comisionView(request, xVendedor,  fecha_fin):
 
-onclick="javascript:window.location='/documentos/0/1'">Regresar</button>
+    xUsuario = request.user
+
+    xVendedor_seleccionado = xVendedor
+    xVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
+
+    # xCliente_seleccionado = xCliente
+    if xVendedor != 0:
+        xClientes = Cliente.objects.filter(Q( status_id=1) | Q(status_id=2)).filter(vendedor_id=xVendedor)
+    else:
+        xClientes = Cliente.objects.filter(Q( status_id=1) | Q(status_id=2))
+
+    # actualizar_dias_vencido()
+    
+    if request.method == 'GET':
+        # print("--------- Parametros recibidos GET ----------") 
+        # fecha_ini  = date.today() 
+        # xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
+        fecha_fin  = date.today() + timedelta(days=5)
+        xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
+        qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__lt=1)
+        
+    else:  
+        # print("--------- Parametros recibidos POST ----------")
+        xFecha_fin = fecha_fin
+        # if xCliente == 0:
+        qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__lt=1).filter(cliente_id__vendedor__id=xVendedor, vencimiento__lte=xFecha_fin).values('id','cliente_id','numero','credito','fecha','dias_v','vencimiento','monto','cliente_id__vendedor__id','abonado','saldo','cliente__nombre','iva__iva').order_by('cliente__nombre').order_by('vencimiento')
+        # else:
+        #     qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).filter(cliente_id__vendedor__id=xVendedor, vencimiento__lte=xFecha_fin, cliente_id=xCliente).values('id','cliente_id','numero','credito','fecha','dias_v','vencimiento','monto','cliente_id__vendedor__id','abonado','saldo','cliente__nombre','iva__iva').order_by('cliente__nombre').order_by('vencimiento')
+
+       
+
+    xDocumentos=qDocumentos.filter(cliente_id__vendedor__id=xVendedor)
+
+    context = {
+        'xUsuario': xUsuario,
+        'xDocumentos': xDocumentos,
+        'xVendedores': xVendedores,
+        'xVendedor_seleccionado': int(xVendedor_seleccionado),
+        # 'xFecha_ini': xFecha_ini,
+        'xClientes': xClientes,
+        # 'xCliente_seleccionado': int(xCliente_seleccionado),
+        'xFecha_fin': xFecha_fin,
+    }
+
+    # HTML('app_gestion/cobranza_vendedor.html').write_pdf('mi_documento.pdf')
+    return render(request, 'app_gestion/calcular_comision.html', context)
+
+    ========================================================================
+
+    data_lista_ordenada = sorted(
+        data_lista,
+        key=lambda x: (x['en'], x['pagado'], x['forma']),
+        reverse=False
+    )
+    data_lista_ordenada = sorted(
+        data_lista_ordenada,
+        key=lambda x: x['en'],
+        reverse=True
+    )
+
+    {% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+{% block title %}
+M1 | Cobranza x vendedores
+{% endblock %}
+{% block styles %}
+{% endblock styles %}
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px;">
+    <div class="col-lg-12">
+        <div class="card" id="data-section" style="opacity: 0;">
+            <div class="card-body" id="card-body-areaPDF">
+                
+                <!-- <h5 class="card-title" a href="javascript:history.back()" class="float-end" >
+                        <i class="bi bi-arrow-return-left" title='Regresar'></i>
+                    </a></h5> -->
+
+                <h5 class="card-title">Calcular comisiones<a href="{% url 'inicio' %}" class="float-end"><i class="bi bi-house-door" title='Cerrar'></i></a></h5>
+
+
+                <form id="filtros" action="" method="post" class="mb-4" style="margin-bottom: 8px !important;">
+                    <!-- <form id="filtros" action="" method="post" class="row g-3"> -->
+                    {% csrf_token %}
+
+                    <div class="row">
+                        <div class="col-md-4" style="margin-bottom: 12px;">
+                            <span>Vendedor</span>
+                            <select name="vendedor" id="vendedor" onChange="obtener_documentos()">
+                                <option value="0" selected></option>
+                                {% for xVendedor in xVendedores %}
+                                <option value={{xVendedor.id}} data-nombre="{{xVendedor.nombre}}" {% if xVendedor.id == xVendedor_seleccionado %} selected {%endif %}>
+                                    {{xVendedor.nombre}}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="titulos">
+                                Desde</span>
+                            <input type="date" id="fecha_ini" name="fecha_ini" value="{{xFecha_ini}}"
+                               class="form-control" style="height: 34px;" onChange="obtener_documentos()"/>
+                        </div>
+                        <div class="col-md-4">
+                            <span>Hasta</span>
+                            <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}" 
+                                class="form-control" style="height: 34px;" onChange="obtener_documentos()" />
+                        </div>
+                      
+
+                    </div>
+                </form>
+
+                <table id="documentos" class="table table-hover table-bordered" style="width:100%;">
+                    <thead>
+                        <tr> 
+                            
+                            <th   style="width:60px">FECHA</th>
+                            <th   style="width:55px">DOCUMENTO</th>
+                            <th  >CLIENTE</th>
+                            <th  >TASA</th>
+                            <!-- <th   style="width:40px">Monto.</th> -->
+                            <th   style="width:40px">BASE IMP.</th>
+                            <!-- <th   style="width:40px">Saldo.</th> -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for xDocumento in xDocumentos %}
+                        <tr >
+                            <td  >{{xDocumento.fecha|date:"d/m/y"}}</td>
+                            <td  >{{xDocumento.numero|rellenar}}</td>
+                            <td style="width:900px">{{xDocumento.cliente__nombre}}</td>
+                            <td  ></td>
+                            <!-- <td   align="right">{{xDocumento.monto|darFormato}}</td> -->
+                            <td   align="right">{{xDocumento.abonado|darFormato}}</td>
+                            <!-- <td   align="right">{{xDocumento.saldo|darFormato}}</td> -->
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+
+                    </tfoot>
+                </table>
+            </div>
+            <div class="row justify-content-end" style="width:80%; margin: -16px 0px 10px -8px;">
+                <div class="col-auto">
+                    <button id="boton" class="btn btn-primary" style="opacity: 1; width: auto;"
+                        onclick="generarPDF()">Generar PDF</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+
+    <!-- <button id="share-button">Compartir</button> -->
+</main><!-- End #main -->
+
+
+{% endblock content %}
+{% block Scripts_Adicionales %}
+<script>
+
+    $(document).ready(function () {
+
+        new DataTable('#documentos', {
+            language: {
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ registros",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "*** No se encontró información ***",
+                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                "sInfoPostFix": "",
+                "sSearch": "Buscar:",
+                "sUrl": "",
+                "sInfoThousands": ",",
+                "sLoadingRecords": "Cargando...",
+                "oPaginate": {
+                    "sFirst": "Primero",
+                    "sLast": "Último",
+                    "sNext": "Siguiente",
+                    "sPrevious": "Anterior"
+                },
+                "oAria": {
+                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                },
+                "buttons": {
+                    "copy": "Copiar",
+                    "colvis": "Visibilidad"
+                }
+            },
+            ordering: true,
+            paging: false,
+            searching: false,
+            info: false,
+            pageLength: 30,
+            scrollX: false,
+            // order: [[3, 'asc']],
+            // "columnDefs": [{
+            //     "targets": [0, 1, 2,  4, 5, 7, 8, 9],
+            //     "orderable": false
+            // }],
+            
+
+        }); // fin data table
+
+        //  da tiempo para que carguen los estilos
+        setTimeout(() => {
+            document.getElementById('data-section').style.opacity = 1;
+            document.getElementById('boton').style.opacity = 1;
+        }, 200);
+
+        // selectize
+        var selectizeInstance = $('#vendedor').selectize({});
+        $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+
+        var selectizeControl = selectizeInstance[0].selectize; // click para limpiar el select input
+        selectizeControl.$control.on('click', function () {
+            selectizeControl.clear();
+            $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+        });
+
+     
+        
+
+    }); // fin document.ready
+
+    // obtener docuemntos
+    function obtener_documentos() {
+        filtros.action = `/calcular_comision/${vendedor.value}/${fecha_fin.value}/`
+        if (document.getElementById('vendedor').value != '' ){
+            filtros.submit()
+        }
+    } // fin obtener docuemntos
+
+
+
+
+
+    function generarPDF() {
+        const { jsPDF } = window.jspdf;
+
+        // Ajustar el contenido del elemento del DOM
+        const contentElement = document.getElementById('card-body-areaPDF');
+        contentElement.classList.add('pdf-content');
+
+        // Calcula la altura del contenido
+        const contentHeight = (contentElement.scrollHeight * 29 / 100);
+        if (contentHeight > 500) {
+            LargoHoja = 550
+        } else {
+            LargoHoja = 297
+        }
+
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: [210, LargoHoja]
+        });
+
+        // Ajusta la altura de la página según la altura del contenido
+        const pdfHeight = contentHeight
+
+        // Obtener el nombre del vendedor para nombre del archivo
+        var selectize = $('#vendedor')[0].selectize;
+        var selectedOption = selectize.getItem(selectize.getValue());
+        var nombreVendedor = selectedOption.text();
+        var nombreLimpio = nombreVendedor.trim().replace(/^_+|_+$/g, '');
+
+        // Usar html2canvas para renderizar el contenido como una imagen
+        html2canvas(contentElement, {
+            scale: 1, 
+            useCORS: true
+        }).then((canvas) => {
+            const imgData = canvas.toDataURL('image/png');
+
+            const margin = 0;
+            const pageWidth = 210;
+            const pageHeight = doc.internal.pageSize.getHeight();
+            // const imgWidth = pageWidth - 2 * margin;
+            const imgWidth = pageWidth;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            // Agregar la imagen al PDF con márgenes personalizados
+            doc.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
+
+            // Crear un Blob del PDF
+            const pdfOutput = doc.output('blob');
+            const url = URL.createObjectURL(pdfOutput);
+
+            // Descargar el PDF automáticamente
+            const nombre_doc = nombreLimpio + '.pdf';
+            doc.save(nombre_doc);
+        });
+    }
+
+
+
+
+
+
+    // compartir
+    // async function sharePDF(file) {
+    //     try {
+    //         const shareData = {
+    //             files: [file],
+    //         };
+    //         if (navigator.canShare && navigator.canShare(shareData)) {
+    //             await navigator.share(shareData);
+    //             console.log('Archivo compartido con éxito.');
+    //         } else {
+    //             console.log('Tu navegador no admite compartir archivos.');
+    //         }
+    //     } catch (error) {
+    //         console.log('Error al compartir el archivo:', error);
+    //     }
+    // }
+
+    // Enviar navegator.share
+    // document.getElementById('share-button').addEventListener('click', function() {
+    // fetch('ruta/al/archivo.pdf')
+    //     .then(response => response.blob())
+    //     .then(blob => {
+    //     const file = new File([blob], 'archivo.pdf', { type: 'application/pdf' });
+    //     if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    //         navigator.share({
+    //         title: 'Ejemplo de Web Share API con PDF',
+    //         text: 'Aquí tienes un archivo PDF para ti.',
+    //         files: [file]
+    //         }).then(() => {
+    //         console.log('Archivo PDF compartido exitosamente.');
+    //         }).catch((error) => {
+    //         console.log('Error al compartir el archivo PDF:', error);
+    //         });
+    //     } else {
+    //         console.log('El navegador no puede compartir archivos.');
+    //     }
+    //     })
+    //     .catch((error) => {
+    //     console.log('Error al obtener el archivo PDF:', error);
+    //     });
+    // });
+
+</script>
+{% endblock Scripts_Adicionales %}
+
+
+=====================
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+{% block title %}
+M1 | Historial de pagos
+{% endblock %}
+{% block styles %}
+{% endblock styles %}
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px;">
+    <div class="col-lg-12" >
+        <div class="card">
+            <div class="card-body" >
+                    <h5 class="card-title">Calcular comisiones<a href="{% url 'inicio' %}" class="float-end"><i class="bi bi-house-door" title='Cerrar'></i></a></h5>
+                                 
+                <form id="filtros" action="" method="post" class="mb-4" style="width:90%;margin-bottom: 8px !important;">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-4" style="margin-bottom: 12px;">
+                            <span class="titulos">
+                                Cliente</span>
+                                <select name="cliente" id="cliente" required onfocus="limpiar()"                                onChange="obtener_pagos()">
+                                <option value="0" selected>Todos</option>
+                                {% for xCliente in xClientes %}
+                                <option value={{xCliente.id}} {% if xCliente.id == xCliente_seleccionado %} selected {%endif %}>
+                                    {{xCliente.nombre}}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="titulos">
+                                Desde</span>
+                            <input type="date" id="fecha_ini" name="fecha_ini" value="{{xFecha_ini}}" class="form-control alto" onChange="obtener_pagos()"/>
+                        </div>
+                        <div class="col-md-4">
+                            <span class=" titulos">
+                                Hasta</span>
+                            <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}" class="form-control alto" onChange="obtener_pagos()"/>
+                        </div>
+                    </div>
+                </form>
+                <table id="pagos" class="table table-hover table-bordered" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Fecha</th>
+                            <th>Procesado</th>
+                            <th>Referencia</th>
+                            <th>Seguimiento</th>
+                            <th>Forma</th>
+                            <th>A Cuenta</th>
+                            <th>Monto $</th>
+                            <th>Doc</th>
+                            <th>Opcion</th>
+                        </tr>  
+                    </thead>
+                    <tbody>
+                        {% for xPago in xPagos %}
+                        <tr>
+                            <td>{{xPago.cliente__nombre}}</td>
+                           
+                            <td >{{xPago.fecha|date:"d-m-Y"}}</td>
+                           
+                            <td align="center">{{xPago.creado|date:"d-m-Y"}} {{xPago.creado|time}}</td>
+  
+                            {% if xPago.observacion == "" %}
+                                {% if xPago.referencia == "-" %}
+                                    <td align="center">{{xPago.referencia}}</td>
+                                {% else %}
+                                    <td>{{xPago.referencia|rellenar}}</td>
+                                {% endif %}
+                            {% else %}
+                                {% if xPago.referencia == "-" %}
+                                    <td align="center">{{xPago.referencia}}
+                                        <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                                data-bs-html="true" data-bs-title="{{xPago.observacion}}<br>
+                                                "></i>
+                                        </a>
+                                    </td>
+                                {% else %}
+                                    <td>{{xPago.referencia|rellenar}}
+                                        <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                                data-bs-html="true" data-bs-title="{{xPago.observacion}}<br>
+                                                "></i>
+                                        </a>
+                                    </td>
+                                {% endif %}
+                            {% endif %}
+
+                            {% if xPago.seguimiento == "" %}
+                                <td align="center">-</td>
+                            {% else %}
+                                    <td align="center"><a href="javascript:abrir_modal('{{xPago.seguimiento}}')"> <i style="font-size: small;" class="bi bi-activity"></a></i></td>
+                            {% endif %}
+                            
+                            {% if xPago.forma__forma == "Transferencia Bancos Nacionales" or xPago.forma__forma == "Bolivares en Efectivo" %}
+                                <td>{{xPago.forma__forma}}
+                                    <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                            data-bs-html="true" data-bs-title="<b>Bs. {{xPago.monto}}</b> <br> (Tasa {{xPago.tasa}})"></i>
+                                        </i></a>
+                                </td>
+                            {% else %}
+                                <td>{{xPago.forma__forma}}</td>
+                            {% endif %}
+                            <td>
+                                {{xPago.cliente__vendedor_id}}              
+                            </td>
+                            
+                            <!-- {% if xPago.banco_destino__nombre == "-" %}
+                              <td align="center">{{xPago.banco_destino__nombre}}</td>
+                            {% else %}
+                              <td>{{xPago.banco_destino__nombre}}</td>
+                            {% endif %} -->
+
+                            <td align="right">{{xPago.monto_procesar|darFormato}}</td>
+
+                            <td align="center"><a href="{% url 'historial_pagos_detalle_doc' xPago.id xPago.monto_procesar %}"> <i style="font-size: small;" class="bi bi-file-earmark"></a></i></td>
+                            <!-- <td align="center"><a href="javascript:abrir_modal('{{xPago.seguimiento}}')"> <i style="font-size: small;" class="bi bi-activity"></a></i></td> -->
+
+                            <td class="text-center" style="width:50px">
+                                {% if xPago.tipo == 1 %}
+                                    <a href="{% url 'pago_cuenta_corregir' xPago.id xPago.forma_id %}">
+                                        <i style="font-size: small;" class="bi bi-pencil"></i>
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'pago_documentos_corregir' xPago.id xPago.forma_id %}">
+                                        <i style="font-size: small;" class="bi bi-pencil"></i>
+                                    </a>
+                                {% endif %}
+
+                               
+                                <a href="{% url 'pago_reversar' xPago.id %}" title="Reversar pago"> &nbsp;
+                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                </a>
+                            </td>
+                       
+
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</main><!-- End #main -->
+
+<button type="button" id="boton_modal" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#miModal"
+hidden>
+Extra Large Moda
+</button>
+<!-- Modal -->
+<div class="modal fade" id="miModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" style="color:#012970">Seguimiento del Documento</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <h6 id="t"></h6>
+        </div>
+        <div class="modal-footer">
+          <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
+        </div>
+      </div>
+    </div>
+  </div><!-- End Extra Large Modal-->
+{% endblock content %}
+
+
+{% block Scripts_Adicionales %}
+<script>
+  $(function () {
+        $("#pagos").DataTable({
+  
+            language: {
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ registros",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "*** No se encontró información ***",
+                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                "sInfoPostFix": "",
+                "sSearch": "Buscar:",
+                "sUrl": "",
+                "sInfoThousands": ",",
+                "sLoadingRecords": "Cargando...",
+                "oPaginate": {
+                    "sFirst": "Primero",
+                    "sLast": "Último",
+                    "sNext": "Siguiente",
+                    "sPrevious": "Anterior"
+                },
+                "oAria": {
+                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                },
+                "buttons": {
+                    "copy": "Copiar",
+                    "colvis": "Visibilidad"
+                }
+            },
+            "ordering": false,
+            "responsive": true,
+            "lengthChange": true,
+            "autoWidth": true,
+            "pageLength": 50,
+            "scrollX": true,
+            "order": [[1, "desc"]],
+            "columnDefs": [{
+                "targets": [5 ],
+                "orderable": false
+            }]
+        })
+    }) //fin data table
+
+      // selectize
+      $(document).ready(function () {
+        // Activacion
+        var selectizeInstance = $('#cliente').selectize({
+            // sortField: 'text',
+        });
+
+        // Evento click para limpiar el select input
+        var selectizeControl = selectizeInstance[0].selectize;
+        selectizeControl.$control.on('click', function () {
+            selectizeControl.clear();
+        });
+        // Agregar manualmente una flecha al control de Selectize
+        $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+
+    });
+
+
+    // obtener docuemntos
+    function obtener_pagos() {
+        // console.log(document.getElementById('cliente').value)
+        filtros.action = `/calcular_comision/${cliente.value}/${fecha_ini.value}/${fecha_fin.value}/`
+        if (document.getElementById('cliente').value != '') {
+            filtros.submit()
+        }
+    } // fin obtener docuemntos
+
+    
+    function abrir_modal(seguimiento) {
+        document.getElementById('t').innerHTML = seguimiento
+        boton_modal.click();
+    }
+</script>
+{% endblock Scripts_Adicionales %}
+
+   <!-- <tr>
+                            <td align="center" colspan="9"><b>COMISIONES EN DÓLARES</b></td>
+                        </tr> -->
+
+                        <table id="asientosUSD" class="table table-hover table-bordered " style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Documento</th>
+                                    <th>Cliente</th>
+                                    <th>Pagado</th>
+                                    <th>DV</th>
+                                    <th>Tasa</th>
+                                    <th style="width:90px">Base Impo.</th>
+                                    <th style="width:40px">%</th>
+                                    <th style="width:90px">Comision</th>
+                                </tr>
+                            </thead>
+        
+                            <tbody>
+        
+                                {% for xAsiento in xAsientos_bs %}
+                                <tr>
+                                    <td>{{ xAsiento.fecha|date:"d/m/Y" }}</td>
+                                    <td>{{ xAsiento.documento|rellenar }}</td>
+                                    <td>{{ xAsiento.cliente__nombre }}</td>
+                                    <td>{{ xAsiento.pagado|date:"d/m/y" }}</td>
+                                    <td{% if xAsiento.dias_v < 0 %} style="color: red;" {% endif %}>{{ xAsiento.dias_v }}</td>
+                                        <td align="right">{{ xAsiento.tasa }}</td>
+                                        <td align="right">{{ xAsiento.base|darFormato }}</td>
+                                        <td align="right">{{ xAsiento.xPor|darFormato }}</td>
+                                        <td align="right">{{ xAsiento.comision|darFormato }}</td>
+                                </tr>
+                                {% endfor %}
+                                {% if xAsientos_bs %}
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td align="right"><b>Bs. {{ total_bs|darFormato }}</b></td>
+                                </tr>
+                                {% endif %}
+        
+        
+                                
+        
+                                {% for xAsiento2 in xAsientos_usd %}
+                                <tr>
+                                    <td>{{ xAsiento2.fecha|date:"d/m/Y" }}</td>
+                                    <td>{{ xAsiento2.documento|rellenar }}</td>
+                                    <td>{{ xAsiento2.cliente__nombre }}</td>
+                                    <td>{{ xAsiento2.pagado|date:"d/m/y" }}</td>
+                                    <td{% if xAsiento2.dias_v < 0 %} style="color: red;" {% endif %}>{{ xAsiento2.dias_v }}</td>
+                                        <td align="center">-</td>
+                                        <td align="right">{{ xAsiento2.base|darFormato }}</td>
+                                        <td align="right">{{ xAsiento2.xPor|darFormato }}</td>
+                                        <td align="right">{{ xAsiento2.comision|darFormato }}</td>
+                                </tr>
+                                {% endfor %}
+                                {% if xAsientos_usd %}
+                                <!-- <tr>
+                                    <td colspan="8"> </td>
+                                    <td align="right"><b>$ {{ total_usd|darFormato }}</b></td>
+                                </tr> -->
+                                {% endif %}
+                            </tbody>
+        
+        
+                        </table>
