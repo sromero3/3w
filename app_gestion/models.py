@@ -12,6 +12,22 @@ class Control(models.Model):
     def __str__(self):
         return str(self.fecha_control) # que campo va a retornar al llamar el objeto
     
+class Periodo(models.Model):
+    numero_semana = models.CharField(max_length=2, unique=True)
+    ano = models.CharField(max_length=4)
+    desde = models.DateField()
+    hasta = models.DateField()
+    creado = models.DateTimeField(auto_now_add=True, null=False)
+    actualizado = models.DateTimeField(null=False)
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    # condicion = models.ForeignKey(Condicion, on_delete=models.CASCADE)
+  
+    def __str__(self) -> str:
+        return self.numero_semana
+    
+    class Meta:
+        ordering = ["numero_semana"]  
+    
 
 class Tasa(models.Model):
     fecha = models.DateField()

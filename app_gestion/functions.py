@@ -5,6 +5,8 @@ from django.http import HttpResponse
 from django.template.loader import get_template
 from django.db.models import F
 from decimal import Decimal
+from django.db.models import Subquery
+from collections import defaultdict
 
 # Quitar formato a los post
 def quitarFormato(cifra):
@@ -59,20 +61,58 @@ def actualizar_dias_vencido():
     return 
 
 def buscar_fecha_pagado(doc_id):
-    
-     # para campos repetidos
-    xPago_detalles = Pago_detalle.objects.filter(documento_id=doc_id).values('pago__fecha', 'pago__monto', 'documento_id','pago__forma_id','pago__forma__forma','monto_procesar','pago__tasa')
-    if xPago_detalles.exists():
-        for xPago_detalle in xPago_detalles:
+    # Subquery para obtener el último pago__fecha
+    ultimo_pago_subquery = Pago_detalle.objects.filter(
+        documento_id=doc_id
+    ).order_by('-id').values('pago__fecha')[:1]
 
-            return {
-                'fecha': xPago_detalle['pago__fecha'],
-                'en': xPago_detalle['pago__forma_id'],
-                'montoBs': xPago_detalle['pago__monto'],
-                'tasa': xPago_detalle['pago__tasa']
-            }
+    # Ejecutamos la subconsulta
+    resultado = Pago_detalle.objects.filter(documento_id=doc_id).annotate(
+        fecha_ult_pago=Subquery(ultimo_pago_subquery)
+    ).values('fecha_ult_pago').first()
 
-    else:
-        data = {'status': False}
+    if resultado:
+        xFec = resultado['fecha_ult_pago']
+        # print('Su último pago fue el:', xFec)
+        return {'fecha_ult_pago': xFec}
+  
 
+# def buscar_pagos(doc_id):
+
+    # xPago_detalles = Pago_detalle.objects.filter(
+    #     documento_id=doc_id,
+    #     pago__forma_id__in=[1, 4]
+    # ).values('pago__monto', 'pago__tasa')
    
+    # pagos = []
+    # if xPago_detalles.exists():
+    #     for xPago_detalle in xPago_detalles:
+    
+    #         # print("Pagos  -->",x, xPago_detalle['pago_id'],  xPago_detalle['pago__forma_id'], xPago_detalle['pago__tasa'], xPago_detalle['monto_procesar'])            
+    #         pagos.append({
+    #             'pago_monto': xPago_detalle['pago__monto'],
+    #             'tasa': xPago_detalle['pago__tasa']
+    #         })
+   
+    # return pagos
+   
+
+
+
+def buscar_pagos(doc_id):
+    xPago_detalles = Pago_detalle.objects.filter(
+        documento_id=doc_id,
+        pago__forma_id__in=[1, 4]
+    ).values('pago__monto', 'pago__tasa')
+
+    pagos_agrupados = defaultdict(Decimal)
+    for xPago_detalle in xPago_detalles:
+        pagos_agrupados[xPago_detalle['pago__tasa']] += xPago_detalle['pago__monto']
+
+    resultado_ordenado = sorted(pagos_agrupados.items(), key=lambda x: x[0])
+
+    for x in resultado_ordenado:
+        print(x)
+
+    return resultado_ordenado
+

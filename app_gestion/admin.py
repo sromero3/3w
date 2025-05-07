@@ -22,8 +22,8 @@ class VendedorEnAmind(admin.ModelAdmin):
 class DocumentoEnAmind(admin.ModelAdmin):
     list_display = ("id", "numero")
 
-
-
+class PeriodoEnAmind(admin.ModelAdmin):
+    list_display = ("id", "numero_semana")
 
 admin.site.register(Dia, DiaEnAmind)
 admin.site.register(Cliente, ClienteEnAmind)
@@ -31,4 +31,5 @@ admin.site.register(Ciudad, CiudadEnAmind)
 admin.site.register(Iva, IvaEnAmind)
 admin.site.register(Vendedor, VendedorEnAmind)
 admin.site.register(Documento, DocumentoEnAmind)
+admin.site.register(Periodo, PeriodoEnAmind)
 

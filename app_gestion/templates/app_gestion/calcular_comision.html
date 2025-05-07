@@ -15,13 +15,42 @@ M1 | Calcular comisiones
                 <h5 class="card-title">Calcular comisiones<a href="{% url 'inicio' %}" class="float-end"><i
                             class="bi bi-house-door" title='Cerrar'></i></a></h5>
 
-                <form id="filtros" action="" method="post" class="mb-4">
+                <form id="carlcular_comision" action="" method="post" class="mb-4">
                     {% csrf_token %}
                     <div class="row">
+
+                        <div class="col-3" style="margin-bottom: 12px;">
+                            <span class="titulos">Período</span>
+                            <select name="periodo" id="periodo" class="form-control custom-select d-flex alto" required
+                                onChange="obtener_comisiones()">
+                                <option value="0" selected></option>
+                                {% for xPeriodo in xPeriodos %}
+                                <option value="{{ xPeriodo.id }}" data-desde="{{ xPeriodo.desde |date:'Y-m-d' }}"
+                                    data-hasta="{{ xPeriodo.hasta |date:'Y-m-d' }}" {% if xPeriodo.id == xId %} selected
+                                    {% endif %}>
+                                    {{ xPeriodo.numero_semana }} - {{ xPeriodo.desde |date:"d/m/y" }} - {{xPeriodo.hasta |date:"d/m/y" }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <span class="titulos">
+                                Desde</span>
+                            <input type="date" id="fecha_ini" name="fecha_ini" value="{{xFecha_ini}}"
+                                class="form-control alto" readonly />
+                        </div>
+                        <div class="col-md-3">
+                            <span class=" titulos">
+                                Hasta</span>
+                            <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}"
+                                class="form-control alto" readonly />
+                        </div>
+
                         <div class="col-3" style="margin-bottom: 12px;">
                             <span class="titulos">
                                 Vendedor</span>
-                            <select name="vendedor" id="vendedor" onChange="obtener_estado_cuenta()">
+                            <select name="vendedor" id="vendedor" onChange="obtener_comisiones()">
                                 <option value="0" selected></option>
                                 {% for xVendedor in xVendedores %}
                                 <option value={{xVendedor.id}} {% if xVendedor.id == xId %} selected {%endif %}>
@@ -29,117 +58,57 @@ M1 | Calcular comisiones
                                 </option>
                                 {% endfor %}
                             </select>
-
-                        </div>
-                        <div class="col-md-3">
-                            <span class="titulos">
-                                Desde</span>
-                            <input type="date" id="fecha_ini" name="fecha_ini" value="{{xFecha_ini}}"
-                                class="form-control alto" onChange="obtener_estado_cuenta()" />
-                        </div>
-                        <div class="col-md-3">
-                            <span class=" titulos">
-                                Hasta</span>
-                            <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}"
-                                class="form-control alto" onChange="obtener_estado_cuenta()" />
-                        </div>
-                        <div class="col-md-3">
-                            <span class=" titulos">
-                                Procentaje</span>
-                            <input id="porcentaje" name="porcentaje" value="{{xPorcentaje}}"
-                                class="form-control input-numero alto" onChange="obtener_estado_cuenta()" />
                         </div>
 
                     </div>
+
+                    <div align="center"><b>COMISIONES EN BOLIVARES</b></div>
+                    <table id="asientosBs" class="table table-hover table-bordered " style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Documento</th>
+                                <th>Cliente</th>
+                                <th>Pagado</th>
+                                <th>DV</th>
+                                <th>Tasa</th>
+                                <th style="width:90px">Base Impo.</th>
+                                <th style="width:40px">%</th>
+                                <th style="width:90px">Comision</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="tabla_xAsientos_bs">
+                        </tbody>
+                    </table>
+
+                    <div align="center"><b>COMISIONES EN DOLARES</b></div>
+                    <table id="asientosUSD" class="table table-hover table-bordered " style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Documento</th>
+                                <th>Cliente</th>
+                                <th>Pagado</th>
+                                <th>DV</th>
+                                <th>Tasa</th>
+                                <th style="width:90px">Base Impo.</th>
+                                <th style="width:40px">%</th>
+                                <th style="width:90px">Comision</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="tabla_xAsientos_USD">
+                        </tbody>
+                    </table>
+
+                    <div class="text-center">
+                        <button type="submit" id="guardar" class="btn btn-primary"
+                            onclick="validar(event)">Guardar</button>
+                        <button type="button" class="btn btn-secondary"
+                            onclick="javascript:history.back()">Regresar</button>
+                    </div>
                 </form>
-                <div align="center" ><b>COMISIONES EN BOLIVARES</b></div>
-                <table id="asientosBs" class="table table-hover table-bordered " style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Documento</th>
-                            <th>Cliente</th>
-                            <th>Pagado</th>
-                            <th>DV</th>
-                            <th>Tasa</th>
-                            <th style="width:90px">Base Impo.</th>
-                            <th style="width:40px">%</th>
-                            <th style="width:90px">Comision</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {% for xAsiento in xAsientos_bs %}
-                        <tr>
-                            <td>{{ xAsiento.fecha|date:"d/m/Y" }}</td>
-                            <td>{{ xAsiento.documento|rellenar }}</td>
-                            <td>{{ xAsiento.cliente__nombre }}</td>
-                            <td>{{ xAsiento.pagado|date:"d/m/y" }}</td>
-                            <td{% if xAsiento.dias_v < 0 %} style="color: red;" {% endif %}>{{ xAsiento.dias_v }}</td>
-                                <td align="right">{{ xAsiento.tasa }}</td>
-                                <td align="right">{{ xAsiento.base|darFormato }}</td>
-                                <td align="right">{{ xAsiento.xPor|darFormato }}</td>
-                                <td align="right">{{ xAsiento.comision|darFormato }}</td>
-                        </tr>
-                        {% endfor %}
-                        <tr>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td align="right"><b>Bs. {{ total_bs|darFormato }}</b></td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <div align="center" ><b>COMISIONES EN DOLARES</b></div>
-                <table id="asientosUSD" class="table table-hover table-bordered " style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Documento</th>
-                            <th>Cliente</th>
-                            <th>Pagado</th>
-                            <th>DV</th>
-                            <th>Tasa</th>
-                            <th style="width:90px">Base Impo.</th>
-                            <th style="width:40px">%</th>
-                            <th style="width:90px">Comision</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {% for xAsiento2 in xAsientos_usd %}
-                        <tr>
-                            <td>{{ xAsiento2.fecha|date:"d/m/Y" }}</td>
-                            <td>{{ xAsiento2.documento|rellenar }}</td>
-                            <td>{{ xAsiento2.cliente__nombre }}</td>
-                            <td>{{ xAsiento2.pagado|date:"d/m/y" }}</td>
-                            <td{% if xAsiento2.dias_v < 0 %} style="color: red;" {% endif %}>{{ xAsiento2.dias_v }}</td>
-                                <td align="center">-</td>
-                                <td align="right">{{ xAsiento2.base|darFormato }}</td>
-                                <td align="right">{{ xAsiento2.xPor|darFormato }}</td>
-                                <td align="right">{{ xAsiento2.comision|darFormato }}</td>
-                        </tr>
-                        {% endfor %}
-                        <tr>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td align="right"><b>Bs. {{ total_usd|darFormato }}</b></td>
-                        </tr>
-                    </tbody>
-                </table>
-
 
             </div>
         </div>
@@ -149,105 +118,44 @@ M1 | Calcular comisiones
 {% block Scripts_Adicionales %}
 <script>
 
+    // formatear entrada
+    function checkPattern(e) {
+        $("#" + e).on({
+            "focus": function (event) {
+                $(event.target).select()
+            },
+            "keyup": function (event) {
+                $(event.target).val(function (index, value) {
+                    return value.replace(/\D/g, "")
+                        .replace(/([0-9])([0-9]{2})$/, '$1,$2')
+                        .replace(/\B(?=(\d{3})+(?!\d)\.?)/g, ".")
+                })
+            }
+        })
+    } // fin formatear entrada
+
     $(document).ready(function () {
-        $(function () {
-            $("#asientosUSD").DataTable({
 
-                language: {
-                    "sProcessing": "Procesando...",
-                    "sLengthMenu": "Mostrar _MENU_ registros",
-                    "sZeroRecords": "No se encontraron resultados",
-                    "sEmptyTable": "*** No se encontró información ***",
-                    "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                    "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-                    "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                    "sInfoPostFix": "",
-                    "sSearch": "Buscar:",
-                    "sUrl": "",
-                    "sInfoThousands": ",",
-                    "sLoadingRecords": "Cargando...",
-                    "oPaginate": {
-                        "sFirst": "Primero",
-                        "sLast": "Último",
-                        "sNext": "Siguiente",
-                        "sPrevious": "Anterior"
-                    },
-                    "oAria": {
-                        "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                        "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                    },
-                    "buttons": {
-                        "copy": "Copiar",
-                        "colvis": "Visibilidad"
-                    }
-                },
-                "info": false,
-                "ordering": false,
-                "paging": false,
-                "responsive": true,
-                "lengthChange": true,
-                "autoWidth": true,
-                "searching": false,
-                // "pageLength": 50,
-                "scrollX": true
-                // "order": [[0,"asc"]],
-                // "columnDefs": [{
-                //     "targets": [1, 2, 3, 4, 5],
-                //     "orderable": false
-                // }]
-            })
+        new DataTable('#asientosBs', {
+            bInfo: false,
+            ordering: false,
+            order: [[1, 'asc']],
+            paging: false,
+            searching: false,
+        })
 
-            $("#asientosBs").DataTable({
-
-language: {
-    "sProcessing": "Procesando...",
-    "sLengthMenu": "Mostrar _MENU_ registros",
-    "sZeroRecords": "No se encontraron resultados",
-    "sEmptyTable": "*** No se encontró información ***",
-    "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-    "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-    "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-    "sInfoPostFix": "",
-    "sSearch": "Buscar:",
-    "sUrl": "",
-    "sInfoThousands": ",",
-    "sLoadingRecords": "Cargando...",
-    "oPaginate": {
-        "sFirst": "Primero",
-        "sLast": "Último",
-        "sNext": "Siguiente",
-        "sPrevious": "Anterior"
-    },
-    "oAria": {
-        "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-        "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-    },
-    "buttons": {
-        "copy": "Copiar",
-        "colvis": "Visibilidad"
-    }
-},
-"info": false,
-"ordering": false,
-"paging": false,
-"responsive": true,
-"lengthChange": true,
-"autoWidth": true,
-"searching": false,
-// "pageLength": 50,
-"scrollX": true
-// "order": [[0,"asc"]],
-// "columnDefs": [{
-//     "targets": [1, 2, 3, 4, 5],
-//     "orderable": false
-// }]
-})
-        }) // fin tabla
+        new DataTable('#asientosUSD', {
+            bInfo: false,
+            ordering: false,
+            order: [[1, 'asc']],
+            paging: false,
+            searching: false,
+        })
 
         //  da tiempo para que carguen los estilos
         setTimeout(() => {
             document.getElementById('data-section').style.opacity = 1;
-        }, 200);
+        }, 150);
 
         // selectize
         var selectizeInstance = $('#vendedor').selectize({});
@@ -261,16 +169,120 @@ language: {
 
     }); // fin document.ready
 
-    // obtener asientos
-    function obtener_estado_cuenta() {
-        // let vendedor_id = document.getElementById("vendedor").dataset.id_cli
+    // obtener comisiones
+    function obtener_comisiones() {
 
-        filtros.action = `/calcular_comision/${vendedor.value}/${fecha_ini.value}/${fecha_fin.value}/${porcentaje.value}/`
+        const var_periodo = document.getElementById("periodo");
+        const selectedOption = var_periodo.options[var_periodo.selectedIndex];
+        document.getElementById("fecha_ini").value = selectedOption.getAttribute("data-desde");
+        document.getElementById("fecha_fin").value = selectedOption.getAttribute("data-hasta");
 
-        if (document.getElementById('vendedor').value != '') {
-            filtros.submit()
+        const vendedor = document.getElementById("vendedor");
+        if (vendedor.value == 0) {
+            return;
         }
-    } // fin obtener asientos    
+
+        const periodo_id = var_periodo.value;
+        const fecha_ini = document.getElementById("fecha_ini").value;
+        const fecha_fin = document.getElementById("fecha_fin").value;
+        const vendedor_id = vendedor.value;
+
+        $.ajax({
+            url: "{% url 'obtener_comisiones_bs' %}",
+            type: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                'periodo_id': periodo_id,
+                'fecha_ini': fecha_ini,
+                'fecha_fin': fecha_fin,
+                'vendedor_id': vendedor_id
+            },
+            datatype: 'json',
+            success: function (data) {
+
+                // creando tabla de bs
+                let html = "";
+                let total_bs = 0
+                $.each(data, function (key, item) {
+
+
+                    let dias = item.dias_v * 1
+                    if (dias < - 15) {
+                        xPorcentaje = 4 / 2
+                        } else {
+                        xPorcentaje = 4
+                    }
+                    
+                    let comision_predeterminada = item.base * xPorcentaje / 100;
+                    xPorcentaje = darFormato(xPorcentaje)
+                    comision_predeterminada = darFormato(comision_predeterminada);
+                    let tmp_base = darFormato(item.base);
+
+                    html +=
+                        `<tr>
+                            <td style="width:150px">${item.fecha_doc}</td>
+                            <td style="width:150px">${item.documento}</td>
+                            <td style="width:500px">${item.cliente__nombre}</td>
+                            <td style="width:150px">${item.pagado}</td>
+                            <td style="width:150px">${item.dias_v}</td>
+                            <td style="width:150px">${item.tasa}</td>
+                            <td style="width:150px">${tmp_base}</td>
+                            <td style="width:150px">
+                                <input id="xPor-${item.id}" value="${xPorcentaje}" 
+                                    onChange="aplicar_porcentaje(${item.id})"
+                                    name="xPor-${item.id}" data-base_impo="${tmp_base}"  
+                                    class="form-control input-numero alto">
+                            </td>
+                            <td style="width:150px">
+                                <input id="xComi-${item.id}" value="${comision_predeterminada}" 
+                                    name="xComi-${item.id}" 
+                                    class="form-control input-numero alto input-comision" readonly>
+                            </td>
+                        </tr>`
+                    total_bs += parseFloat(quitarFormato(comision_predeterminada))
+                });
+                const total_bsF = darFormato(total_bs)
+                html +=
+                    `<tr>
+                        <td colspan="8">
+                        </td>
+                        <td>
+                            <input id="total_comi_bs" class="form-control input-numero alto" 
+                            value=${total_bsF} readonly>
+                         </td>
+                    </tr>`
+
+                // Pintando la tabla
+                $('#tabla_xAsientos_bs').html(html);
+                $.each(data, function (key, item) {
+                    checkPattern(`xPor-${item.id}`);
+                });
+            },
+            error: function (xhr, status, error) {
+                console.log(xhr.responseText);
+            }
+        });
+
+    } // fin obtener_comisiones
+
+    // funcion para aplicar_porcentaje 
+    function aplicar_porcentaje(id) {
+        const fila = document.getElementById('xPor-' + id)
+        FormatearNumerosInputs(document.getElementById('xPor-' + id));
+        const xBase = quitarFormato(fila.dataset.base_impo) * 1;
+        const xPor = quitarFormato(fila.value) * 1;
+        const nueva_comision = xBase * xPor / 100
+        document.getElementById('xComi-' + id).value = darFormato(nueva_comision)
+
+        let acumulador = 0;
+        document.querySelectorAll('.input-comision').forEach(input => {
+            const valor = input.value.trim();
+            if (valor) {
+                acumulador += quitarFormato(valor) * 1;
+            }
+        });
+        document.getElementById('total_comi_bs').value = darFormato(acumulador)
+    } // aplicar_porcentaje 
 
 </script>
 {% endblock Scripts_Adicionales %}
