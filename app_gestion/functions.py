@@ -7,6 +7,7 @@ from django.db.models import F
 from decimal import Decimal
 from django.db.models import Subquery
 from collections import defaultdict
+from django.db.models import Sum
 
 # Quitar formato a los post
 def quitarFormato(cifra):
@@ -77,42 +78,34 @@ def buscar_fecha_pagado(doc_id):
         return {'fecha_ult_pago': xFec}
   
 
-# def buscar_pagos(doc_id):
-
-    # xPago_detalles = Pago_detalle.objects.filter(
-    #     documento_id=doc_id,
-    #     pago__forma_id__in=[1, 4]
-    # ).values('pago__monto', 'pago__tasa')
-   
-    # pagos = []
-    # if xPago_detalles.exists():
-    #     for xPago_detalle in xPago_detalles:
-    
-    #         # print("Pagos  -->",x, xPago_detalle['pago_id'],  xPago_detalle['pago__forma_id'], xPago_detalle['pago__tasa'], xPago_detalle['monto_procesar'])            
-    #         pagos.append({
-    #             'pago_monto': xPago_detalle['pago__monto'],
-    #             'tasa': xPago_detalle['pago__tasa']
-    #         })
-   
-    # return pagos
-   
-
-
-
 def buscar_pagos(doc_id):
     xPago_detalles = Pago_detalle.objects.filter(
         documento_id=doc_id,
         pago__forma_id__in=[1, 4]
-    ).values('pago__monto', 'pago__tasa')
+    ).values('monto_procesar', 'pago__tasa')
 
     pagos_agrupados = defaultdict(Decimal)
     for xPago_detalle in xPago_detalles:
-        pagos_agrupados[xPago_detalle['pago__tasa']] += xPago_detalle['pago__monto']
+        # print("Pagos  -->", xPago_detalle['monto_procesar'])
+        pagos_agrupados[xPago_detalle['pago__tasa']] += (xPago_detalle['monto_procesar']* xPago_detalle['pago__tasa'])
 
     resultado_ordenado = sorted(pagos_agrupados.items(), key=lambda x: x[0])
-
-    for x in resultado_ordenado:
-        print(x)
-
+    # for x in resultado_ordenado:
+    #     print(x)
     return resultado_ordenado
+
+
+def buscar_pagos2(doc_id):
+    pagos_agrupados = (
+        Pago_detalle.objects.filter(
+            documento_id=doc_id,
+            pago__forma_id__in=[2, 3, 6]
+        )
+        .values('documento_id')
+        .annotate(total_monto=Sum('monto_procesar'))
+    )
+    return list(pagos_agrupados)
+
+
+
 

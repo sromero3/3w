@@ -397,12 +397,12 @@ M1 | Documentos crud
 
             if (document.getElementById('credito')) {
                 if (document.getElementById('condicion').value == 2) {
-                    if (parseInt(document.getElementById('credito').value) <= 15) {
+                    if (parseInt(document.getElementById('credito').value) <= 8) {
                         document.getElementById('condicion').focus();
                         Swal.fire({
                             position: 'center',
                             icon: 'error',
-                            title: 'El Documento no puede tener Condición crédito, ya que vence en menos de 15 días.' + ' Verifique...!',
+                            title: 'El Documento no puede tener Condición crédito, ya que vence en menos de 8 días.' + ' Verifique...!',
                             showConfirmButton: true,
                             //timer: 2500
                         })
@@ -410,12 +410,12 @@ M1 | Documentos crud
                     }
                 }
                 if (document.getElementById('condicion').value == 1) {
-                    if (parseInt(document.getElementById('credito').value) > 15) {
+                    if (parseInt(document.getElementById('credito').value) > 8) {
                         document.getElementById('condicion').focus();
                         Swal.fire({
                             position: 'center',
                             icon: 'error',
-                            title: 'El Documento no puede tener Condición contado, ya que vence en más de 15 días.' + ' Verifique...!',
+                            title: 'El Documento no puede tener Condición contado, ya que vence en más de 8 días.' + ' Verifique...!',
                             showConfirmButton: true,
                             //timer: 2500
                         })
@@ -513,7 +513,7 @@ M1 | Documentos crud
             document.getElementById('credito').value = diferenciaEnDias
 
             // llenar campo condicion
-            if (diferenciaEnDias <= 15) {
+            if (diferenciaEnDias <= 8) {
                 document.getElementById('condicion').value = 1 //Contado
             } else {
                 document.getElementById('condicion').value = 2

@@ -203,6 +203,7 @@ M1 | Calcular comisiones
                 // creando tabla de bs
                 let html = "";
                 let total_bs = 0
+                let total_bsB = 0
                 $.each(data, function (key, item) {
 
 
@@ -225,10 +226,10 @@ M1 | Calcular comisiones
                             <td style="width:500px">${item.cliente__nombre}</td>
                             <td style="width:150px">${item.pagado}</td>
                             <td style="width:150px">${item.dias_v}</td>
-                            <td style="width:150px">${item.tasa}</td>
-                            <td style="width:150px">${tmp_base}</td>
+                            <td style="width:150px; text-align: right;">${item.tasa}</td>
+                            <td style="width:150px; text-align: right;">${tmp_base}</td>
                             <td style="width:150px">
-                                <input id="xPor-${item.id}" value="${xPorcentaje}" 
+                                <input id="bs-xPor-${item.id}" value="${xPorcentaje}" 
                                     onChange="aplicar_porcentaje(${item.id})"
                                     name="xPor-${item.id}" data-base_impo="${tmp_base}"  
                                     class="form-control input-numero alto">
@@ -239,13 +240,25 @@ M1 | Calcular comisiones
                                     class="form-control input-numero alto input-comision" readonly>
                             </td>
                         </tr>`
+                    total_bsB += parseFloat(quitarFormato(tmp_base))
                     total_bs += parseFloat(quitarFormato(comision_predeterminada))
+                    
                 });
+                const total_bsFB = darFormato(total_bsB)
                 const total_bsF = darFormato(total_bs)
                 html +=
                     `<tr>
-                        <td colspan="8">
+                        <td colspan="6">
                         </td>
+                        
+                        <td>
+                            <input class="form-control input-numero alto" 
+                            value=${total_bsFB} readonly>
+                        </td>
+
+                         <td>
+                        </td>
+
                         <td>
                             <input id="total_comi_bs" class="form-control input-numero alto" 
                             value=${total_bsF} readonly>
@@ -262,13 +275,14 @@ M1 | Calcular comisiones
                 console.log(xhr.responseText);
             }
         });
-
+        obtener_comisiones2()
     } // fin obtener_comisiones
 
     // funcion para aplicar_porcentaje 
     function aplicar_porcentaje(id) {
-        const fila = document.getElementById('xPor-' + id)
-        FormatearNumerosInputs(document.getElementById('xPor-' + id));
+      
+        const fila = document.getElementById('bs-xPor-' + id)
+        FormatearNumerosInputs(document.getElementById('bs-xPor-' + id));
         const xBase = quitarFormato(fila.dataset.base_impo) * 1;
         const xPor = quitarFormato(fila.value) * 1;
         const nueva_comision = xBase * xPor / 100
@@ -284,5 +298,127 @@ M1 | Calcular comisiones
         document.getElementById('total_comi_bs').value = darFormato(acumulador)
     } // aplicar_porcentaje 
 
+    function obtener_comisiones2(){
+        const var_periodo = document.getElementById("periodo");
+        const selectedOption = var_periodo.options[var_periodo.selectedIndex];
+        document.getElementById("fecha_ini").value = selectedOption.getAttribute("data-desde");
+        document.getElementById("fecha_fin").value = selectedOption.getAttribute("data-hasta");
+
+        const vendedor = document.getElementById("vendedor");
+        if (vendedor.value == 0) {
+            return;
+        }
+
+        const periodo_id = var_periodo.value;
+        const fecha_ini = document.getElementById("fecha_ini").value;
+        const fecha_fin = document.getElementById("fecha_fin").value;
+        const vendedor_id = vendedor.value;
+
+        $.ajax({
+            url: "{% url 'obtener_comisiones_usd' %}",
+            type: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                'periodo_id': periodo_id,
+                'fecha_ini': fecha_ini,
+                'fecha_fin': fecha_fin,
+                'vendedor_id': vendedor_id
+            },
+            datatype: 'json',
+            success: function (data2) {
+
+                // creando tabla de usd
+                let html2 = "";
+                let total_usd = 0
+                let total_usdB = 0
+                $.each(data2, function (key, item) {
+
+
+                    let dias = item.dias_v * 1
+                    if (dias < - 15) {
+                        xPorcentaje = 4 / 2
+                        } else {
+                        xPorcentaje = 4
+                    }
+                    
+                    let comision_predeterminada = item.base * xPorcentaje / 100;
+                    xPorcentaje = darFormato(xPorcentaje)
+                    comision_predeterminada = darFormato(comision_predeterminada);
+                    let tmp_base = darFormato(item.base);
+
+                    html2 +=
+                        `<tr>
+                            <td style="width:150px">${item.fecha_doc}</td>
+                            <td style="width:150px">${item.documento}</td>
+                            <td style="width:500px">${item.cliente__nombre}</td>
+                            <td style="width:150px">${item.pagado}</td>
+                            <td style="width:150px">${item.dias_v}</td>
+                            <td style="width:150px; text-align: right;">${item.tasa}</td>
+                            <td style="width:150px; text-align: right;">${tmp_base}</td>
+                            <td style="width:150px">
+                                <input id="xPor-${item.id}" value="${xPorcentaje}" 
+                                    onChange="aplicar_porcentaje2(${item.id})"
+                                    name="xPor-${item.id}" data-base_impo="${tmp_base}"  
+                                    class="form-control input-numero alto">
+                            </td>
+                            <td style="width:150px">
+                                <input id="xComi-${item.id}" value="${comision_predeterminada}" 
+                                    name="xComi-${item.id}" 
+                                    class="form-control input-numero alto input-comision2" readonly>
+                            </td>
+                        </tr>`
+                    total_usdB += parseFloat(quitarFormato(tmp_base))
+                    total_usd += parseFloat(quitarFormato(comision_predeterminada))
+                });
+                const total_usdFB = darFormato(total_usdB)
+                const total_usdF = darFormato(total_usd)
+                html2 +=
+                    `<tr>
+                        <td colspan="6">
+                        </td>
+                        
+                        <td>
+                            <input class="form-control input-numero alto" 
+                            value=${total_usdFB} readonly>
+                        </td>
+
+                         <td>
+                        </td>
+
+                        <td>
+                            <input id="total_comi_usd" class="form-control input-numero alto" 
+                            value=${total_usdF} readonly>
+                         </td>
+                    </tr>`
+
+                // Pintando la tabla
+                $('#tabla_xAsientos_USD').html(html2);
+                $.each(data2, function (key, item) {
+                    checkPattern(`xPor-${item.id}`);
+                });
+            },
+            error: function (xhr, status, error) {
+                console.log(xhr.responseText);
+            }
+        });
+    }
+
+    // funcion para aplicar_porcentaje 
+    function aplicar_porcentaje2(id) {
+        const fila = document.getElementById('xPor-' + id)
+        FormatearNumerosInputs(document.getElementById('xPor-' + id));
+        const xBase = quitarFormato(fila.dataset.base_impo) * 1;
+        const xPor = quitarFormato(fila.value) * 1;
+        const nueva_comision = xBase * xPor / 100
+        document.getElementById('xComi-' + id).value = darFormato(nueva_comision)
+        let acumulador2 = 0;
+        document.querySelectorAll('.input-comision2').forEach(input => {
+            const valor = input.value.trim();
+            if (valor) {
+                acumulador2 += quitarFormato(valor) * 1;
+            }
+        });
+        document.getElementById('total_comi_usd').value = darFormato(acumulador2)
+    } // aplicar_porcentaje 
 </script>
 {% endblock Scripts_Adicionales %}

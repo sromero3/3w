@@ -2176,51 +2176,6 @@ def Pago_reversarView(request, id):
     }
     return render(request, 'app_gestion/pago_reversar.html', context)
 
-# @login_required
-# def Calcular_comisionView(request, xCliente, fecha_ini, fecha_fin):
-#     xUsuario = request.user
-#     if xCliente != 0:
-#          xCliente_seleccionado = xCliente
-#     else:
-#         xCliente_seleccionado   = 0
-    
-#     xClientes = Cliente.objects.all()
-    
-#     if request.method == 'GET':
-#         # print("--------- Parametros recibidos GET ----------") 
-#         fecha_ini  = date.today() - timedelta(days=90)
-#         fecha_fin  = date.today() 
-#         xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
-#         xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
-#     else:  
-#         # print("--------- Parametros recibidos POST ----------")
-#         xFecha_ini = fecha_ini
-#         xFecha_fin = fecha_fin 
-    
-#     qPagos=Pago.objects.filter(fecha__range=(fecha_ini, fecha_fin)).values('id','cliente_id','referencia','fecha','monto','monto_procesar','forma__forma', 'tasa','cliente__nombre','observacion', 'seguimiento', 'forma_id','cliente__vendedor_id'
-#     ,'tipo','creado').order_by('-fecha', '-creado')
-
-    
-    
-#     if xCliente == 0 :
-#     #    xPagos=qPagos.all()
-#        xPagos=qPagos.filter(cliente__vendedor_id=9)
-#        print(qPagos)
-#     else:
-#         xPagos=qPagos.filter(cliente__vendedor_id=9)
-
-#     context = {
-#         'xUsuario': xUsuario,
-#         'xPagos': xPagos,
-#         'xClientes': xClientes,
-#         'xCliente_seleccionado': int(xCliente_seleccionado),
-#         'xFecha_ini': xFecha_ini,
-#         'xFecha_fin': xFecha_fin,
-#      }
- 
-#     return render(request, 'app_gestion/calcular_comision.html', context)
-
-
 
 @login_required
 def calcular_comisionView(request):
@@ -2245,27 +2200,29 @@ def calcular_comisionView(request):
 def obtener_comisionesView(request):
     xFecha_ini_comprable = datetime.strptime(request.POST.get('fecha_ini'), '%Y-%m-%d').date()
     xFecha_fin_comprable = datetime.strptime(request.POST.get('fecha_fin'), '%Y-%m-%d').date()
+    
     # 1) Documentos con saldo 0 
     qDocumentos = Documento.objects.filter(cliente__vendedor=request.POST.get('vendedor_id')).annotate(saldo = F('monto') - F('abonado')).filter(saldo__lte=1).values('id','fecha','numero','cliente__nombre','monto','saldo','dias_v').order_by('fecha','numero')
   
     data_lista_bs = []  
   
     for xAsiento in qDocumentos:
-        # buscar fecha_ult_pago
+        # busca la fecha_ult_pago
         resultado = buscar_fecha_pagado(xAsiento["id"])
 
-        # Saltarlo si no hay fecha
+        # Salta si no hay fecha
         if not resultado or not resultado['fecha_ult_pago']:
             continue  
 
-        # 2) Exluir los fuera del rango
+        # 2) Salata los fuera del rango
         if resultado['fecha_ult_pago'] < xFecha_ini_comprable or resultado['fecha_ult_pago'] > xFecha_fin_comprable:
             continue
 
-        # if xAsiento['numero'] != '00004647':
+        # if xAsiento["id"] != 979:
         #     continue
 
-        print("Doc en rango:", xAsiento['numero'], resultado['fecha_ult_pago'] )
+        # print("Doc en rango:", xAsiento['numero']," pagado el: ", resultado['fecha_ult_pago'] )
+        
         # Buscar sus pagos
         pagos = buscar_pagos(xAsiento["id"]) 
 
@@ -2276,16 +2233,56 @@ def obtener_comisionesView(request):
             xAsiento["en"] = 'Bs'
             xAsiento["tasa"] = pago[0]
             xAsiento["base"] = pago[1]
-            print("fila a agregar: ", xAsiento["tasa"], xAsiento["base"])
+            # print("fila a agregar: ", xAsiento["tasa"], xAsiento["base"])
             data_lista_bs.append(xAsiento.copy())
 
         data = list(data_lista_bs)
+
+
     return JsonResponse(data, safe=False)
 
 
 
-@login_required 2025-05-05 10:23:17.784712-04
+@login_required 
 def obtener_comisiones2View(request):
-   
-    pass
+    xFecha_ini_comprable = datetime.strptime(request.POST.get('fecha_ini'), '%Y-%m-%d').date()
+    xFecha_fin_comprable = datetime.strptime(request.POST.get('fecha_fin'), '%Y-%m-%d').date()
+    
+    # 1) Documentos con saldo 0 
+    qDocumentos = Documento.objects.filter(cliente__vendedor=request.POST.get('vendedor_id')).annotate(saldo = F('monto') - F('abonado')).filter(saldo__lte=1).values('id','fecha','numero','cliente__nombre','monto','saldo','dias_v').order_by('fecha','numero')
+  
+    data_lista_usd = []  
+  
+    for xAsiento in qDocumentos:
+        # busca la fecha_ult_pago
+        resultado = buscar_fecha_pagado(xAsiento["id"])
+
+        # Salta si no hay fecha
+        if not resultado or not resultado['fecha_ult_pago']:
+            continue  
+
+        # 2) Salata los fuera del rango
+        if resultado['fecha_ult_pago'] < xFecha_ini_comprable or resultado['fecha_ult_pago'] > xFecha_fin_comprable:
+            continue
+        # if xAsiento['numero'] != '00026071':
+        #     continue
+        #print("Doc en rango:", xAsiento['numero']," pagado el: ", resultado['fecha_ult_pago'] )
+        
+        # Buscar sus pagos
+        pagos2 = buscar_pagos2(xAsiento["id"]) 
+        
+        for pago2 in pagos2:
+            xAsiento["fecha_doc"] = xAsiento['fecha']
+            xAsiento["documento"] = xAsiento['numero']
+            xAsiento["pagado"] = resultado['fecha_ult_pago']
+            xAsiento["en"] = 'Bs'
+            xAsiento["tasa"] = '-'
+            xAsiento["base"] = pago2['total_monto']  
+            
+            data_lista_usd.append(xAsiento.copy())  # Muy importante para evitar referencias al mismo dict
+
+        data2 = list(data_lista_usd)
+
+    return JsonResponse(data2, safe=False)
+    
 
