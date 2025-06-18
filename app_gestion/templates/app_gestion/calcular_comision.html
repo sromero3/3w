@@ -12,8 +12,8 @@ M1 | Calcular comisiones
         <div class="card" id="data-section" style="opacity: 0;">
             <div class="card-body">
                 <input id="xDesde" value="{{xDesde}}" hidden />
-                <h5 class="card-title">Calcular comisiones<a href="{% url 'inicio' %}" class="float-end"><i
-                            class="bi bi-house-door" title='Cerrar'></i></a></h5>
+                <h5 class="card-title">Calcular comisiones<a href="{% url 'comisiones_calculadas' 0  %}" class="float-end"><i
+                            class="bi bi-arrow-return-left" title='Regresar'></i></a></h5>
 
                 <form id="calcular_comision" action="" method="post" class="mb-4">
                     {% csrf_token %}
@@ -67,8 +67,8 @@ M1 | Calcular comisiones
                         <thead>
                             <tr>
                                 <th>Fecha</th>
-                                <th>Documento</th>
-                                <th>Cliente</th>
+                                <th style="width:90px">Documento</th>
+                                <th style="width:700px">Cliente</th>
                                 <th>Pagado</th>
                                 <th>DV</th>
                                 <th>Tasa</th>
@@ -89,8 +89,8 @@ M1 | Calcular comisiones
                         <thead>
                             <tr>
                                 <th>Fecha</th>
-                                <th>Documento</th>
-                                <th>Cliente</th>
+                                <th style="width:90px">Documento</th>
+                                <th style="width:700px">Cliente</th>
                                 <th>Pagado</th>
                                 <th>DV</th>
                                 <th>Tasa</th>
@@ -139,6 +139,12 @@ M1 | Calcular comisiones
 
     $(document).ready(function () {
         new DataTable('#asientosBs', {
+            language: {
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ registros",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "*** No se encontró información ***",
+            },
             bInfo: false,
             ordering: false,
             order: [[1, 'asc']],
@@ -147,6 +153,12 @@ M1 | Calcular comisiones
         })
 
         new DataTable('#asientosUSD', {
+            language: {
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ registros",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "*** No se encontró información ***",
+            },
             bInfo: false,
             ordering: false,
             order: [[1, 'asc']],
@@ -170,6 +182,17 @@ M1 | Calcular comisiones
 
     // obtener comisiones
     function obtener_comisiones() {
+
+        const var_periodo = document.getElementById("periodo");
+        const selectedOption = var_periodo.options[var_periodo.selectedIndex];
+        document.getElementById("fecha_ini").value = selectedOption.getAttribute("data-desde");
+        document.getElementById("fecha_fin").value = selectedOption.getAttribute("data-hasta");
+        const vendedor = document.getElementById("vendedor");
+       
+        const periodo_id = var_periodo.value;
+        const fecha_ini = document.getElementById("fecha_ini").value;
+        const fecha_fin = document.getElementById("fecha_fin").value;
+        const vendedor_id = vendedor.value;
 
         var existe = false
         let campo1 = $('#periodo').val()
@@ -210,16 +233,7 @@ M1 | Calcular comisiones
         } 
 
         //  ahora si buscar las comisiones
-        const var_periodo = document.getElementById("periodo");
-        const selectedOption = var_periodo.options[var_periodo.selectedIndex];
-        document.getElementById("fecha_ini").value = selectedOption.getAttribute("data-desde");
-        document.getElementById("fecha_fin").value = selectedOption.getAttribute("data-hasta");
-        const vendedor = document.getElementById("vendedor");
        
-        const periodo_id = var_periodo.value;
-        const fecha_ini = document.getElementById("fecha_ini").value;
-        const fecha_fin = document.getElementById("fecha_fin").value;
-        const vendedor_id = vendedor.value;
 
         $.ajax({
             url: "{% url 'obtener_comisiones_bs' %}",
@@ -267,11 +281,11 @@ M1 | Calcular comisiones
                             </td>
                             <td style="width:150px;">
                                 <input name="bs-doc-${fila_bs}" value="${item.documento}"
-                                class="form-control sin-bordes" readonly>
+                                class="form-control sin-bordes" readonly style="text-align: center !important;">
                             </td>
                             <td style="width:500px">
-                                <input name="bs-cli-${fila_bs}" value="${item.cliente__nombre}"
-                                class="form-control sin-bordes" readonly>
+                                <input name="bs-cli-${fila_bs}" value="${item.cliente__nombre} "
+                                class="form-control sin-bordes" readonly style="text-align: left !important;">
                              </td>
                             <td style="width:150px; text-align: right;">${fechaPagadoFormateada}</td>
                             <td style="width:50px; text-align: right;">${item.dias_v}</td>
@@ -422,12 +436,12 @@ M1 | Calcular comisiones
                             </td>
                              <td style="width:150px;">
                                 <input name="usd-doc-${fila_usd}" value="${item.documento}"
-                                class="form-control sin-bordes" readonly>
+                                class="form-control sin-bordes" readonly style="text-align: center !important;">
                             </td>
 
                             <td style="width:500px">
                                 <input name="usd-cli-${fila_usd}" value="${item.cliente__nombre}"
-                                class="form-control sin-bordes" readonly>
+                                class="form-control sin-bordes" readonly style="text-align: left !important;">
                             </td>
                             <td style="width:150px; text-align: right;">${fechaPagadoFormateada2}</td>
                             <td style="width:50px; text-align: right;">${item.dias_v}</td>
@@ -603,10 +617,21 @@ M1 | Calcular comisiones
 
 
             // Condirmar
+            if (!document.getElementById('total_comi_bs') && !document.getElementById('total_comi_usd')) {
+                return;
+            }
+ 
             const selectize = $('#vendedor')[0].selectize;
             const valorSeleccionado = selectize.getValue(); // id seleccionado
             const opcion = selectize.options[valorSeleccionado];
             const nombreVendedor = opcion ? opcion.text : '';
+            const p = document.getElementById('periodo').value 
+            if (!nombreVendedor){
+                return
+            }
+            if (p==0){
+                return
+            }
             // let m = document.getElementById('monto_procesar').value
             Swal.fire({
                 title: '¿ Está seguro de guardar las comisiónes ?',

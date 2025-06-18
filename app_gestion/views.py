@@ -2480,11 +2480,13 @@ def validar_comisionView(request):
     # para campos repetidos
     xRegistros = ComisionCabecera.objects.filter(
     periodo_id=request.POST.get('campo1'),
-    vendedor_id=request.POST.get('campo2')
+    vendedor_id=request.POST.get('campo2'),
+    status='Calculado' 
     )
 
     if xRegistros.exists():
-        print("Resgistros encontados: ", xRegistros.count())
+        # print("Resgistros encontados: ", xRegistros.count())
+        pass
     else:
         data = {'status': False}
     
