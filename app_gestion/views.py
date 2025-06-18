@@ -2471,3 +2471,21 @@ def rev_comisionView(request, xComi):
     ComisionDetalle.objects.filter(comision_id=xComi).delete()
 
     return redirect('comisiones_calculadas', 0)
+
+# validar que no existe la comision
+def validar_comisionView(request):
+    data = {'status': True}
+    # print('Dato: ',request.POST.get('campo'))
+   
+    # para campos repetidos
+    xRegistros = ComisionCabecera.objects.filter(
+    periodo_id=request.POST.get('campo1'),
+    vendedor_id=request.POST.get('campo2')
+    )
+
+    if xRegistros.exists():
+        print("Resgistros encontados: ", xRegistros.count())
+    else:
+        data = {'status': False}
+    
+    return JsonResponse(data, safe=False)

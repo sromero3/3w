@@ -171,16 +171,51 @@ M1 | Calcular comisiones
     // obtener comisiones
     function obtener_comisiones() {
 
+        var existe = false
+        let campo1 = $('#periodo').val()
+        let campo2 = $('#vendedor').val()
+ 
+        // si no se ha selecionda perdodo o vendedor no seguimos
+        if (campo1 ==0 || campo2==0) {
+            return;
+        }
+        
+        // validamos que no exista ya una comision
+        $.ajax({
+            url: "{% url 'validar_comision' %}",
+            type: 'POST',
+            async: false,
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                'campo1': campo1,
+                'campo2': campo2,
+            },
+            datatype: 'json',
+            success: function (data) {
+                // console.log('RESULTADO', data.status, typeof data.status)
+                existe = data.status
+            },
+            error: function (xhr, status, error) {
+            }
+        })
+        if (existe) {
+            Swal.fire({
+                position: 'center',
+                icon: 'error',
+                title: 'Ya existe una comision para este vendedor' + ' Verifique...!',
+                showConfirmButton: true,
+                //timer: 2500
+            })
+            return;
+        } 
+
+        //  ahora si buscar las comisiones
         const var_periodo = document.getElementById("periodo");
         const selectedOption = var_periodo.options[var_periodo.selectedIndex];
         document.getElementById("fecha_ini").value = selectedOption.getAttribute("data-desde");
         document.getElementById("fecha_fin").value = selectedOption.getAttribute("data-hasta");
-
         const vendedor = document.getElementById("vendedor");
-        if (vendedor.value == 0) {
-            return;
-        }
-
+       
         const periodo_id = var_periodo.value;
         const fecha_ini = document.getElementById("fecha_ini").value;
         const fecha_fin = document.getElementById("fecha_fin").value;
@@ -300,7 +335,7 @@ M1 | Calcular comisiones
                 });
             },
             error: function (xhr, status, error) {
-                console.log(xhr.responseText);
+                // console.log(xhr.responseText);
             }
         });
         obtener_comisiones2()
@@ -457,7 +492,7 @@ M1 | Calcular comisiones
                 });
             },
             error: function (xhr, status, error) {
-                console.log(xhr.responseText);
+                // console.log(xhr.responseText);
             }
         });
     }
