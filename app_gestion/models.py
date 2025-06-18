@@ -197,7 +197,33 @@ class Cliente(models.Model):
         db_table = "app_gestion_clientes"
         verbose_name = "Cliente"
         verbose_name_plural = "Clientes"
-        ordering = ["nombre"]  
+        ordering = ["nombre"] 
+
+class ComisionCabecera(models.Model):
+    periodo = models.ForeignKey('Periodo', on_delete=models.CASCADE)
+    vendedor = models.ForeignKey('Vendedor', on_delete=models.CASCADE)
+    total_comi_bs = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    total_comi_usd = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    status = models.CharField(max_length=50, default='Calculada') # Reversada, [Pagada]
+    creado = models.DateTimeField(auto_now_add=True)
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Comisión {self.id}"
+
+class ComisionDetalle(models.Model):
+    comision = models.ForeignKey('ComisionCabecera', on_delete=models.CASCADE)
+    fecha_doc = models.DateField()
+    documento = models.CharField(max_length=50) 
+    cliente_nombre = models.CharField(max_length=255) # ojo se guarda el el nombre
+    tasa = models.DecimalField(max_digits=10, decimal_places=2)
+    base_impo = models.DecimalField(max_digits=14, decimal_places=2)
+    porcentaje = models.DecimalField(max_digits=5, decimal_places=2)
+    comision_calculada = models.DecimalField(max_digits=14, decimal_places=2)
+    incluir = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.documento} - {self.cliente_nombre}"
 
 class Documento(models.Model):
     numero = models.CharField(max_length=40, unique=True)
@@ -215,7 +241,9 @@ class Documento(models.Model):
     actualizado = models.DateTimeField(null=False)
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     condicion = models.ForeignKey(Condicion, on_delete=models.CASCADE)
-  
+    comision_liquidada = models.BooleanField(default=False)  # NUEVO CAMPO Este campo indica si ya se calculó y se "cerró" la comisión de esa factura.
+    fecha_liquidacion_comision = models.DateField(null=True, blank=True)
+    
     def __str__(self) -> str:
         return self.numero
     

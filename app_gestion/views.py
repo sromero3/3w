@@ -2180,12 +2180,117 @@ def Pago_reversarView(request, id):
 @login_required
 def calcular_comisionView(request):
     xUsuario = request.user
-
     xPeriodos = Periodo.objects.all()
-
+    
     xVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
+    
     if request.method == 'POST':
-        print("--------- GUARDAR----------") 
+
+        # 1. Crear la cabecera
+        # cabecera = ComisionCabecera.objects.create(
+        #     periodo_id=request.POST.get('periodo'),
+        #     vendedor_id=request.POST.get('vendedor'),
+        #     total_comi_bs= quitarFormato(request.POST['total_comi_bs']),
+        #     total_comi_usd = quitarFormato(request.POST['total_comi_usd']),
+        #     usuario=request.user
+        # )
+
+        # 1. Obtener datos
+        periodo_id = request.POST.get('periodo')
+        vendedor_id = request.POST.get('vendedor')
+        total_bs = quitarFormato(request.POST['total_comi_bs'])
+        total_usd = quitarFormato(request.POST['total_comi_usd'])
+
+        # 2. Buscar o crear cabecera
+        cabecera, creado = ComisionCabecera.objects.get_or_create(
+            periodo_id=periodo_id,
+            vendedor_id=vendedor_id,
+            defaults={
+                'total_comi_bs': total_bs,
+                'total_comi_usd': total_usd,
+                'usuario': request.user,
+                'status': 'Calculado'
+            }
+        )
+
+        # 2.1. Si ya existía, actualiza valores
+        if not creado:
+            cabecera.total_comi_bs = total_bs
+            cabecera.total_comi_usd = total_usd
+            cabecera.status = 'Calculado'
+            cabecera.save()
+
+
+        # 2. iterar las filas bs
+        fila_bs = 1
+        while True:
+            doc_id = request.POST.get(f'bs-docId-{fila_bs}')
+            if not doc_id:
+                break  # Ya no hay más fila_bs
+
+            incluir = request.POST.get(f'incluir-{fila_bs}') 
+
+            #  3. Guardar los detalles
+            if incluir == 'on':  # Solo si está marcado el checkbox
+                fecha_doc = parsear_fecha(request.POST.get(f'bs-fec-{fila_bs}'))
+                documento = request.POST.get(f'bs-doc-{fila_bs}')
+                cliente_nombre = request.POST.get(f'bs-cli-{fila_bs}')
+                tasa = request.POST.get(f'bs-tas-{fila_bs}') or 0
+                base_bs = request.POST.get(f'bs-xBase-{fila_bs}') or 0
+                porcentaje = request.POST.get(f'bs-xPor-{fila_bs}') or 0
+                comision_calc = request.POST.get(f'bs-xComi-{fila_bs}') or 0
+                ComisionDetalle.objects.create(
+                    comision=cabecera,
+                    fecha_doc=fecha_doc,
+                    documento=documento,
+                    cliente_nombre=cliente_nombre,
+                    tasa=quitarFormato(tasa),
+                    base_impo=quitarFormato(base_bs),
+                    porcentaje=quitarFormato(porcentaje),
+                    comision_calculada=quitarFormato(comision_calc),
+                    incluir=True
+                )
+
+                # Actualizar el Doc
+
+            fila_bs += 1
+
+        # 4. iterar las filas usd
+        fila_usd = 1
+        while True:
+            doc_id_usd = request.POST.get(f'usd-docId-{fila_usd}')
+            if not doc_id_usd:
+                break  # Ya no hay más fila_usd
+
+            incluir2 = request.POST.get(f'usd-incluir-{fila_usd}') 
+
+            #  5. Guardar los detalles de usd
+            if incluir2 == 'on':  # Solo si está marcado el checkbox
+                fecha_doc = parsear_fecha(request.POST.get(f'usd-fec-{fila_usd}'))
+                documento = request.POST.get(f'usd-doc-{fila_usd}')
+                cliente_nombre = request.POST.get(f'usd-cli-{fila_usd}')
+                tasa = request.POST.get(f'usd-tas-{fila_usd}') or 0
+                base_usd = request.POST.get(f'usd-xBase-{fila_usd}') or 0
+                porcentaje = request.POST.get(f'usd-xPor-{fila_usd}') or 0
+                comision_calc = request.POST.get(f'usd-xComi-{fila_usd}') or 0
+
+                ComisionDetalle.objects.create(
+                    comision=cabecera,
+                    fecha_doc=fecha_doc,
+                    documento=documento,
+                    cliente_nombre=cliente_nombre,
+                    tasa=0,
+                    base_impo=quitarFormato(base_usd),
+                    porcentaje=quitarFormato(porcentaje),
+                    comision_calculada=quitarFormato(comision_calc),
+                    incluir=True
+                )
+
+                # Actualizar el Doc
+
+            fila_usd += 1
+
+        return redirect('comisiones_calculadas', 0) 
 
     context = {
         'xUsuario': xUsuario,
@@ -2195,6 +2300,11 @@ def calcular_comisionView(request):
 
     return render(request, 'app_gestion/calcular_comision.html', context)
 
+def parsear_fecha(fecha_str):
+    try:
+        return datetime.strptime(fecha_str, "%d/%m/%y").date()
+    except (ValueError, TypeError):
+        return None 
 
 @login_required
 def obtener_comisionesView(request):
@@ -2243,6 +2353,9 @@ def obtener_comisionesView(request):
 
 
 
+ 
+
+
 @login_required 
 def obtener_comisiones2View(request):
     xFecha_ini_comprable = datetime.strptime(request.POST.get('fecha_ini'), '%Y-%m-%d').date()
@@ -2284,5 +2397,77 @@ def obtener_comisiones2View(request):
         data2 = list(data_lista_usd)
 
     return JsonResponse(data2, safe=False)
+
+@login_required
+def comisiones_calculadasView(request, xVendedor):
+    xUsuario = request.user
+    # print("--------- Parametros recibidos GET ----------")
+  
+    # xStatu_seleccionado = xStatus
+    xVendedor_seleccionado = xVendedor
+    # xExcluidos = [2, 4]
+    # xStatus_select = Statu.objects.exclude(id__in=xExcluidos)
+    xVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
+
+    if request.method == 'POST':
+        # print("--------- Parametros recibidos POST ----------")
+        # xStatu_seleccionado  = request.POST.get('f_status')
+        xVendedor_seleccionado = request.POST.get('f_vendedor')
+
+    qComisionCabecera = ComisionCabecera.objects.values('id','periodo_id','periodo__numero_semana','periodo__desde','periodo__hasta','vendedor__nombre','total_comi_bs','total_comi_usd').order_by("-id")
+
+    if xVendedor == 0:
+        xComisionCabecera = qComisionCabecera
+    else:
+        xComisionCabecera = qComisionCabecera.filter(vendedor_id = xVendedor)
+       
+    context = {
+        'xUsuario': xUsuario,
+        'xComisionCabecera': xComisionCabecera ,
+        'xVendedor_seleccionado': int(xVendedor_seleccionado),
+        'xVendedores': xVendedores 
+
+    }
+    return render(request, 'app_gestion/comisiones_calculadas.html', context)
     
 
+@login_required
+def ver_comisionView(request, xComi):
+    xUsuario = request.user
+    xComisionCabecera = ComisionCabecera.objects.values('id','periodo_id','periodo__numero_semana','periodo__desde','periodo__hasta','vendedor__nombre','total_comi_bs','total_comi_usd').get(id=xComi)
+
+   # Detalles en bolívares (tasa > 0)
+    xComisiones_bs = ComisionDetalle.objects.filter(
+        comision_id=xComi,
+        tasa__gt=0
+    )
+
+    # Detalles en dólares (tasa == 0)
+    xComisiones_usd = ComisionDetalle.objects.filter(
+        comision_id=xComi,
+        tasa=0
+    )
+
+    context = {
+        'xUsuario': xUsuario,
+        'xComisionCabecera': xComisionCabecera,
+        'xComisiones_bs': xComisiones_bs,
+        'xComisiones_usd': xComisiones_usd,
+    }
+    return render(request, 'app_gestion/ver_comision.html', context)
+
+@login_required
+def rev_comisionView(request, xComi):
+    xUsuario = request.user
+
+    # Actualizar la cabecera
+    xComisionCabecera = ComisionCabecera.objects.get(id=xComi)
+    xComisionCabecera.total_comi_bs = 0
+    xComisionCabecera.total_comi_usd = 0
+    xComisionCabecera.status = 'Reversado'
+    xComisionCabecera.save()
+
+    # Eliminar detalles en USD (tasa == 0)
+    ComisionDetalle.objects.filter(comision_id=xComi).delete()
+
+    return redirect('comisiones_calculadas', 0)

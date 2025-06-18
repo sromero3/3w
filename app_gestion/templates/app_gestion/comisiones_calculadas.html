@@ -1,0 +1,170 @@
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+{% block title %}
+M1 | Comisiones calculadas
+{% endblock %}
+{% block styles %}
+{% endblock styles %}
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Comisiones Calculadas<a href="{% url 'inicio'%}" class="float-end"><i
+                            class="bi bi-house-door" title='Cerrar'></i></a></h5>
+
+                <form id="filtros" action="" method="post" class="row g-3">
+                    {% csrf_token %}
+
+                    <!-- <div class="col-md-6">
+                        <label id="m" class="titulos d-flex me-2 mt-1">Status</label>
+                        <select name="f_status" id="f_status" class="form-control custom-select d-flex alto" required
+                            onChange="obtener_comisiones()">
+                            <option value="0" selected>Todos</option>
+                            {% for xStatu in xStatus_select %}
+                            <option value={{xStatu.id}} {% if xStatu.id == xStatu_seleccionado %} selected {%endif %}>
+                                {{xStatu.statu}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>  -->
+                    <div class="col-md-6">
+                        <label class="titulos d-flex ms-2 me-2 mt-1">Vend.</label>
+                        <select name="f_vendedor" id="f_vendedor" onChange="obtener_comisiones()">
+                            <option value="0" selected>TODOS</option>
+                            {% for xVendedor in xVendedores %}
+                            <option value={{xVendedor.id}} {% if xVendedor.id == xVendedor_seleccionado %} selected
+                                {%endif %}>
+                                {{xVendedor.nombre}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+
+                <div class="row">
+                 
+                </div>
+
+                <table  id="comisiones_calculadas" class="table table-hover table-bordered mt-2" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Nro. Comision</th>
+                            <th>Semana</th>
+                            <th>Desde</th>
+                            <th>Hasta</th>
+                            <th>Vendedor</th>
+                            <th>Comision Bs.</th>
+                            <th>Comision $</th>
+                            <th>Opciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for xComi in xComisionCabecera %}
+                        <tr>
+                            <td>{{xComi.id|rellenar}}</td>
+                            <td>{{xComi.periodo__numero_semana}}</td>
+                            <td>{{xComi.periodo__desde |date:"d/m/y"}}</td>
+                            <td>{{xComi.periodo__hasta |date:"d/m/y"}}</td>
+                            <td>{{xComi.vendedor__nombre}}</td>
+                            <td align="right">{{xComi.total_comi_bs|darFormato}}</td> 
+                            <td align="right">{{xComi.total_comi_usd|darFormato}}</td>
+                           
+                            <td class="text-center" style="width:50px">
+                                <a href="{% url 'ver_comision' xComi.id %}" title="Ver comisión">
+                                    <i class="bi bi-file-earmark-pdf"></i>
+                                </a>&nbsp;&nbsp;
+                                 <a href="{% url 'rev_comision' xComi.id %}" title="Reversar">
+                                    <i class="bi bi-arrow-left-circle"></i>
+                                </a>
+                            </td>
+
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</main><!-- End #main -->
+{% endblock content %}
+{% block Scripts_Adicionales %}
+<script>
+
+    $(function () {
+        $("#clientes").DataTable({
+
+            language: {
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ registros",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "*** No se encontró información ***",
+                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                "sInfoPostFix": "",
+                "sSearch": "Buscar:",
+                "sUrl": "",
+                "sInfoThousands": ",",
+                "sLoadingRecords": "Cargando...",
+                "oPaginate": {
+                    "sFirst": "Primero",
+                    "sLast": "Último",
+                    "sNext": "Siguiente",
+                    "sPrevious": "Anterior"
+                },
+                "oAria": {
+                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                },
+                "buttons": {
+                    "copy": "Copiar",
+                    "colvis": "Visibilidad"
+                }
+            },
+            "ordering": true,
+            "responsive": true,
+            "lengthChange": true,
+            "autoWidth": true,
+            "pageLength": 50,
+            "scrollX": true,
+            "order": [[1, "asc"]],
+            "columnDefs": [{
+                "targets": [0, 4],
+                "orderable": false
+            }]
+        })
+    })
+
+    // tool tip
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
+    // obtener docuemntos
+    function obtener_comisiones() {
+        filtros.action = `/comisiones_calculadas/${f_vendedor.value}/`
+        if (document.getElementById('f_vendedor').value != '') {
+            filtros.submit()
+        }
+
+    } // fin obtener docuemntos  
+
+    // selectize
+    $(document).ready(function () {
+        // Activacion
+        var selectizeInstance = $('#f_vendedor').selectize({
+            //  opciones
+        });
+        $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+        // Evento click para limpiar el select input
+        var selectizeControl = selectizeInstance[0].selectize;
+        selectizeControl.$control.on('click', function () {
+            selectizeControl.clear();
+            $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+        });
+    });
+
+</script>
+{% endblock Scripts_Adicionales %}

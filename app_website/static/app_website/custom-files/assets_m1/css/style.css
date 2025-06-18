@@ -1279,6 +1279,14 @@ h6 {
   font-size: 15px;
 }
 
+.sin-bordes {
+  border: none;
+  outline: none;
+  height: 32px;
+  padding: 0.195rem 0.25rem;
+  background-color: transparent;
+}
+
 .alto{
   height: 32px;
   /* width: 189; */

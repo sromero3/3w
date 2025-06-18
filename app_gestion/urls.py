@@ -51,7 +51,9 @@ urlpatterns = [
      path('calcular_comision/', views.calcular_comisionView, name='calcular_comision'),
      path('obtener_comisiones_Bs/', views.obtener_comisionesView, name='obtener_comisiones_bs'),
      path('obtener_comisiones_usd/', views.obtener_comisiones2View, name='obtener_comisiones_usd'),
-
+     path('comisiones_calculadas/<int:xVendedor>/', views.comisiones_calculadasView, name='comisiones_calculadas'),
+     path('ver_comision/<int:xComi>/', views.ver_comisionView, name='ver_comision'),
+     path('rev_comision/<int:xComi>/', views.rev_comisionView, name='rev_comision'),
 
      # ajax
      path('validar_numero/', views.Validar_numeroView, name='validar_numero'), 

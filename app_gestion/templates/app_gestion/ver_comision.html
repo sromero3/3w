@@ -1,0 +1,298 @@
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+{% block title %}
+M1 | Comisiones calculadas
+{% endblock %}
+{% block styles %}
+{% endblock styles %}
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">VENDEDOR: {{ xComisionCabecera.vendedor__nombre }}</h5>
+
+                <table style="border-collapse: collapse; max-width: 400px; font-family: Arial, sans-serif;">
+                    <tbody>
+                        <tr>
+                            <th style="text-align: left; padding-right: 10px; font-weight: 600;">SEMANA:</th>
+                            <td>{{ xComisionCabecera.periodo__numero_semana }}</td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: left; padding-right: 10px; font-weight: 600;">DESDE:</th>
+                            <td>{{ xComisionCabecera.periodo__desde|date:"D, d/m/Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: left; padding-right: 10px; font-weight: 600;">HASTA:</th>
+                            <td>{{ xComisionCabecera.periodo__hasta|date:"D, d/m/Y" }}</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+
+                <row>
+                    <h6 style="text-align: center; padding-right: 10px; font-weight: 800;">COMISIONES EN DOLARES</h6>
+                </row>
+
+
+                <table id="comisiones1" class="table table-hover table-bordered" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th class="text-center">FECHA DOC.</th>
+                            <th class="text-center">Nro. DOC.</th>
+                            <th style="width:350px" class="text-center">CLIENTE</th>
+                            <th class="text-center">TASA</th>
+                            <th class="text-center">BASE IMP.</th>
+                            <th class="text-center">%</th>
+                            <th class="text-center">COMISIÓN BS.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for xComi_bs in xComisiones_bs %}
+                        <tr>
+                            <td>{{xComi_bs.fecha_doc |date:"d/m/y"}}</td>
+                            <td>{{xComi_bs.documento}}</td>
+                            <td>{{xComi_bs.cliente_nombre}}</td>
+                            <td align="right">{{xComi_bs.tasa|darFormato}}</td>
+                            <td align="right">{{xComi_bs.base_impo}}</td>
+                            <td align="right">{{xComi_bs.porcentaje}}</td>
+                            <td align="right">{{xComi_bs.comision_calculada|darFormato}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="6" class="text-end fw-bold">TOTAL COMISIÓN EN BS:</td>
+                            <td class="text-end fw-bold">
+                                {{ xComisionCabecera.total_comi_bs|darFormato }}
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+
+                <row>
+                    <h6 style="text-align: center; padding-right: 10px; font-weight: 800;">COMISIONES EN BOLIVARES</h6>
+                </row>
+
+
+                <table id="comisiones2" class="table table-hover table-bordered" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th class="text-center">FECHA DOC.</th>
+                            <th class="text-center">Nro. DOC.</th>
+                            <th style="width:350px" class="text-center">CLIENTE</th>
+                            <th class="text-center">TASA</th>
+                            <th class="text-center">BASE IMP.</th>
+                            <th class="text-center">%</th>
+                            <th class="text-center">COMISIÓN BS.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for xComi_usd in xComisiones_usd %}
+                        <tr>
+                            <td>{{xComi_usd.fecha_doc |date:"d/m/y"}}</td>
+                            <td>{{xComi_usd.documento}}</td>
+                            <td>{{xComi_usd.cliente_nombre}}</td>
+                            <td align="center">-</td>
+                            <td align="right">{{xComi_usd.base_impo}}</td>
+                            <td align="right">{{xComi_usd.porcentaje}}</td>
+                            <td align="right">{{xComi_usd.comision_calculada|darFormato}}</td>
+                        </tr>
+                        {% endfor %}
+                    <tfoot>
+                        <tr>
+                            <td colspan="6" class="text-end fw-bold">TOTAL COMISIÓN EN $:</td>
+                            <td class="text-end fw-bold">
+                                {{ xComisionCabecera.total_comi_usd|darFormato }}
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+
+
+            </div>
+            <div class="row justify-content-end" style="width:8
+             100%; margin: -16px 10px 10px -8px;">
+                <div class="col-auto">
+                    <button id="boton" class="btn btn-primary" style="opacity: 1; width: auto;"
+                        onclick="generarPDF()">Generar PDF</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</main><!-- End #main -->
+
+
+{% endblock content %}
+
+{% block Scripts_Adicionales %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+
+    new DataTable('#comisiones1', {
+        language: {
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ registros",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "*** No se encontró información ***",
+        },
+        bInfo: false,
+        ordering: false,
+        order: [[1, 'asc']],
+        paging: false,
+        searching: false,
+    })
+
+    new DataTable('#comisiones2', {
+          language: {
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ registros",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "*** No se encontró información ***",
+        },
+        bInfo: false,
+        ordering: false,
+        order: [[1, 'asc']],
+        paging: false,
+        searching: false,
+    })
+
+    function generarPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        let y = 10;
+        // Título
+        doc.setFontSize(14);
+        doc.text("Comisiones Semana: ", 14, y);
+        const semana = "{{ xComisionCabecera.periodo_id }}";
+        doc.text(`${semana}`, 62, y);
+        y += 6;
+
+        // Vendedor y semana
+        const vendedor = "{{ xComisionCabecera.vendedor__nombre }}";
+        const desde = "{{ xComisionCabecera.periodo__desde|date:'d/m/Y' }}";
+        const hasta = "{{ xComisionCabecera.periodo__hasta|date:'d/m/Y' }}";
+        doc.setFontSize(10)
+        doc.text(`Desde: ${desde}`, 14, y);
+        y += 6;
+        doc.text(`Hasta: ${hasta}`, 14, y);
+        y += 6;
+        doc.setFontSize(10);
+        doc.text(`Vendedor: ${vendedor}`, 14, y);
+        y += 6;
+
+        // ------------------------------- sub titulo volivares
+        const titilo = "COMISIONES EN BOLÍVARES"
+        const textWidth = doc.getTextWidth(titilo);
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const x = (pageWidth - textWidth) / 2;
+        doc.text(titilo, x, y);
+        y += 4;
+
+        doc.autoTable({
+            startY: y,
+            head: [[
+                "Fecha Doc.", "Nro. Doc.", "Cliente", "Tasa", "Base Imp.", "%", "Comisión BS"
+            ]],
+            body: [
+            {% for x in xComisiones_bs %}
+                [
+                    "{{ x.fecha_doc|date:'d/m/Y' }}",
+                    "{{ x.documento }}",
+                    { content: "{{ x.cliente_nombre }}", styles: { width: '400px' } },
+                    { content: "{{ x.tasa|darFormato }}", styles: { halign: 'right' } },
+                    { content: "{{ x.base_impo|darFormato }}", styles: { halign: 'right' } },
+                    { content: "{{ x.porcentaje|darFormato }}", styles: { halign: 'right' } },
+                    { content: "{{ x.comision_calculada|darFormato }}", styles: { halign: 'right' } }
+                ],
+            {% endfor %}
+            ],
+            styles: { fontSize: 8 },
+            theme: 'grid',
+            headStyles: { fillColor: [41, 128, 185] },
+        });
+
+        // total bs
+        y = doc.lastAutoTable.finalY + 5;
+
+        doc.setFontSize(9);
+        const labelBS = "TOTAL COMISIÓN Bs:";
+        const montoBS = "{{ xComisionCabecera.total_comi_bs|darFormato }}";
+        // Alineación al final de la tabla
+        const rightMargin = doc.internal.pageSize.getWidth() - 14;
+        doc.text(labelBS, rightMargin - 55, y); // etiqueta unos 60px antes
+        doc.text(montoBS, rightMargin - 2, y, { align: "right" });
+        doc.setFont("helvetica", "normal"); // Restaurar estilo por si acaso
+        y += 8;
+
+        // ------------------------------- sub titulo dolares
+        doc.setFontSize(10);
+        const titilo2 = "COMISIONES EN DOLARES"
+        const textWidth2 = doc.getTextWidth(titilo2);
+        const pageWidth2 = doc.internal.pageSize.getWidth();
+        const x2 = (pageWidth2 - textWidth2) / 2;
+        doc.text(titilo2, x2, y);
+        y += 4;
+
+        doc.autoTable({
+            startY: y,
+            head: [[
+                "Fecha Doc.", "Nro. Doc.", "Cliente", "Tasa", "Base Imp.", "%", "Comisión USD"
+            ]],
+            body: [
+                {% for x in xComisiones_usd %}
+                    [
+                        "{{ x.fecha_doc|date:'d/m/Y' }}",
+                        "{{ x.documento }}",
+                        { content: "{{ x.cliente_nombre }}", styles: { width: '400px' } },
+                        { content: "-", styles: { halign: 'center' } },
+                        { content: "{{ x.base_impo|darFormato }}", styles: { halign: 'right' } },
+                        { content: "{{ x.porcentaje|darFormato }}", styles: { halign: 'right' } },
+                        { content: "{{ x.comision_calculada|darFormato }}", styles: { halign: 'right' } }
+                    ],
+                        {% endfor %}
+            ],
+            styles: { fontSize: 8 },
+            theme: 'grid',
+            headStyles: { fillColor: [39, 174, 96] }
+        });
+
+        y = doc.lastAutoTable.finalY + 5;
+
+        // total $
+        doc.setFontSize(9);
+        const labelUsd = "TOTAL COMISIÓN $:";
+        const montoUsd = "{{ xComisionCabecera.total_comi_usd|darFormato }}";
+        // Alineación al final de la tabla
+        const rightMargin2 = doc.internal.pageSize.getWidth() - 14;
+        doc.text(labelUsd, rightMargin2 - 55, y); // etiqueta unos 60px antes
+        doc.text(montoUsd, rightMargin2 - 2, y, { align: "right" });
+        doc.setFont("helvetica", "normal"); // Restaurar estilo por si acaso
+        y += 8;
+
+        y = doc.lastAutoTable.finalY + 20;
+
+        // Firmas
+        doc.setFontSize(10);
+        doc.text("Procesado por:", 30, y);
+        doc.text("Aprobado por:", 130, y);
+        y += 15;
+        doc.line(20, y, 80, y);   // línea firma 1
+        doc.line(120, y, 180, y); // línea firma 2
+
+        // Guardar
+        const nombre_doc = '{{ xComisionCabecera.vendedor__nombre }}' + ' Semana ' + '{{ xComisionCabecera.periodo_id }}' + '.pdf';
+        doc.save(nombre_doc);
+
+    }
+</script>
+
+{% endblock Scripts_Adicionales %}

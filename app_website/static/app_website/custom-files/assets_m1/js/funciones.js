@@ -135,3 +135,9 @@ function FormatearNumerosInputs2(inputElement) {
     inputElement.value = cifra_formateada;
     return;
 }
+
+// formatiar fechas
+const formatearFecha = (fechaISO) => {
+    const [a, m, d] = fechaISO.split('-');
+    return `${d}/${m}/${a.slice(2)}`;
+};
