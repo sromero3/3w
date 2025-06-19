@@ -207,7 +207,7 @@ M1 | Calcular comisiones
         $.ajax({
             url: "{% url 'validar_comision' %}",
             type: 'POST',
-            async: false,
+            // async: false,
             data: {
                 csrfmiddlewaretoken: '{{ csrf_token }}',
                 'campo1': campo1,

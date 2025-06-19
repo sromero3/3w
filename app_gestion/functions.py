@@ -99,7 +99,7 @@ def buscar_pagos2(doc_id):
     pagos_agrupados = (
         Pago_detalle.objects.filter(
             documento_id=doc_id,
-            pago__forma_id__in=[2, 3, 6]
+            pago__forma_id__in=[2, 3, 7]
         )
         .values('documento_id')
         .annotate(total_monto=Sum('monto_procesar'))
