@@ -98,7 +98,7 @@ class agregar_clienteForm(ModelForm):
 
     class Meta:
         model = Cliente
-        fields = ('ced_rif','nombre','vendedor','status')
+        fields = ('ced_rif','nombre','vendedor','status', 'comisionable')
 
 
 # agregar vendedor

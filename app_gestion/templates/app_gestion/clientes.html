@@ -57,6 +57,7 @@ M1 | Cobranza
                             <th>Ced/Rif</th>
                             <th style="width:300px">Nombre</th>
                             <th>Vendedor</th>
+                            <th>Comisionable</th>
                             <th>Status</th>
                             <th>Opcion</th>
                         </tr>
@@ -67,6 +68,7 @@ M1 | Cobranza
                             <td>{{xCliente.ced_rif}}</td>
                             <td>{{xCliente.nombre|truncatechars:32}}</td>
                             <td>{{xCliente.vendedor__nombre}}</td>
+                            <td class="text-center">{{xCliente.comisionable}}</td>
                             <td>{{xCliente.status__statu}}</td>
                             <td class="text-center" style="width:50px">
                                 <a href="{% url 'editar_cliente' xCliente.id %}">

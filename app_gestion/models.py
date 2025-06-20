@@ -178,6 +178,10 @@ class Prefijo_telefono(models.Model):
         return self.prefijo_t
 
 class Cliente(models.Model):
+    COMISIONABLE_CHOICES = [
+    ('Si', 'Si'),
+    ('No', 'No'),
+    ]
     ced_rif = models.CharField(max_length=10)
     nombre = models.CharField(max_length=40)
     # telefono = models.CharField(max_length=25)
@@ -189,6 +193,7 @@ class Cliente(models.Model):
     creado = models.DateTimeField(auto_now_add=True, null=False)
     actualizado = models.DateTimeField(auto_now_add=True, null=False)
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    comisionable = models.CharField(max_length=2, choices=COMISIONABLE_CHOICES, default='Si')
     
     def __str__(self) -> str:
         return self.nombre
@@ -253,8 +258,6 @@ class Documento(models.Model):
         verbose_name_plural = "Documentos"
         # ordering = ["vencimiento","-id"]  
         ordering = ["vencimiento","fecha","id"]  
-
-
 
 class PagoForma(models.Model):
     forma = models.CharField(max_length=40, default="")

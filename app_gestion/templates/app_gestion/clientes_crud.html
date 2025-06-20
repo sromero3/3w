@@ -91,7 +91,12 @@ M1 | Clientes crud
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-6 pb-4">
+                    <div class="col-6">
+                  <span class="titulos">Comisionable</span>
+                        {{ form.comisionable }}
+
+                    </div>
+                        <div class="col-6 pb-4">
                         <span class="titulos">
                             Status</span>
                         <select name="status" id="status" class="form-control d-flex alto" required>

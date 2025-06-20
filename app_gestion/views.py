@@ -79,7 +79,7 @@ def ClientesView(request, xStatus, xVendedor):
         xStatu_seleccionado  = request.POST.get('f_status')
         xVendedor_seleccionado = request.POST.get('f_vendedor')
 
-    qClientes = Cliente.objects.values('id','ced_rif','nombre','vendedor__nombre','status__statu').order_by("nombre")
+    qClientes = Cliente.objects.values('id','ced_rif','nombre','vendedor__nombre','status__statu','comisionable').order_by("nombre")
 
     if xStatus == 0  and xVendedor == 0:
         xClientes=qClientes
@@ -119,6 +119,7 @@ def add_clienteView(request):
 
         request.POST._mutable = True
         request.POST['status'] = 1
+        request.POST['comisionable'] = 'Si'
         request.POST['ced_rif'] =  request.POST['prefijo_r'] + request.POST['ced_rif'] 
        
         # for field in form:
@@ -2186,20 +2187,12 @@ def calcular_comisionView(request):
     
     if request.method == 'POST':
 
-        # 1. Crear la cabecera
-        # cabecera = ComisionCabecera.objects.create(
-        #     periodo_id=request.POST.get('periodo'),
-        #     vendedor_id=request.POST.get('vendedor'),
-        #     total_comi_bs= quitarFormato(request.POST['total_comi_bs']),
-        #     total_comi_usd = quitarFormato(request.POST['total_comi_usd']),
-        #     usuario=request.user
-        # )
-
         # 1. Obtener datos
         periodo_id = request.POST.get('periodo')
         vendedor_id = request.POST.get('vendedor')
         total_bs = quitarFormato(request.POST['total_comi_bs'])
         total_usd = quitarFormato(request.POST['total_comi_usd'])
+       
 
         # 2. Buscar o crear cabecera
         cabecera, creado = ComisionCabecera.objects.get_or_create(
@@ -2219,7 +2212,6 @@ def calcular_comisionView(request):
             cabecera.total_comi_usd = total_usd
             cabecera.status = 'Calculado'
             cabecera.save()
-
 
         # 2. iterar las filas bs
         fila_bs = 1
@@ -2251,7 +2243,11 @@ def calcular_comisionView(request):
                     incluir=True
                 )
 
-                # Actualizar el Doc
+                # Actualizar el documento relacionado
+                # Documento.objects.filter(id=doc_id).update(
+                #     comision_liquidada=True,
+                #     fecha_liquidacion_comision=datetime.date.today()
+                # )
 
             fila_bs += 1
 
@@ -2263,7 +2259,6 @@ def calcular_comisionView(request):
                 break  # Ya no hay más fila_usd
 
             incluir2 = request.POST.get(f'usd-incluir-{fila_usd}') 
-
             #  5. Guardar los detalles de usd
             if incluir2 == 'on':  # Solo si está marcado el checkbox
                 fecha_doc = parsear_fecha(request.POST.get(f'usd-fec-{fila_usd}'))
@@ -2273,7 +2268,6 @@ def calcular_comisionView(request):
                 base_usd = request.POST.get(f'usd-xBase-{fila_usd}') or 0
                 porcentaje = request.POST.get(f'usd-xPor-{fila_usd}') or 0
                 comision_calc = request.POST.get(f'usd-xComi-{fila_usd}') or 0
-
                 ComisionDetalle.objects.create(
                     comision=cabecera,
                     fecha_doc=fecha_doc,
@@ -2286,7 +2280,11 @@ def calcular_comisionView(request):
                     incluir=True
                 )
 
-                # Actualizar el Doc
+                # Actualizar el documento relacionado
+                # Documento.objects.filter(id=doc_id_usd).update(
+                #     comision_liquidada=True,
+                #     fecha_liquidacion_comision=datetime.date.today()
+                # )
 
             fila_usd += 1
 
@@ -2311,9 +2309,23 @@ def obtener_comisionesView(request):
     xFecha_ini_comprable = datetime.strptime(request.POST.get('fecha_ini'), '%Y-%m-%d').date()
     xFecha_fin_comprable = datetime.strptime(request.POST.get('fecha_fin'), '%Y-%m-%d').date()
     
-    # 1) Documentos con saldo 0 
-    qDocumentos = Documento.objects.filter(cliente__vendedor=request.POST.get('vendedor_id')).annotate(saldo = F('monto') - F('abonado')).filter(saldo__lte=1).values('id','fecha','numero','cliente__nombre','monto','saldo','dias_v').order_by('fecha','numero')
-  
+    # 1) Buscar docuemntos
+    qDocumentos = Documento.objects.filter(
+    cliente__vendedor=request.POST.get('vendedor_id'),
+    cliente__comisionable='Si', # cleintes comisionables
+    comision_liquidada=False,   # que no se haya liquidado
+    ).annotate(
+        saldo=F('monto') - F('abonado')
+    ).filter(
+        saldo__lte=0 # con saldo 0
+    ).values(
+        'id', 'fecha', 'numero', 'cliente__nombre', 'monto', 'saldo', 'dias_v'
+    ).order_by(
+        'fecha', 'numero'
+    )
+
+    # 2) iterar bs
+    data = []
     data_lista_bs = []  
   
     for xAsiento in qDocumentos:
@@ -2327,6 +2339,9 @@ def obtener_comisionesView(request):
         # 2) Salata los fuera del rango
         if resultado['fecha_ult_pago'] < xFecha_ini_comprable or resultado['fecha_ult_pago'] > xFecha_fin_comprable:
             continue
+        # nueva logica
+        # if resultado['fecha_ult_pago'] < xFecha_ini_comprable - timedelta(days=7):
+        #     continue
 
         # if xAsiento["id"] != 979:
         #     continue
@@ -2348,24 +2363,31 @@ def obtener_comisionesView(request):
 
         data = list(data_lista_bs)
 
-
     return JsonResponse(data, safe=False)
-
-
-
- 
-
 
 @login_required 
 def obtener_comisiones2View(request):
     xFecha_ini_comprable = datetime.strptime(request.POST.get('fecha_ini'), '%Y-%m-%d').date()
     xFecha_fin_comprable = datetime.strptime(request.POST.get('fecha_fin'), '%Y-%m-%d').date()
     
-    # 1) Documentos con saldo 0 
-    qDocumentos = Documento.objects.filter(cliente__vendedor=request.POST.get('vendedor_id')).annotate(saldo = F('monto') - F('abonado')).filter(saldo__lte=1).values('id','fecha','numero','cliente__nombre','monto','saldo','dias_v').order_by('fecha','numero')
-  
+    # 1) Filtrar documentos 
+    qDocumentos = Documento.objects.filter(
+    cliente__vendedor=request.POST.get('vendedor_id'),
+    cliente__comisionable='Si',
+    comision_liquidada=False,   
+    ).annotate(
+        saldo=F('monto') - F('abonado')
+    ).filter(
+        saldo__lte=0
+    ).values(
+        'id', 'fecha', 'numero', 'cliente__nombre', 'monto', 'saldo', 'dias_v'
+    ).order_by(
+        'fecha', 'numero'
+    )
+    
+    # 2) Iterar usd 
     data_lista_usd = []  
-  
+    data2 = []
     for xAsiento in qDocumentos:
         # busca la fecha_ult_pago
         resultado = buscar_fecha_pagado(xAsiento["id"])
@@ -2377,6 +2399,9 @@ def obtener_comisiones2View(request):
         # 2) Salata los fuera del rango
         if resultado['fecha_ult_pago'] < xFecha_ini_comprable or resultado['fecha_ult_pago'] > xFecha_fin_comprable:
             continue
+        # if resultado['fecha_ult_pago'] < xFecha_ini_comprable - timedelta(days=7):
+        #     continue
+
         # if xAsiento['numero'] != '00026071':
         #     continue
         #print("Doc en rango:", xAsiento['numero']," pagado el: ", resultado['fecha_ult_pago'] )
