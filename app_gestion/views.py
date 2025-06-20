@@ -2288,7 +2288,16 @@ def calcular_comisionView(request):
 
             fila_usd += 1
 
-        return redirect('comisiones_calculadas', 0) 
+            # Mantener el periodo, pero limpiar el vendedor
+            context = {
+                'xUsuario': xUsuario,
+                'xPeriodos': xPeriodos,
+                'xVendedores': xVendedores,
+                'xId': int(periodo_id),  # pasar el periodo para el select
+                'vendedor_seleccionado': None,  # limpiar vendedor
+                'mensaje_exito': 'Comisión registrada correctamente.'
+            }
+            return render(request, 'app_gestion/calcular_comision.html', context)
 
     context = {
         'xUsuario': xUsuario,
@@ -2514,5 +2523,5 @@ def validar_comisionView(request):
         pass
     else:
         data = {'status': False}
-    
+   
     return JsonResponse(data, safe=False)

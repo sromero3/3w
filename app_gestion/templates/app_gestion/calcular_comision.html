@@ -16,6 +16,7 @@ M1 | Calcular comisiones
                             class="bi bi-arrow-return-left" title='Regresar'></i></a></h5>
 
                 <form id="calcular_comision" action="" method="post" class="mb-4">
+                  
                     {% csrf_token %}
                     <div class="row">
 
@@ -26,8 +27,7 @@ M1 | Calcular comisiones
                                 <option value="0" selected></option>
                                 {% for xPeriodo in xPeriodos %}
                                 <option value="{{ xPeriodo.id }}" data-desde="{{ xPeriodo.desde |date:'Y-m-d' }}"
-                                    data-hasta="{{ xPeriodo.hasta |date:'Y-m-d' }}" {% if xPeriodo.id == xId %} selected
-                                    {% endif %}>
+                                    data-hasta="{{ xPeriodo.hasta |date:'Y-m-d' }}" {% if xPeriodo.id == xId %} selected {% endif %}>
                                     {{ xPeriodo.numero_semana }} - {{ xPeriodo.desde |date:"d/m/y" }} - {{xPeriodo.hasta |date:"d/m/y" }}
                                 </option>
                                 {% endfor %}
@@ -207,7 +207,7 @@ M1 | Calcular comisiones
         $.ajax({
             url: "{% url 'validar_comision' %}",
             type: 'POST',
-            // async: false,
+            async: false,
             data: {
                 csrfmiddlewaretoken: '{{ csrf_token }}',
                 'campo1': campo1,
@@ -221,6 +221,7 @@ M1 | Calcular comisiones
             error: function (xhr, status, error) {
             }
         })
+        
         if (existe) {
             Swal.fire({
                 position: 'center',
