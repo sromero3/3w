@@ -2181,7 +2181,7 @@ def Pago_reversarView(request, id):
 @login_required
 def calcular_comisionView(request):
     xUsuario = request.user
-    xPeriodos = Periodo.objects.all()
+    xPeriodos = Periodo.objects.filter(status="Abierto")
     
     xVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
     
@@ -2448,7 +2448,7 @@ def comisiones_calculadasView(request, xVendedor):
         # xStatu_seleccionado  = request.POST.get('f_status')
         xVendedor_seleccionado = request.POST.get('f_vendedor')
 
-    qComisionCabecera = ComisionCabecera.objects.values('id','periodo_id','periodo__numero_semana','periodo__desde','periodo__hasta','vendedor__nombre','total_comi_bs','total_comi_usd').order_by("-id")
+    qComisionCabecera = ComisionCabecera.objects.values('id','periodo_id','periodo__numero_semana','periodo__desde','periodo__hasta','vendedor__nombre','total_comi_bs','total_comi_usd','status').order_by("-id")
 
     if xVendedor == 0:
         xComisionCabecera = qComisionCabecera
@@ -2498,7 +2498,7 @@ def rev_comisionView(request, xComi):
     xComisionCabecera = ComisionCabecera.objects.get(id=xComi)
     xComisionCabecera.total_comi_bs = 0
     xComisionCabecera.total_comi_usd = 0
-    xComisionCabecera.status = 'Reversado'
+    xComisionCabecera.status = 'Reversada'
     xComisionCabecera.save()
 
     # Eliminar detalles en USD (tasa == 0)
@@ -2525,3 +2525,50 @@ def validar_comisionView(request):
         data = {'status': False}
    
     return JsonResponse(data, safe=False)
+
+
+@login_required
+def cerrar_comisionView(request):
+    xUsuario = request.user
+    periodo_actual = Periodo.objects.filter(status="Abierto").first()
+    
+    if request.method == 'POST':
+
+        # 1. Marcar ComisionCabecera como pagado
+        ComisionCabecera.objects.filter(periodo=periodo_actual).update(status='Pagada')
+
+        # 2. Obtener todos los números de documento involucrados
+        documentos_afectados = ComisionDetalle.objects.filter(comision__periodo=periodo_actual)
+        documentos_numeros = list(documentos_afectados.values_list('documento', flat=True).distinct())
+
+        # Actualizar los documentos cuyo número coincide
+        if documentos_numeros:
+            Documento.objects.filter(numero__in=documentos_numeros).update(
+                comision_liquidada=True,
+                fecha_liquidacion_comision=periodo_actual.hasta
+        )
+            
+        # 3. Cerrar el período
+        periodo_actual.status = 'Cerrado'
+        periodo_actual.save()
+
+        # 4. Crear nuevo período
+        nueva_fecha_desde = periodo_actual.hasta + timedelta(days=3)
+        nueva_fecha_hasta = nueva_fecha_desde + timedelta(days=4)
+
+        Periodo.objects.create(
+            numero_semana=periodo_actual.numero_semana + 1,
+            desde=nueva_fecha_desde,
+            hasta=nueva_fecha_hasta,
+            ano=date.today().year,
+            usuario_id=request.user.id
+        )
+            
+        return redirect('comisiones_calculadas', 0)
+
+    context = {
+        'xUsuario': xUsuario,
+        'periodo_actual': periodo_actual,
+    }
+
+    return render(request, 'app_gestion/cerrar_comision.html', context)

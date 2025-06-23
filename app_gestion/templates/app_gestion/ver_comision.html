@@ -172,7 +172,7 @@ M1 | Comisiones calculadas
         // Título
         doc.setFontSize(14);
         doc.text("Comisiones Semana: ", 14, y);
-        const semana = "{{ xComisionCabecera.periodo_id }}";
+        const semana = "{{ xComisionCabecera.periodo__numero_semana }}";
         doc.text(`${semana}`, 62, y);
         y += 6;
 
@@ -289,7 +289,7 @@ M1 | Comisiones calculadas
         doc.line(120, y, 180, y); // línea firma 2
 
         // Guardar
-        const nombre_doc = '{{ xComisionCabecera.vendedor__nombre }}' + ' Semana ' + '{{ xComisionCabecera.periodo_id }}' + '.pdf';
+        const nombre_doc = '{{ xComisionCabecera.vendedor__nombre }}' + ' Semana ' + '{{ xComisionCabecera.periodo__numero_semana }}' + '.pdf';
         doc.save(nombre_doc);
 
     }

@@ -1,6 +1,6 @@
 |{% load static %}
 <header id="header" style="background-color: rgb(1, 31, 58);" class="header fixed-top d-flex align-items-center">
-<!-- <header id="header" style="background-color:#1977CC" class="header fixed-top d-flex align-items-center"> -->
+  <!-- <header id="header" style="background-color:#1977CC" class="header fixed-top d-flex align-items-center"> -->
   <div class="d-flex align-items-center justify-content-between">
     <a href="#" class="logo d-flex align-items-center">
       <img src="{% static 'app_website/custom-files/assets_m1/img/logo1.png' %}" alt="" data-aos="fade-in">
@@ -61,7 +61,7 @@
 
       </li><!-- End Profile Nav -->
       <li class="nav-item dropdown pe-3">
-        <span style="font-size: 0.80rem; color: rgb(159, 193, 238);">V-2.00.003 |19-06-25 19:14</span>
+        <span style="font-size: 0.80rem; color: rgb(159, 193, 238);">V-2.00.004 |23-06-25 18:51</span>
       </li>
 
     </ul>
@@ -131,7 +131,12 @@
         </li>
         <li>
           <a href="{% url 'comisiones_calculadas' 0  %}">
-            <span>Comisiones calculdas</span>
+            <span>Calculdas</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'cerrar_comision'   %}">
+            <span>Cerrar</span>
           </a>
         </li>
         <li>

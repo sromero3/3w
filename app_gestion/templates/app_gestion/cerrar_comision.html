@@ -1,0 +1,77 @@
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+{% block title %}
+M1 | Cerrar comisiones
+{% endblock %}
+{% block styles %}
+{% endblock styles %}
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <input id="xDesde" value="{{xDesde}}" hidden />
+                <h5 class="card-title">Cerrar comisiones<a href="{% url 'comisiones_calculadas' 0  %}"
+                        class="float-end"><i class="bi bi-arrow-return-left" title='Regresar'></i></a></h5>
+
+                <form id="cerrar" action="" method="post" class="mb-4">
+
+                    {% csrf_token %}
+                    <div class="row">
+
+                        <h6 class="text-center py-2">Se cerrará el período de la semana actual: Semana {{periodo_actual.numero_semana}} y abrirá la siguiente</h6>
+                        <h6 class="text-center py-3"> <b>Desde el {{periodo_actual.desde |date:"d/m/y"}} Hasta el {{periodo_actual.hasta |date:"d/m/y"}}</b> </h6>
+
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" id="guardar" class="btn btn-primary"
+                            onclick="validar(event)">Cerrar</button>
+                        <button type="button" class="btn btn-secondary"
+                            onclick="javascript:history.back()">Regresar</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</main><!-- End #main -->
+{% endblock content %}
+{% block Scripts_Adicionales %}
+<script>
+
+
+    // Guardar formulario
+    function validar(e) {
+        const form = document.getElementById('cerrar') // tomo el nombre del formulario
+
+        if (form.checkValidity()) {
+
+            e.preventDefault()
+
+
+
+            // let m = document.getElementById('monto_procesar').value
+            Swal.fire({
+                title: '¿ Está seguro de cerrar las comisiones ?',
+
+                showDenyButton: true,
+                // showCancelButton: true,
+                confirmButtonText: "Guardar",
+                denyButtonText: `Descartar`
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('cerrar').submit()
+                } else {
+                    return false
+                }
+            })// fin Confirmar
+
+
+        } // fin validar formulario
+
+    }
+
+</script>
+{% endblock Scripts_Adicionales %}
