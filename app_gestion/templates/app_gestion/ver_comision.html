@@ -164,10 +164,36 @@ M1 | Comisiones calculadas
         searching: false,
     })
 
+    function agregarPieDePagina(data) {
+        const doc = data.doc;
+        const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
+        const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
+        const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
+        const totalPages = doc.internal.getNumberOfPages();
+
+        // Texto centrado (el título)
+        const titulo = "SISTEMA DE GESTIÓN EMPRESARIAL";
+        const tituloWidth = doc.getTextWidth(titulo);
+        const tituloX = (pageWidth - tituloWidth) / 2;
+
+        // Texto alineado a la derecha (página actual / total)
+        const paginaTexto = `Página ${pageNumber} de ${totalPages}`;
+        const paginaX = pageWidth - 14;  // Margen derecho 14 (ajustable)
+
+        doc.setFontSize(8);
+        doc.setTextColor(120);
+
+        // Dibujar título centrado
+        doc.text(titulo, tituloX, pageHeight - 5);
+
+        // Dibujar página alineada a la derecha
+        doc.text(paginaTexto, paginaX, pageHeight - 5, { align: 'right' });
+    }
+
     function generarPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-
+        const totalPagesExp = "{total_pages_count_string}";
         let y = 10;
         // Título
         doc.setFontSize(14);
@@ -218,6 +244,7 @@ M1 | Comisiones calculadas
             styles: { fontSize: 8 },
             theme: 'grid',
             headStyles: { fillColor: [41, 128, 185] },
+            didDrawPage: agregarPieDePagina
         });
 
         // total bs
@@ -262,7 +289,8 @@ M1 | Comisiones calculadas
             ],
             styles: { fontSize: 8 },
             theme: 'grid',
-            headStyles: { fillColor: [39, 174, 96] }
+            headStyles: { fillColor: [39, 174, 96] },
+            didDrawPage: agregarPieDePagina
         });
 
         y = doc.lastAutoTable.finalY + 5;
@@ -282,11 +310,15 @@ M1 | Comisiones calculadas
 
         // Firmas
         doc.setFontSize(10);
-        doc.text("Procesado por:", 30, y);
-        doc.text("Aprobado por:", 130, y);
+        doc.text("Procesado por:", 52, y);
+        doc.text("Aprobado por:", 137, y);
         y += 15;
-        doc.line(20, y, 80, y);   // línea firma 1
+        doc.line(35, y, 95, y);   // línea firma 1
         doc.line(120, y, 180, y); // línea firma 2
+
+        if (typeof doc.putTotalPages === 'function') {
+        doc.putTotalPages(totalPagesExp);
+        }
 
         // Guardar
         const nombre_doc = '{{ xComisionCabecera.vendedor__nombre }}' + ' Semana ' + '{{ xComisionCabecera.periodo__numero_semana }}' + '.pdf';

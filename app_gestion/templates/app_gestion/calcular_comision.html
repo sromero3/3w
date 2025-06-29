@@ -27,7 +27,7 @@ M1 | Calcular comisiones
                                 <option value="0" selected></option>
                                 {% for xPeriodo in xPeriodos %}
                                 <option value="{{ xPeriodo.id }}" data-desde="{{ xPeriodo.desde |date:'Y-m-d' }}"
-                                    data-hasta="{{ xPeriodo.hasta |date:'Y-m-d' }}" {% if xPeriodo.id == xId %} selected {% endif %}>
+                                    data-hasta="{{ xPeriodo.hasta |date:'Y-m-d' }}" {% if xPeriodo.id == xPeriodoId %} selected {% endif %}>
                                     {{ xPeriodo.numero_semana }} - {{ xPeriodo.desde |date:"d/m/y" }} - {{xPeriodo.hasta |date:"d/m/y" }}
                                 </option>
                                 {% endfor %}
@@ -53,7 +53,7 @@ M1 | Calcular comisiones
                             <select name="vendedor" id="vendedor" onChange="obtener_comisiones()">
                                 <option value="0" selected></option>
                                 {% for xVendedor in xVendedores %}
-                                <option value={{xVendedor.id}} data-nombre="{{ xVendedor.nombre }}" {% if xVendedor.id == xId %} selected {%endif %}>
+                                <option value={{xVendedor.id}} data-nombre="{{ xVendedor.nombre }}" {% if xVendedor.id == xVendedorId %} selected {%endif %}>
                                     {{xVendedor.nombre}}
                                 </option>
                                 {% endfor %}
@@ -534,47 +534,58 @@ M1 | Calcular comisiones
         document.getElementById('total_comi_usd').value = darFormato(acumulador2)
     } // aplicar_porcentaje 
 
+    // Descativa la linea
+   document.addEventListener("change", function (e) {
+    if (e.target.classList.contains("excluir-fila")) {
+        const checkbox = e.target;
+        const fila = checkbox.closest("tr");
+        const tabla = fila.closest("table").id;
+        if (!fila) return;
 
-    document.addEventListener("change", function (e) {
-        if (e.target.classList.contains("excluir-fila")) {
-            const checkbox = e.target;
-            const fila = checkbox.closest("tr"); // obtiene la fila
-            const tabla = fila.closest("table").id;
-            if (!fila) return;
+        // Obtener el valor del documento de esta fila
+        const inputDocumento = fila.querySelector('input[name^="bs-doc-"], input[name^="usd-doc-"]');
+        if (!inputDocumento) return;
+        const documento = inputDocumento.value.trim();
 
-            const inputComision = fila.querySelector("input.input-comision") || fila.querySelector("input.input-comision2");
-            const inputPorcentaje = fila.querySelector("input[id^='bs-xPor-'], input[id^='usd-xPor-']");
-            const campoBase = fila.querySelector("input.input-base") || fila.querySelector("input.input-base2");
+        // Buscar todas las filas con el mismo documento
+        const selectorTabla = tabla === "asientosBs" ? '#asientosBs' : '#asientosUSD';
+        const filas = document.querySelectorAll(`${selectorTabla} tr`);
+
+        filas.forEach(row => {
+            const docInput = row.querySelector('input[name^="bs-doc-"], input[name^="usd-doc-"]');
+            if (!docInput || docInput.value.trim() !== documento) return;
+
+            const chk = row.querySelector('input.excluir-fila');
+            const inputComision = row.querySelector("input.input-comision") || row.querySelector("input.input-comision2");
+            const inputPorcentaje = row.querySelector("input[id^='bs-xPor-'], input[id^='usd-xPor-']");
+            const campoBase = row.querySelector("input.input-base") || row.querySelector("input.input-base2");
+
+            if (chk) chk.checked = checkbox.checked;
+
             if (inputPorcentaje) {
                 inputPorcentaje.readOnly = !checkbox.checked;
             }
 
             if (checkbox.checked) {
-                // Recalcular si vuelve a activarse
                 const base = quitarFormato(inputPorcentaje.dataset.base_impo) * 1;
                 const porcentaje = quitarFormato(inputPorcentaje.value) * 1;
                 const nueva_comision = base * porcentaje / 100;
                 inputComision.value = darFormato(nueva_comision);
-
-                if (campoBase) {
-                    campoBase.value = darFormato(base);
-                }
+                if (campoBase) campoBase.value = darFormato(base);
             } else {
-                // Desactivado: poner comisión y base en 0
                 inputComision.value = darFormato(0);
-                if (campoBase) {
-                    campoBase.value = darFormato(0);
-                }
+                if (campoBase) campoBase.value = darFormato(0);
             }
+        });
 
-            // Recalcular total según tabla
-            if (tabla === "asientosBs") {
-                recalcularTotalBs();
-            } else if (tabla === "asientosUSD") {
-                recalcularTotalUsd();
-            }
+        // Recalcular totales
+        if (tabla === "asientosBs") {
+            recalcularTotalBs();
+        } else if (tabla === "asientosUSD") {
+            recalcularTotalUsd();
         }
-    });
+    }
+});
 
     // Recalcular totales Bs
     function recalcularTotalBs() {

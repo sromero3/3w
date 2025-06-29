@@ -2243,12 +2243,6 @@ def calcular_comisionView(request):
                     incluir=True
                 )
 
-                # Actualizar el documento relacionado
-                # Documento.objects.filter(id=doc_id).update(
-                #     comision_liquidada=True,
-                #     fecha_liquidacion_comision=datetime.date.today()
-                # )
-
             fila_bs += 1
 
         # 4. iterar las filas usd
@@ -2280,12 +2274,6 @@ def calcular_comisionView(request):
                     incluir=True
                 )
 
-                # Actualizar el documento relacionado
-                # Documento.objects.filter(id=doc_id_usd).update(
-                #     comision_liquidada=True,
-                #     fecha_liquidacion_comision=datetime.date.today()
-                # )
-
             fila_usd += 1
 
             # Mantener el periodo, pero limpiar el vendedor
@@ -2293,8 +2281,8 @@ def calcular_comisionView(request):
                 'xUsuario': xUsuario,
                 'xPeriodos': xPeriodos,
                 'xVendedores': xVendedores,
-                'xId': int(periodo_id),  # pasar el periodo para el select
-                'vendedor_seleccionado': None,  # limpiar vendedor
+                'xPeriodoId': int(periodo_id),  # pasar el periodo para el select
+                'xVendedorId': None,  # limpiar vendedor
                 'mensaje_exito': 'Comisión registrada correctamente.'
             }
             return render(request, 'app_gestion/calcular_comision.html', context)
