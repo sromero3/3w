@@ -2213,7 +2213,7 @@ def calcular_comisionView(request):
             cabecera.status = 'Calculado'
             cabecera.save()
 
-        # 2. iterar las filas bs
+        # 3. iterar las filas bs
         fila_bs = 1
         while True:
             doc_id = request.POST.get(f'bs-docId-{fila_bs}')
@@ -2222,7 +2222,7 @@ def calcular_comisionView(request):
 
             incluir = request.POST.get(f'incluir-{fila_bs}') 
 
-            #  3. Guardar los detalles
+            # Guardar los detalles
             if incluir == 'on':  # Solo si está marcado el checkbox
                 fecha_doc = parsear_fecha(request.POST.get(f'bs-fec-{fila_bs}'))
                 documento = request.POST.get(f'bs-doc-{fila_bs}')
@@ -2253,7 +2253,7 @@ def calcular_comisionView(request):
                 break  # Ya no hay más fila_usd
 
             incluir2 = request.POST.get(f'usd-incluir-{fila_usd}') 
-            #  5. Guardar los detalles de usd
+            # Guardar los detalles de usd
             if incluir2 == 'on':  # Solo si está marcado el checkbox
                 fecha_doc = parsear_fecha(request.POST.get(f'usd-fec-{fila_usd}'))
                 documento = request.POST.get(f'usd-doc-{fila_usd}')

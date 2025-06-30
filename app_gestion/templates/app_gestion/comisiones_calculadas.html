@@ -72,6 +72,7 @@ M1 | Comisiones calculadas
                             <td align="right">{{xComi.total_comi_bs|darFormato}}</td> 
                             <td align="right">{{xComi.total_comi_usd|darFormato}}</td>
                             <td>{{xComi.status}}</td>
+
                             {% if xComi.status == 'Pagada' %}
                                 <td class="text-center" style="width:50px">
                                     <a href="{% url 'ver_comision' xComi.id %}" title="Ver comisión">
@@ -83,7 +84,7 @@ M1 | Comisiones calculadas
                                     <a href="{% url 'ver_comision' xComi.id %}" title="Ver comisión">
                                         <i class="bi bi-file-earmark-pdf"></i>
                                     </a>&nbsp;&nbsp;
-                                    <a href="{% url 'rev_comision' xComi.id %}" title="Reversar">
+                                    <a href="#" class="btn-reversar" data-id="{{ xComi.id }}" data-nombre="{{ xComi.vendedor__nombre }}">
                                         <i class="bi bi-arrow-left-circle"></i>
                                     </a>
                                 </td>
@@ -146,6 +147,27 @@ M1 | Comisiones calculadas
             }]
         })
     })
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.btn-reversar').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const id = btn.dataset.id;
+                const nombre = btn.dataset.nombre;
+                Swal.fire({
+                    title: '¿Está seguro de reversar esta comisión?',
+                    html: `<h3>${nombre}</h3>`,
+                    showDenyButton: true,
+                    confirmButtonText: "Confirmar",
+                    denyButtonText: "Cancelar"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = `/rev_comision/${id}/`;
+                    }
+                });
+            });
+        });
+    });
 
     // tool tip
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
