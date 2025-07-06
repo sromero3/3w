@@ -24,6 +24,7 @@ from django.db.models import Q
 from decimal import *
 import os
 from django.contrib.auth import logout
+from django.db.models.functions import ExtractYear
 
 # from weasyprint import HTML
 
@@ -2302,133 +2303,234 @@ def parsear_fecha(fecha_str):
         return None 
 
 @login_required
+def calcular_comisionView(request):
+    xUsuario = request.user
+    xPeriodos = Periodo.objects.filter(status="Abierto")
+    
+    xVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
+    
+    if request.method == 'POST':
+
+        # 1. Obtener datos
+        periodo_id = request.POST.get('periodo')
+        vendedor_id = request.POST.get('vendedor')
+        total_bs = quitarFormato(request.POST['total_comi_bs'])
+        total_usd = quitarFormato(request.POST['total_comi_usd'])
+       
+
+        # 2. Buscar o crear cabecera
+        cabecera, creado = ComisionCabecera.objects.get_or_create(
+            periodo_id=periodo_id,
+            vendedor_id=vendedor_id,
+            defaults={
+                'total_comi_bs': total_bs,
+                'total_comi_usd': total_usd,
+                'usuario': request.user,
+                'status': 'Calculado'
+            }
+        )
+
+        # 2.1. Si ya existía, actualiza valores
+        if not creado:
+            cabecera.total_comi_bs = total_bs
+            cabecera.total_comi_usd = total_usd
+            cabecera.status = 'Calculado'
+            cabecera.save()
+
+        # 3. iterar las filas bs
+        fila_bs = 1
+        while True:
+            doc_id = request.POST.get(f'bs-docId-{fila_bs}')
+            if not doc_id:
+                break  # Ya no hay más fila_bs
+
+            incluir = request.POST.get(f'incluir-{fila_bs}') 
+
+            # Guardar los detalles
+            if incluir == 'on':  # Solo si está marcado el checkbox
+                fecha_doc = parsear_fecha(request.POST.get(f'bs-fec-{fila_bs}'))
+                documento = request.POST.get(f'bs-doc-{fila_bs}')
+                cliente_nombre = request.POST.get(f'bs-cli-{fila_bs}')
+                tasa = request.POST.get(f'bs-tas-{fila_bs}') or 0
+                base_bs = request.POST.get(f'bs-xBase-{fila_bs}') or 0
+                porcentaje = request.POST.get(f'bs-xPor-{fila_bs}') or 0
+                comision_calc = request.POST.get(f'bs-xComi-{fila_bs}') or 0
+                ComisionDetalle.objects.create(
+                    comision=cabecera,
+                    fecha_doc=fecha_doc,
+                    documento=documento,
+                    cliente_nombre=cliente_nombre,
+                    tasa=quitarFormato(tasa),
+                    base_impo=quitarFormato(base_bs),
+                    porcentaje=quitarFormato(porcentaje),
+                    comision_calculada=quitarFormato(comision_calc),
+                    incluir=True
+                )
+
+            fila_bs += 1
+
+        # 4. iterar las filas usd
+        fila_usd = 1
+        while True:
+            doc_id_usd = request.POST.get(f'usd-docId-{fila_usd}')
+            if not doc_id_usd:
+                break  # Ya no hay más fila_usd
+
+            incluir2 = request.POST.get(f'usd-incluir-{fila_usd}') 
+            # Guardar los detalles de usd
+            if incluir2 == 'on':  # Solo si está marcado el checkbox
+                fecha_doc = parsear_fecha(request.POST.get(f'usd-fec-{fila_usd}'))
+                documento = request.POST.get(f'usd-doc-{fila_usd}')
+                cliente_nombre = request.POST.get(f'usd-cli-{fila_usd}')
+                tasa = request.POST.get(f'usd-tas-{fila_usd}') or 0
+                base_usd = request.POST.get(f'usd-xBase-{fila_usd}') or 0
+                porcentaje = request.POST.get(f'usd-xPor-{fila_usd}') or 0
+                comision_calc = request.POST.get(f'usd-xComi-{fila_usd}') or 0
+                ComisionDetalle.objects.create(
+                    comision=cabecera,
+                    fecha_doc=fecha_doc,
+                    documento=documento,
+                    cliente_nombre=cliente_nombre,
+                    tasa=0,
+                    base_impo=quitarFormato(base_usd),
+                    porcentaje=quitarFormato(porcentaje),
+                    comision_calculada=quitarFormato(comision_calc),
+                    incluir=True
+                )
+
+            fila_usd += 1
+
+            # Mantener el periodo, pero limpiar el vendedor
+            context = {
+                'xUsuario': xUsuario,
+                'xPeriodos': xPeriodos,
+                'xVendedores': xVendedores,
+                'xPeriodoId': int(periodo_id),  # pasar el periodo para el select
+                'xVendedorId': None,  # limpiar vendedor
+                'mensaje_exito': 'Comisión registrada correctamente.'
+            }
+            return render(request, 'app_gestion/calcular_comision.html', context)
+
+    context = {
+        'xUsuario': xUsuario,
+        'xPeriodos': xPeriodos,
+        'xVendedores': xVendedores,
+    }
+
+    return render(request, 'app_gestion/calcular_comision.html', context)
+
+
+@login_required
 def obtener_comisionesView(request):
     xFecha_ini_comprable = datetime.strptime(request.POST.get('fecha_ini'), '%Y-%m-%d').date()
-    xFecha_fin_comprable = datetime.strptime(request.POST.get('fecha_fin'), '%Y-%m-%d').date()
-    
-    # 1) Buscar docuemntos
+    #xFecha_fin_comprable = datetime.strptime(request.POST.get('fecha_fin'), '%Y-%m-%d').date()
+
+    # 1) Buscar documentos elegibles
     qDocumentos = Documento.objects.filter(
-    cliente__vendedor=request.POST.get('vendedor_id'),
-    cliente__comisionable='Si', # cleintes comisionables
-    comision_liquidada=False,   # que no se haya liquidado
+        cliente__vendedor=request.POST.get('vendedor_id'),
+        cliente__comisionable='Si',          # Solo clientes comisionables
+        comision_liquidada=False             # Que no hayan sido liquidados aún
     ).annotate(
         saldo=F('monto') - F('abonado')
     ).filter(
-        saldo__lte=0 # con saldo 0
+        saldo__lte=0                         # Que estén completamente pagados
     ).values(
         'id', 'fecha', 'numero', 'cliente__nombre', 'monto', 'saldo', 'dias_v'
     ).order_by(
         'fecha', 'numero'
     )
 
-    # 2) iterar bs
-    data = []
-    data_lista_bs = []  
-  
+    # 2) Iterar documentos para comisión en Bs
+    data_lista_bs = []
+
     for xAsiento in qDocumentos:
-        # busca la fecha_ult_pago
+        # 2.1) Buscar la fecha real del último pago
         resultado = buscar_fecha_pagado(xAsiento["id"])
 
-        # Salta si no hay fecha
+        # 2.2) Si no hay fecha, el documento no está listo para comisión
         if not resultado or not resultado['fecha_ult_pago']:
             continue  
 
-        # 2) Salata los fuera del rango
-        if resultado['fecha_ult_pago'] < xFecha_ini_comprable or resultado['fecha_ult_pago'] > xFecha_fin_comprable:
-            continue
-        # nueva logica
-        # if resultado['fecha_ult_pago'] < xFecha_ini_comprable - timedelta(days=7):
-        #     continue
+        fecha_pago = resultado['fecha_ult_pago']
 
-        # if xAsiento["id"] != 979:
-        #     continue
-
-        # print("Doc en rango:", xAsiento['numero']," pagado el: ", resultado['fecha_ult_pago'] )
-        
-        # Buscar sus pagos
+        # 2.3) Buscar pagos para calcular base y tasa
         pagos = buscar_pagos(xAsiento["id"]) 
 
         for pago in pagos:
             xAsiento["fecha_doc"] = xAsiento['fecha']
             xAsiento["documento"] = xAsiento['numero']
-            xAsiento["pagado"] = resultado['fecha_ult_pago']
+            xAsiento["pagado"] = fecha_pago
             xAsiento["en"] = 'Bs'
             xAsiento["tasa"] = pago[0]
             xAsiento["base"] = pago[1]
-            # print("fila a agregar: ", xAsiento["tasa"], xAsiento["base"])
+            # 2.4) Marcar si es rezagado (pago hecho antes del periodo actual)
+            xAsiento["es_rezagado"] = fecha_pago < xFecha_ini_comprable
+
+            # 2.5) Agregar al resultado
             data_lista_bs.append(xAsiento.copy())
 
-        data = list(data_lista_bs)
+    # 3) Devolver la data al frontend
+    return JsonResponse(data_lista_bs, safe=False)
 
-    return JsonResponse(data, safe=False)
 
 @login_required 
 def obtener_comisiones2View(request):
     xFecha_ini_comprable = datetime.strptime(request.POST.get('fecha_ini'), '%Y-%m-%d').date()
-    xFecha_fin_comprable = datetime.strptime(request.POST.get('fecha_fin'), '%Y-%m-%d').date()
+    #xFecha_fin_comprable = datetime.strptime(request.POST.get('fecha_fin'), '%Y-%m-%d').date()
     
     # 1) Filtrar documentos 
     qDocumentos = Documento.objects.filter(
     cliente__vendedor=request.POST.get('vendedor_id'),
-    cliente__comisionable='Si',
-    comision_liquidada=False,   
+    cliente__comisionable='Si',         # Solo clientes comisionables
+    comision_liquidada=False,           # Que no hayan sido liquidados aún
     ).annotate(
         saldo=F('monto') - F('abonado')
     ).filter(
-        saldo__lte=0
+        saldo__lte=0                     # Que estén completamente pagados
     ).values(
         'id', 'fecha', 'numero', 'cliente__nombre', 'monto', 'saldo', 'dias_v'
     ).order_by(
         'fecha', 'numero'
     )
     
-    # 2) Iterar usd 
+    # 2) Iterar documentos para comisión en $
     data_lista_usd = []  
-    data2 = []
     for xAsiento in qDocumentos:
-        # busca la fecha_ult_pago
+        # 2.1) Buscar la fecha real del último pago
         resultado = buscar_fecha_pagado(xAsiento["id"])
 
-        # Salta si no hay fecha
+        # 2.2) Si no hay fecha, el documento no está listo para comisión
         if not resultado or not resultado['fecha_ult_pago']:
-            continue  
-
-        # 2) Salata los fuera del rango
-        if resultado['fecha_ult_pago'] < xFecha_ini_comprable or resultado['fecha_ult_pago'] > xFecha_fin_comprable:
             continue
-        # if resultado['fecha_ult_pago'] < xFecha_ini_comprable - timedelta(days=7):
-        #     continue
 
-        # if xAsiento['numero'] != '00026071':
-        #     continue
-        #print("Doc en rango:", xAsiento['numero']," pagado el: ", resultado['fecha_ult_pago'] )
-        
-        # Buscar sus pagos
+        fecha_pago2 = resultado['fecha_ult_pago']
+
+        # 2.3) Buscar pagos para calcular base
         pagos2 = buscar_pagos2(xAsiento["id"]) 
         
         for pago2 in pagos2:
             xAsiento["fecha_doc"] = xAsiento['fecha']
             xAsiento["documento"] = xAsiento['numero']
-            xAsiento["pagado"] = resultado['fecha_ult_pago']
-            xAsiento["en"] = 'Bs'
+            xAsiento["pagado"] = fecha_pago2
+            xAsiento["en"] = '$'
             xAsiento["tasa"] = '-'
             xAsiento["base"] = pago2['total_monto']  
+            # 2.4) Marcar si es rezagado (pago hecho antes del periodo actual)
+            xAsiento["es_rezagado2"] = fecha_pago2 < xFecha_ini_comprable
             
+            # 2.5) Agregar al resultado
             data_lista_usd.append(xAsiento.copy())  # Muy importante para evitar referencias al mismo dict
 
-        data2 = list(data_lista_usd)
+    # 3) Devolver la data al frontend
+    return JsonResponse(data_lista_usd, safe=False)
 
-    return JsonResponse(data2, safe=False)
 
 @login_required
 def comisiones_calculadasView(request, xVendedor):
     xUsuario = request.user
-    # print("--------- Parametros recibidos GET ----------")
   
-    # xStatu_seleccionado = xStatus
     xVendedor_seleccionado = xVendedor
-    # xExcluidos = [2, 4]
-    # xStatus_select = Statu.objects.exclude(id__in=xExcluidos)
+
     xVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
 
     if request.method == 'POST':
@@ -2500,11 +2602,14 @@ def validar_comisionView(request):
     # print('Dato: ',request.POST.get('campo'))
    
     # para campos repetidos
-    xRegistros = ComisionCabecera.objects.filter(
-    periodo_id=request.POST.get('campo1'),
-    vendedor_id=request.POST.get('campo2'),
-    status='Calculado' 
-    )
+    xRegistros = ComisionCabecera.objects.annotate(
+    anio=ExtractYear('creado')
+        ).filter(
+            periodo_id=request.POST.get('campo1'),
+            vendedor_id=request.POST.get('campo2'),
+            status='Calculado',
+            anio=request.POST.get('campo3')
+        )
 
     if xRegistros.exists():
         # print("Resgistros encontados: ", xRegistros.count())

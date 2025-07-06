@@ -64,3 +64,155 @@ $.each(data2, function (key, item) {
     //         csrfmiddlewaretoken: '{{ csrf_token }}'
     //     },
     // })
+
+
+==================
+# 2) iterar bs
+    data = []
+    data_lista_bs = []  
+  
+    for xAsiento in qDocumentos:
+        # busca la fecha_ult_pago
+        resultado = buscar_fecha_pagado(xAsiento["id"])
+
+        # Salta si no hay fecha
+        if not resultado or not resultado['fecha_ult_pago']:
+            continue  
+
+        # 2.1) Salata los fuera del rango
+        if resultado['fecha_ult_pago'] < xFecha_ini_comprable - timedelta(days=7):
+            continue
+
+        # if xAsiento["id"] != 979:
+        #     continue
+
+        # print("Doc en rango:", xAsiento['numero']," pagado el: ", resultado['fecha_ult_pago'] )
+        
+        # Buscar sus pagos
+        pagos = buscar_pagos(xAsiento["id"]) 
+
+        for pago in pagos:
+            xAsiento["fecha_doc"] = xAsiento['fecha']
+            xAsiento["documento"] = xAsiento['numero']
+            xAsiento["pagado"] = resultado['fecha_ult_pago']
+            xAsiento["en"] = 'Bs'
+            xAsiento["tasa"] = pago[0]
+            xAsiento["base"] = pago[1]
+            # Marcar si es rezagado
+            xAsiento["es_rezagado"] = resultado['fecha_ult_pago'] < xFecha_ini_comprable
+
+            # print("fila a agregar: ", xAsiento["tasa"], xAsiento["base"])
+            data_lista_bs.append(xAsiento.copy())
+
+        data = list(data_lista_bs)
+
+    return JsonResponse(data, safe=False)
+
+
+    def obtener_comisionesView(request):
+    xFecha_ini_comprable = datetime.strptime(request.POST.get('fecha_ini'), '%Y-%m-%d').date()
+    #xFecha_fin_comprable = datetime.strptime(request.POST.get('fecha_fin'), '%Y-%m-%d').date()
+
+    # 1) Buscar documentos elegibles
+    qDocumentos = Documento.objects.filter(
+        cliente__vendedor=request.POST.get('vendedor_id'),
+        cliente__comisionable='Si',          # Solo clientes comisionables
+        comision_liquidada=False             # Que no hayan sido liquidados aún
+    ).annotate(
+        saldo=F('monto') - F('abonado')
+    ).filter(
+        saldo__lte=0                         # Que estén completamente pagados
+    ).values(
+        'id', 'fecha', 'numero', 'cliente__nombre', 'monto', 'saldo', 'dias_v'
+    ).order_by(
+        'fecha', 'numero'
+    )
+
+    # 2) Iterar documentos para comisión en Bs
+    data_lista_bs = []
+
+    for xAsiento in qDocumentos:
+        # 2.1) Buscar la fecha real del último pago
+        resultado = buscar_fecha_pagado(xAsiento["id"])
+
+        # 2.2) Si no hay fecha, el documento no está listo para comisión
+        if not resultado or not resultado['fecha_ult_pago']:
+            continue  
+
+        fecha_pago = resultado['fecha_ult_pago']
+
+        # 2.3) Buscar pagos para calcular base y tasa
+        pagos = buscar_pagos(xAsiento["id"]) 
+
+        for pago in pagos:
+            xAsiento["fecha_doc"] = xAsiento['fecha']
+            xAsiento["documento"] = xAsiento['numero']
+            xAsiento["pagado"] = fecha_pago
+            xAsiento["en"] = 'Bs'
+            xAsiento["tasa"] = pago[0]
+            xAsiento["base"] = pago[1]
+
+            # 2.4) Marcar si es rezagado (pago hecho antes del periodo actual)
+            xAsiento["es_rezagado"] = fecha_pago < xFecha_ini_comprable
+
+            # 2.5) Agregar al resultado
+            data_lista_bs.append(xAsiento.copy())
+
+    # 3) Devolver la data al frontend
+    return JsonResponse(data_lista_bs, safe=False)
+
+
+
+
+@login_required 
+def obtener_comisiones2View(request):
+    xFecha_ini_comprable = datetime.strptime(request.POST.get('fecha_ini'), '%Y-%m-%d').date()
+    #xFecha_fin_comprable = datetime.strptime(request.POST.get('fecha_fin'), '%Y-%m-%d').date()
+    
+    # 1) Filtrar documentos 
+    qDocumentos = Documento.objects.filter(
+    cliente__vendedor=request.POST.get('vendedor_id'),
+    cliente__comisionable='Si',         # Solo clientes comisionables
+    comision_liquidada=False,           # Que no hayan sido liquidados aún
+    ).annotate(
+        saldo=F('monto') - F('abonado')
+    ).filter(
+        saldo__lte=0                     # Que estén completamente pagados
+    ).values(
+        'id', 'fecha', 'numero', 'cliente__nombre', 'monto', 'saldo', 'dias_v'
+    ).order_by(
+        'fecha', 'numero'
+    )
+    
+    # 2) Iterar documentos para comisión en $
+    data_lista_usd = []  
+    for xAsiento in qDocumentos:
+        # 2.1) Buscar la fecha real del último pago
+        resultado = buscar_fecha_pagado(xAsiento["id"])
+
+        # 2.2) Si no hay fecha, el documento no está listo para comisión
+        if not resultado or not resultado['fecha_ult_pago']:
+            continue
+
+        fecha_pago2 = resultado['fecha_ult_pago']
+
+        # 2.3) Buscar pagos para calcular base
+        pagos2 = buscar_pagos2(xAsiento["id"]) 
+        
+        for pago2 in pagos2:
+            xAsiento["fecha_doc"] = xAsiento['fecha']
+            xAsiento["documento"] = xAsiento['numero']
+            xAsiento["pagado"] = fecha_pago2
+            xAsiento["en"] = '$'
+            xAsiento["tasa"] = '-'
+            xAsiento["base"] = pago2['total_monto']  
+
+            # 2.4) Marcar si es rezagado (pago hecho antes del periodo actual)
+            xAsiento["es_rezagado2"] = fecha_pago2 < xFecha_ini_comprable
+            
+            data_lista_usd.append(xAsiento.copy())  # Muy importante para evitar referencias al mismo dict
+
+        #data2 = list(data_lista_usd)
+
+    return JsonResponse(data_lista_usd, safe=False)
+

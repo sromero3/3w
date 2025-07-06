@@ -78,24 +78,69 @@ def buscar_fecha_pagado(doc_id):
         return {'fecha_ult_pago': xFec}
   
 
+# def buscar_pagos(doc_id):
+#     xPago_detalles = Pago_detalle.objects.filter(
+#         documento_id=doc_id,
+#         pago__forma_id__in=[1, 4]
+#     ).values('monto_procesar', 'pago__tasa')
+
+#     pagos_agrupados = defaultdict(Decimal)
+#     for xPago_detalle in xPago_detalles:
+#         pagos_agrupados[xPago_detalle['pago__tasa']] += (xPago_detalle['monto_procesar']* xPago_detalle['pago__tasa'])
+
+#     resultado_ordenado = sorted(pagos_agrupados.items(), key=lambda x: x[0])
+
+#     return resultado_ordenado
+
 def buscar_pagos(doc_id):
+    # Traer el monto total del documento
+    doc = Documento.objects.get(id=doc_id)
+    monto_total = doc.monto
+
+    # Traer pagos en USD (formas 1 y 4)
     xPago_detalles = Pago_detalle.objects.filter(
         documento_id=doc_id,
         pago__forma_id__in=[1, 4]
     ).values('monto_procesar', 'pago__tasa')
 
     pagos_agrupados = defaultdict(Decimal)
-    for xPago_detalle in xPago_detalles:
-        # print("Pagos  -->", xPago_detalle['monto_procesar'])
-        pagos_agrupados[xPago_detalle['pago__tasa']] += (xPago_detalle['monto_procesar']* xPago_detalle['pago__tasa'])
+    monto_acumulado = Decimal('0')
 
+    for xPago_detalle in xPago_detalles:
+        monto_procesar = Decimal(xPago_detalle['monto_procesar'])
+        tasa = Decimal(xPago_detalle['pago__tasa'])
+
+        # Si ya llegamos al monto del documento, salimos
+        if monto_acumulado >= monto_total:
+            break
+
+        # Determinar cuánto se puede procesar sin pasarse
+        disponible = monto_total - monto_acumulado
+        monto_aceptado = min(monto_procesar, disponible)
+
+        pagos_agrupados[tasa] += monto_aceptado * tasa
+        monto_acumulado += monto_aceptado
+
+    # Ordenar por tasa
     resultado_ordenado = sorted(pagos_agrupados.items(), key=lambda x: x[0])
-    # for x in resultado_ordenado:
-    #     print(x)
     return resultado_ordenado
 
 
+
+# def buscar_pagos2(doc_id):
+#     pagos_agrupados = (
+#         Pago_detalle.objects.filter(
+#             documento_id=doc_id,
+#             pago__forma_id__in=[2, 3, 7]
+#         )
+#         .values('documento_id')
+#         .annotate(total_monto=Sum('monto_procesar'))
+#     )
+#     print("Pagos agrupados:", pagos_agrupados)
+#     return list(pagos_agrupados)
+
 def buscar_pagos2(doc_id):
+    # Sumar pagos válidos
     pagos_agrupados = (
         Pago_detalle.objects.filter(
             documento_id=doc_id,
@@ -104,8 +149,13 @@ def buscar_pagos2(doc_id):
         .values('documento_id')
         .annotate(total_monto=Sum('monto_procesar'))
     )
-    return list(pagos_agrupados)
 
+    # Si hay resultados
+    if pagos_agrupados:
+        monto_doc = Documento.objects.get(id=doc_id).monto
+        pagos_agrupados[0]['total_monto'] = min(pagos_agrupados[0]['total_monto'], monto_doc)
+
+    return list(pagos_agrupados)
 
 
 

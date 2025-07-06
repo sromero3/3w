@@ -197,9 +197,7 @@ M1 | Calcular comisiones
         var existe = false
         let campo1 = $('#periodo').val()
         let campo2 = $('#vendedor').val()
-        let extraer = $('#fecha_ini').val()
-        let campo3 = extraer ? extraer.substring(0, 4) : '';
-         
+ 
         // si no se ha selecionda perdodo o vendedor no seguimos
         if (campo1 ==0 || campo2==0) {
             return;
@@ -214,7 +212,6 @@ M1 | Calcular comisiones
                 csrfmiddlewaretoken: '{{ csrf_token }}',
                 'campo1': campo1,
                 'campo2': campo2,
-                'campo3': campo3,
             },
             datatype: 'json',
             success: function (data) {
@@ -274,11 +271,11 @@ M1 | Calcular comisiones
 
                     const fechaFormateada = formatearFecha(item.fecha_doc);
                     const fechaPagadoFormateada = formatearFecha(item.pagado);
-                    const claseRezagado = item.es_rezagado ? 'table-danger' : '';
+
                     html += `
                         <input type="hidden" name="bs-docId-${fila_bs}" value="${item.id}">
                         
-                        <tr class="${claseRezagado}">
+                        <tr>
                             <td style="width:150px">
                                 <input name="bs-fec-${fila_bs}" value="${fechaFormateada}"
                                 class="form-control sin-bordes" readonly>
@@ -431,12 +428,11 @@ M1 | Calcular comisiones
 
                     const fechaFormateada2 = formatearFecha(item.fecha_doc);
                     const fechaPagadoFormateada2 = formatearFecha(item.pagado);
-                    const claseRezagado2 = item.es_rezagado ? 'table-danger' : '';
+
                     html2 += `
                         <input type="hidden" name="usd-docId-${fila_usd}" value="${item.id}">
                         
-                        
-                        <tr class="${claseRezagado}">
+                        <tr>
                             <td style="width:150px">
                                 <input name="usd-fec-${fila_usd}" value="${fechaFormateada2}"
                                 class="form-control sin-bordes" readonly>
