@@ -2439,7 +2439,7 @@ def obtener_comisionesView(request):
     ).order_by(
         'fecha', 'numero'
     )
-
+    print("----------> ", qDocumentos)
     # 2) Iterar documentos para comisión en Bs
     data_lista_bs = []
 
