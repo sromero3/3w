@@ -20,7 +20,7 @@ M1 | Cerrar comisiones
                     {% csrf_token %}
                     <div class="row">
 
-                        <h6 class="text-center py-2">Se cerrará el período de la semana actual: Semana {{periodo_actual.numero_semana}} y abrirá la siguiente</h6>
+                        <h6 class="text-center py-2">Se cerrará el período de la semana actual Semana {{periodo_actual.numero_semana}} y abrirá la siguiente:</h6>
                         <h6 class="text-center py-3"> <b>Desde el {{periodo_actual.desde |date:"d/m/y"}} Hasta el {{periodo_actual.hasta |date:"d/m/y"}}</b> </h6>
 
                     </div>

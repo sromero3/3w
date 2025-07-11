@@ -58,7 +58,6 @@ def actualizar_dias_vencido():
                xControl.fecha_control = hoy
                xControl.save()
 
-          print(" se actualiazo dias_v ")
     return 
 
 def buscar_fecha_pagado(doc_id):

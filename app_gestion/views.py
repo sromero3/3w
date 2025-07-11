@@ -2400,16 +2400,16 @@ def calcular_comisionView(request):
 
             fila_usd += 1
 
-            # Mantener el periodo, pero limpiar el vendedor
-            context = {
-                'xUsuario': xUsuario,
-                'xPeriodos': xPeriodos,
-                'xVendedores': xVendedores,
-                'xPeriodoId': int(periodo_id),  # pasar el periodo para el select
-                'xVendedorId': None,  # limpiar vendedor
-                'mensaje_exito': 'Comisión registrada correctamente.'
-            }
-            return render(request, 'app_gestion/calcular_comision.html', context)
+        # Mantener el periodo, pero limpiar el vendedor
+        context = {
+            'xUsuario': xUsuario,
+            'xPeriodos': xPeriodos,
+            'xVendedores': xVendedores,
+            'xPeriodoId': int(periodo_id),  # pasar el periodo para el select
+            'xVendedorId': None,  # limpiar vendedor
+            'mensaje_exito': 'Comisión registrada correctamente.'
+        }
+        return render(request, 'app_gestion/calcular_comision.html', context)
 
     context = {
         'xUsuario': xUsuario,
@@ -2439,7 +2439,7 @@ def obtener_comisionesView(request):
     ).order_by(
         'fecha', 'numero'
     )
-    print("----------> ", qDocumentos)
+
     # 2) Iterar documentos para comisión en Bs
     data_lista_bs = []
 
@@ -2571,7 +2571,6 @@ def ver_comisionView(request, xComi):
         comision_id=xComi,
         tasa=0
     )
-
     context = {
         'xUsuario': xUsuario,
         'xComisionCabecera': xComisionCabecera,

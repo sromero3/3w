@@ -12,11 +12,11 @@ M1 | Calcular comisiones
         <div class="card" id="data-section" style="opacity: 0;">
             <div class="card-body">
                 <input id="xDesde" value="{{xDesde}}" hidden />
-                <h5 class="card-title">Calcular comisiones<a href="{% url 'comisiones_calculadas' 0  %}" class="float-end"><i
-                            class="bi bi-arrow-return-left" title='Regresar'></i></a></h5>
+                <h5 class="card-title">Calcular comisiones<a href="{% url 'comisiones_calculadas' 0  %}"
+                        class="float-end"><i class="bi bi-arrow-return-left" title='Regresar'></i></a></h5>
 
                 <form id="calcular_comision" action="" method="post" class="mb-4">
-                  
+
                     {% csrf_token %}
                     <div class="row">
 
@@ -27,13 +27,12 @@ M1 | Calcular comisiones
                                 <option value="0" selected></option>
                                 {% for xPeriodo in xPeriodos %}
                                 <option value="{{ xPeriodo.id }}" data-desde="{{ xPeriodo.desde |date:'Y-m-d' }}"
-                                    data-hasta="{{ xPeriodo.hasta |date:'Y-m-d' }}" {% if xPeriodo.id == xPeriodoId %} selected {% endif %}>
-                                    {{ xPeriodo.numero_semana }} - {{ xPeriodo.desde |date:"d/m/y" }} - {{xPeriodo.hasta |date:"d/m/y" }}
+                                    data-hasta="{{ xPeriodo.hasta |date:'Y-m-d' }}" {% if xPeriodo.id == xPeriodoId %}selected {% endif %}>
+                                    {{ xPeriodo.numero_semana }} - {{ xPeriodo.desde|date:"d/m/y" }} - {{xPeriodo.hasta|date:"d/m/y" }}
                                 </option>
                                 {% endfor %}
                             </select>
                         </div>
-
                         <div class="col-md-3">
                             <span class="titulos">
                                 Desde</span>
@@ -46,14 +45,12 @@ M1 | Calcular comisiones
                             <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}"
                                 class="form-control alto" readonly />
                         </div>
-
                         <div class="col-3" style="margin-bottom: 12px;">
-                            <span class="titulos">
-                                Vendedor</span>
+                            <span class="titulos">Vendedor</span>
                             <select name="vendedor" id="vendedor" onChange="obtener_comisiones()">
                                 <option value="0" selected></option>
                                 {% for xVendedor in xVendedores %}
-                                <option value={{xVendedor.id}} data-nombre="{{ xVendedor.nombre }}" {% if xVendedor.id == xVendedorId %} selected {%endif %}>
+                                <option value="{{xVendedor.id}}" data-nombre="{{ xVendedor.nombre }}" {% if xVendedor.id == xVendedorId %} selected {%endif %}>
                                     {{xVendedor.nombre}}
                                 </option>
                                 {% endfor %}
@@ -188,7 +185,7 @@ M1 | Calcular comisiones
         document.getElementById("fecha_ini").value = selectedOption.getAttribute("data-desde");
         document.getElementById("fecha_fin").value = selectedOption.getAttribute("data-hasta");
         const vendedor = document.getElementById("vendedor");
-       
+
         const periodo_id = var_periodo.value;
         const fecha_ini = document.getElementById("fecha_ini").value;
         const fecha_fin = document.getElementById("fecha_fin").value;
@@ -199,12 +196,12 @@ M1 | Calcular comisiones
         let campo2 = $('#vendedor').val()
         let extraer = $('#fecha_ini').val()
         let campo3 = extraer ? extraer.substring(0, 4) : '';
-         
+
         // si no se ha selecionda perdodo o vendedor no seguimos
-        if (campo1 ==0 || campo2==0) {
+        if (campo1 == 0 || campo2 == 0) {
             return;
         }
-        
+
         // validamos que no exista ya una comision
         $.ajax({
             url: "{% url 'validar_comision' %}",
@@ -224,7 +221,7 @@ M1 | Calcular comisiones
             error: function (xhr, status, error) {
             }
         })
-        
+
         if (existe) {
             Swal.fire({
                 position: 'center',
@@ -234,10 +231,10 @@ M1 | Calcular comisiones
                 //timer: 2500
             })
             return;
-        } 
+        }
 
         //  ahora si buscar las comisiones
-       
+
 
         $.ajax({
             url: "{% url 'obtener_comisiones_bs' %}",
@@ -362,22 +359,61 @@ M1 | Calcular comisiones
 
 
     // funcion para aplicar_porcentaje 
-    function aplicar_porcentaje(id) {
-        const fila = document.getElementById('bs-xPor-' + id)
-        FormatearNumerosInputs(fila);
-        const xBase = quitarFormato(fila.dataset.base_impo) * 1;
-        const xPor = quitarFormato(fila.value) * 1;
-        const nueva_comision = xBase * xPor / 100
-        document.getElementById('bs-xComi-' + id).value = darFormato(nueva_comision)
+    // function aplicar_porcentaje(id) {
+    // const fila = document.getElementById('bs-xPor-' + id)
+    // FormatearNumerosInputs(fila);
+    // const xBase = quitarFormato(fila.dataset.base_impo) * 1;
+    // const xPor = quitarFormato(fila.value) * 1;
+    // const nueva_comision = xBase * xPor / 100
+    // document.getElementById('bs-xComi-' + id).value = darFormato(nueva_comision)
 
-        let acumulador = 0;
-        document.querySelectorAll('.input-comision').forEach(input => {
-            const valor = input.value.trim();
-            if (valor) {
-                acumulador += quitarFormato(valor) * 1;
-            }
+    // let acumulador = 0;
+    // document.querySelectorAll('.input-comision').forEach(input => {
+    //     const valor = input.value.trim();
+    //     if (valor) {
+    //         acumulador += quitarFormato(valor) * 1;
+    //     }
+    // });
+    // document.getElementById('total_comi_bs').value = darFormato(acumulador)
+    // ===== Reemplaza COMPLETAMENTE la función actual =====
+    function aplicar_porcentaje(id) {
+        const inputPor = document.getElementById(`bs-xPor-${id}`);
+        FormatearNumerosInputs(inputPor);
+
+        // % recién digitado (sin separadores)
+        const nuevoPorcj = quitarFormato(inputPor.value) * 1;
+
+        // Nº de documento de la fila editada
+        const filaEditada = inputPor.closest('tr');
+        const docInput = filaEditada.querySelector('input[name^="bs-doc-"]');
+        if (!docInput) return;
+        const documento = docInput.value.trim();
+
+        // Recorremos TODAS las filas BS y actualizamos las que compartan ese documento
+        document.querySelectorAll('#asientosBs tr').forEach(row => {
+            const docRow = row.querySelector('input[name^="bs-doc-"]');
+            if (!docRow || docRow.value.trim() !== documento) return;   // otra factura ⇒ skip
+
+            const porInp = row.querySelector('input[id^="bs-xPor-"]');
+            const baseInp = row.querySelector('input.input-base');
+            const comiInp = row.querySelector('input.input-comision');
+
+            if (!porInp || !baseInp || !comiInp) return;
+
+            // % (formateado) en todas las filas
+            porInp.value = darFormato(nuevoPorcj);
+
+            // base_impo viene en data-* con formato → despójalo antes de operar
+            const base = quitarFormato(porInp.dataset.base_impo) * 1;
+            const nuevaCom = base * nuevoPorcj / 100;
+
+            comiInp.value = darFormato(nuevaCom);
         });
-        document.getElementById('total_comi_bs').value = darFormato(acumulador)
+
+        // Actualizamos totales generales
+        recalcularTotalBs();
+
+
     } // aplicar_porcentaje 
 
     function obtener_comisiones2() {
@@ -431,7 +467,7 @@ M1 | Calcular comisiones
 
                     const fechaFormateada2 = formatearFecha(item.fecha_doc);
                     const fechaPagadoFormateada2 = formatearFecha(item.pagado);
-                    const claseRezagado2 = item.es_rezagado ? 'table-danger' : '';
+                    const claseRezagado2 = item.es_rezagado2 ? 'table-danger' : '';
                     html2 += `
                         <input type="hidden" name="usd-docId-${fila_usd}" value="${item.id}">
                         
@@ -476,8 +512,8 @@ M1 | Calcular comisiones
                                 <input type="checkbox" name="usd-incluir-${fila_usd}" class="excluir-fila" data-id="${item.id}" checked style="margin-top: 8px;"/>
                             </td>
                         </tr>`
-                    
-                    
+
+
                     fila_usd++;
                     total_usdB += parseFloat(quitarFormato(tmp_base))
                     total_usd += parseFloat(quitarFormato(comision_predeterminada))
@@ -519,77 +555,115 @@ M1 | Calcular comisiones
     }
 
     // funcion para aplicar_porcentaje 
-    function aplicar_porcentaje2(id) {
-        console.log(id)
-        const fila = document.getElementById('usd-xPor-' + id)
-        FormatearNumerosInputs(fila);
-        const xBase = quitarFormato(fila.dataset.base_impo) * 1;
-        const xPor = quitarFormato(fila.value) * 1;
-        const nueva_comision = xBase * xPor / 100
-        document.getElementById('usd-xComi-' + id).value = darFormato(nueva_comision)
+    // function aplicar_porcentaje2(id) {
+    //     console.log(id)
+    //     const fila = document.getElementById('usd-xPor-' + id)
+    //     FormatearNumerosInputs(fila);
+    //     const xBase = quitarFormato(fila.dataset.base_impo) * 1;
+    //     const xPor = quitarFormato(fila.value) * 1;
+    //     const nueva_comision = xBase * xPor / 100
+    //     document.getElementById('usd-xComi-' + id).value = darFormato(nueva_comision)
 
-        let acumulador2 = 0;
-        document.querySelectorAll('.input-comision2').forEach(input => {
-            const valor = input.value.trim();
-            if (valor) {
-                acumulador2 += quitarFormato(valor) * 1;
-            }
+    //     let acumulador2 = 0;
+    //     document.querySelectorAll('.input-comision2').forEach(input => {
+    //         const valor = input.value.trim();
+    //         if (valor) {
+    //             acumulador2 += quitarFormato(valor) * 1;
+    //         }
+    //     });
+    //     document.getElementById('total_comi_usd').value = darFormato(acumulador2)
+    function aplicar_porcentaje2(id) {
+        const inputPor = document.getElementById(`usd-xPor-${id}`);
+        FormatearNumerosInputs(inputPor);
+
+        // % recién digitado (sin separadores)
+        const nuevoPorcj = quitarFormato(inputPor.value) * 1;
+
+        // Nº de documento de la fila editada
+        const filaEditada = inputPor.closest('tr');
+        const docInput = filaEditada.querySelector('input[name^="usd-doc-"]');
+        if (!docInput) return;
+        const documento = docInput.value.trim();
+
+        // Recorremos TODAS las filas USD y actualizamos las que compartan ese documento
+        document.querySelectorAll('#asientosUSD tr').forEach(row => {
+            const docRow = row.querySelector('input[name^="usd-doc-"]');
+            if (!docRow || docRow.value.trim() !== documento) return;   // otra factura ⇒ skip
+
+            const porInp = row.querySelector('input[id^="usd-xPor-"]');
+            const baseInp = row.querySelector('input.input-base2');
+            const comiInp = row.querySelector('input.input-comision2');
+
+            if (!porInp || !baseInp || !comiInp) return;
+
+            // % (formateado) en todas las filas
+            porInp.value = darFormato(nuevoPorcj);
+
+            // base_impo viene en data-* con formato → despójalo antes de operar
+            const base = quitarFormato(porInp.dataset.base_impo) * 1;
+            const nuevaCom = base * nuevoPorcj / 100;
+
+            comiInp.value = darFormato(nuevaCom);
         });
-        document.getElementById('total_comi_usd').value = darFormato(acumulador2)
+
+        // Actualizamos totales generales
+        recalcularTotalUsd();
+
+
     } // aplicar_porcentaje 
 
     // Descativa la linea
-   document.addEventListener("change", function (e) {
-    if (e.target.classList.contains("excluir-fila")) {
-        const checkbox = e.target;
-        const fila = checkbox.closest("tr");
-        const tabla = fila.closest("table").id;
-        if (!fila) return;
+    document.addEventListener("change", function (e) {
+        if (e.target.classList.contains("excluir-fila")) {
+            const checkbox = e.target;
+            const fila = checkbox.closest("tr");
+            const tabla = fila.closest("table").id;
+            if (!fila) return;
 
-        // Obtener el valor del documento de esta fila
-        const inputDocumento = fila.querySelector('input[name^="bs-doc-"], input[name^="usd-doc-"]');
-        if (!inputDocumento) return;
-        const documento = inputDocumento.value.trim();
+            // Obtener el valor del documento de esta fila
+            const inputDocumento = fila.querySelector('input[name^="bs-doc-"], input[name^="usd-doc-"]');
+            if (!inputDocumento) return;
+            const documento = inputDocumento.value.trim();
 
-        // Buscar todas las filas con el mismo documento
-        const selectorTabla = tabla === "asientosBs" ? '#asientosBs' : '#asientosUSD';
-        const filas = document.querySelectorAll(`${selectorTabla} tr`);
+            // Buscar todas las filas con el mismo documento
+            const selectorTabla = tabla === "asientosBs" ? '#asientosBs' : '#asientosUSD';
+            const filas = document.querySelectorAll(`${selectorTabla} tr`);
 
-        filas.forEach(row => {
-            const docInput = row.querySelector('input[name^="bs-doc-"], input[name^="usd-doc-"]');
-            if (!docInput || docInput.value.trim() !== documento) return;
+            filas.forEach(row => {
+                const docInput = row.querySelector('input[name^="bs-doc-"], input[name^="usd-doc-"]');
+                if (!docInput || docInput.value.trim() !== documento) return;
 
-            const chk = row.querySelector('input.excluir-fila');
-            const inputComision = row.querySelector("input.input-comision") || row.querySelector("input.input-comision2");
-            const inputPorcentaje = row.querySelector("input[id^='bs-xPor-'], input[id^='usd-xPor-']");
-            const campoBase = row.querySelector("input.input-base") || row.querySelector("input.input-base2");
+                const chk = row.querySelector('input.excluir-fila');
+                const inputComision = row.querySelector("input.input-comision") || row.querySelector("input.input-comision2");
+                const inputPorcentaje = row.querySelector("input[id^='bs-xPor-'], input[id^='usd-xPor-']");
+                const campoBase = row.querySelector("input.input-base") || row.querySelector("input.input-base2");
 
-            if (chk) chk.checked = checkbox.checked;
+                if (chk) chk.checked = checkbox.checked;
 
-            if (inputPorcentaje) {
-                inputPorcentaje.readOnly = !checkbox.checked;
+                if (inputPorcentaje) {
+                    inputPorcentaje.readOnly = !checkbox.checked;
+                }
+
+                if (checkbox.checked) {
+                    const base = quitarFormato(inputPorcentaje.dataset.base_impo) * 1;
+                    const porcentaje = quitarFormato(inputPorcentaje.value) * 1;
+                    const nueva_comision = base * porcentaje / 100;
+                    inputComision.value = darFormato(nueva_comision);
+                    if (campoBase) campoBase.value = darFormato(base);
+                } else {
+                    inputComision.value = darFormato(0);
+                    if (campoBase) campoBase.value = darFormato(0);
+                }
+            });
+
+            // Recalcular totales
+            if (tabla === "asientosBs") {
+                recalcularTotalBs();
+            } else if (tabla === "asientosUSD") {
+                recalcularTotalUsd();
             }
-
-            if (checkbox.checked) {
-                const base = quitarFormato(inputPorcentaje.dataset.base_impo) * 1;
-                const porcentaje = quitarFormato(inputPorcentaje.value) * 1;
-                const nueva_comision = base * porcentaje / 100;
-                inputComision.value = darFormato(nueva_comision);
-                if (campoBase) campoBase.value = darFormato(base);
-            } else {
-                inputComision.value = darFormato(0);
-                if (campoBase) campoBase.value = darFormato(0);
-            }
-        });
-
-        // Recalcular totales
-        if (tabla === "asientosBs") {
-            recalcularTotalBs();
-        } else if (tabla === "asientosUSD") {
-            recalcularTotalUsd();
         }
-    }
-});
+    });
 
     // Recalcular totales Bs
     function recalcularTotalBs() {
@@ -638,16 +712,16 @@ M1 | Calcular comisiones
             if (!document.getElementById('total_comi_bs') && !document.getElementById('total_comi_usd')) {
                 return;
             }
- 
+
             const selectize = $('#vendedor')[0].selectize;
             const valorSeleccionado = selectize.getValue(); // id seleccionado
             const opcion = selectize.options[valorSeleccionado];
             const nombreVendedor = opcion ? opcion.text : '';
-            const p = document.getElementById('periodo').value 
-            if (!nombreVendedor){
+            const p = document.getElementById('periodo').value
+            if (!nombreVendedor) {
                 return
             }
-            if (p==0){
+            if (p == 0) {
                 return
             }
             // let m = document.getElementById('monto_procesar').value
