@@ -1,4 +1,5 @@
 # Para hacer los response
+from pydoc import doc
 from django.shortcuts import redirect, render
 from django.http import HttpResponse
 from django.core.mail import EmailMultiAlternatives
@@ -25,6 +26,7 @@ from decimal import *
 import os
 from django.contrib.auth import logout
 from django.db.models.functions import ExtractYear
+import json
 
 # from weasyprint import HTML
 
@@ -2423,7 +2425,6 @@ def calcular_comisionView(request):
 @login_required
 def obtener_comisionesView(request):
     xFecha_ini_comprable = datetime.strptime(request.POST.get('fecha_ini'), '%Y-%m-%d').date()
-    #xFecha_fin_comprable = datetime.strptime(request.POST.get('fecha_fin'), '%Y-%m-%d').date()
 
     # 1) Buscar documentos elegibles
     qDocumentos = Documento.objects.filter(
@@ -2476,7 +2477,6 @@ def obtener_comisionesView(request):
 @login_required 
 def obtener_comisiones2View(request):
     xFecha_ini_comprable = datetime.strptime(request.POST.get('fecha_ini'), '%Y-%m-%d').date()
-    #xFecha_fin_comprable = datetime.strptime(request.POST.get('fecha_fin'), '%Y-%m-%d').date()
     
     # 1) Filtrar documentos 
     qDocumentos = Documento.objects.filter(
@@ -2664,3 +2664,31 @@ def cerrar_comisionView(request):
     }
 
     return render(request, 'app_gestion/cerrar_comision.html', context)
+
+
+
+@login_required
+def aplicar_descuentoView(request):
+    try:
+        ids = json.loads(request.POST.get('ids', '[]'))
+        descuento = float(request.POST.get('descuento'))
+
+        if not ids:
+            return JsonResponse({'success': False, 'message': 'No se seleccionaron documentos'})
+
+        if not (1 <= descuento <= 100):
+            return JsonResponse({'success': False, 'message': 'Porcentaje inválido'})
+
+        documentos = Documento.objects.filter(id__in=ids)
+     
+        for doc in documentos:
+            monto_descuento = doc.monto * Decimal(descuento / 100)
+            monto_descuento = monto_descuento.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            doc.monto = (doc.monto - monto_descuento).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            doc.save()
+
+        return JsonResponse({'success': True})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+

@@ -21,7 +21,7 @@ M1 | Cobranza
 
                     <div class="col-md-6">
                         <label id="m" class="titulos d-flex me-2 mt-1">Cliente</label>
-                        <select name="cliente" id="cliente" required onChange="obtener_documentos()">
+                        <select name="cliente" id="cliente" required class="form-control  alto" onChange="obtener_documentos()">
                             <option value="0" selected>TODOS</option>
                             {% for xCliente in xClientes %}
                             <option value={{xCliente.id}} {% if xCliente.id == xCliente_seleccionado %} selected {%endif %}>

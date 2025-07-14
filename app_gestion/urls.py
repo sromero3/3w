@@ -72,6 +72,8 @@ urlpatterns = [
      path('validar_vendedor/', views.Validar_vendedorView, name='validar_vendedor'),
      path('obtener_saldos/', views.obtener_saldosView, name='obtener_saldos'),
      path('obtener_pagos/', views.obtener_pagosView, name='obtener_pagos'),
+     path('aplicar_descuento/', views.aplicar_descuentoView, name='aplicar_descuento'),
+     
      
      # Migrar
     #  path('e/', views.MigrarView, name='migrar'), 

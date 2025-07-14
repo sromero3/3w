@@ -4,72 +4,87 @@
 {% block title %}
 M1 | Documentos
 {% endblock %}
+
 {% block styles %}
+<style>
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: auto;
+        margin: 0;
+    }
+</style>
 {% endblock styles %}
+
 {% block content %}
 <main id="main" class="main" style="margin-top: 40px">
     <div class="col-lg-12">
         <div class="card" id="data-section" style="opacity: 0;">
             <div class="card-body">
-                <h5 class="card-title">Documentos<a href="{% url 'inicio' %}" class="float-end"><i
-                            class="bi bi-house-door" title='Cerrar'></i></a></h5>
+                <h5 class="card-title">
+                    Documentos
+                    <a href="{% url 'inicio' %}" class="float-end">
+                        <i class="bi bi-house-door" title="Cerrar"></i>
+                    </a>
+                </h5>
 
                 <form id="filtros" action="" method="post" class="row g-3">
                     {% csrf_token %}
 
                     <div class="col-md-6">
-                        <label id="m" class="titulos d-flex me-2 mt-1">Cliente</label>
-                        <select name="cliente" id="cliente" required" onChange="obtener_documentos()">
+                        <label class="titulos d-flex me-2 mt-1">Cliente</label>
+                        <select name="cliente" id="cliente" required
+                            onchange="mostrarDescuento(); obtener_documentos()">
                             <option value="0" selected>TODOS</option>
                             {% for xCliente in xClientes_select %}
-                            <option value={{xCliente.id}} {% if xCliente.id == xCliente_seleccionado %} selected {%endif %}>
-                                {{xCliente.nombre}}
+                            <option value="{{ xCliente.id }}" {% if xCliente.id == xCliente_seleccionado %}selected{% endif %}>
+                                {{ xCliente.nombre }}
                             </option>
                             {% endfor %}
                         </select>
                     </div>
+
                     <div class="col-md-6">
                         <label class="titulos d-flex me-2 mt-1">Días transcurridos</label>
                         <select name="dias" id="dias" class="form-control custom-select d-flex alto" required
-                            onChange="obtener_documentos()">
+                            onchange="obtener_documentos()">
                             <option value="0" selected>TODOS</option>
                             {% for xDia in xDias_select %}
-                            <option value={{xDia.id}} {% if xDia.id == xDia_seleccionado %} selected {%endif %}>
-                                {{xDia.dia}}
+                            <option value="{{ xDia.id }}" {% if xDia.id == xDia_seleccionado %}selected{% endif %}>
+                                {{ xDia.dia }}
                             </option>
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-6 form-check form-switch ps-1">
-                        <label class="titulos mt-2">&nbsp;Activar descuentos</label>
-                        {% if xVencido_seleccionado == 0 %}
-                        <input name="aplicar_descuento" class="form-check-input" type="checkbox" id="aplicar_descuento"
-                            style="padding-top: 20px" onChange="aplicar_documentos()">
-                        {% else %}
-                        <input name="aplicar_descuento" class="form-check-input" type="checkbox" id="aplicar_descuento" checked
-                            onChange="aplicar_documentos()">
-                        {% endif %}
-                    </div>
 
+                    {% with tiene_registros=xDocumentos|length %}
+                    <div class="col-md-6 {% if xCliente_seleccionado != 0 and tiene_registros > 0 %}{% else %}d-none{% endif %}"
+                        id="inputDescuento">
+                        <label class="titulos d-flex me-2 mt-1">% Descuento</label>
+                        <input step="1" min="1" max="10" type="number" name="por_descuento" id="por_descuento"
+                            class="form-control alto" value="3" required>
+                    </div>
+                    {% endwith %}
                 </form>
 
-                <div class="row">
-                    <div class="col-lg-12" style="text-align:center">
-                        <h6> <a href="{% url 'add_documento' %}"><i class="bi bi-stickies"
-                                    title='Agregar un documento'></i><span>+</span></a></h6>
-
-
+                <div class="row mt-2">
+                    <div class="col-lg-12 text-center mt-1">
+                        <h6>
+                            <a href="{% url 'add_documento' %}">
+                                <i class="bi bi-stickies" title="Agregar un documento"></i><span>+</span>
+                            </a>
+                        </h6>
                     </div>
-
 
                     <table id="documentos" class="table table-hover table-bordered" style="width:100%">
                         <thead>
                             <tr>
-                                <th class="col-descuento">D</th>
                                 <th>Documento</th>
+                                <th>
+                                    <input type="checkbox" id="checkAll" onclick="toggleCheckboxes(this)">
+                                </th>
                                 <th>Fecha</th>
                                 <th>Vence</th>
-                                <th>DV</th>
+                                <th>Días Vencidos</th>
                                 <th style="width:350px">Cliente</th>
                                 <th>Monto</th>
                                 <th>Abonado</th>
@@ -77,82 +92,81 @@ M1 | Documentos
                                 <th>Vendedor</th>
                                 <th>Condición</th>
                                 <th>Iva</th>
-                                <th>Opcion</th>
+                                <th>Opción</th>
                                 <th>Seguimiento</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for xDocumento in xDocumentos %}
                             <tr>
-                                <td class="col-descuento">
-                                    <input 
-                                    name="con_descuento_{{ xDocumento.id }}" 
-                                    class="form-check-input" 
-                                    type="checkbox" 
-                                    id="con_descuento_{{ xDocumento.id }}"
-                                    onchange="handleCheck({{ xDocumento.id }}, this.checked)">
+                                <td>
+                                    {{ xDocumento.numero|rellenar }}
+                                    {% if xDocumento.observacion %}
+                                    <a href="#">
+                                        <i class="bi bi-search" style="font-size: small;" data-bs-toggle="tooltip"
+                                            data-bs-placement="bottom" data-bs-html="true"
+                                            data-bs-title="{{ xDocumento.observacion }}<br>"></i>
+                                    </a>
+                                    {% endif %}
                                 </td>
-
-                                {% if xDocumento.observacion == "" %}
-                                <td>{{xDocumento.numero|rellenar}}</td>
-                                {% else %}
-                                <td>{{xDocumento.numero|rellenar}}
-                                    <a href="#"> <i style="font-size: small;" class="bi bi-search"
-                                            data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                                            data-bs-title="{{xDocumento.observacion}}<br>"></i>
-                                        </i></a>
+                                <td align="center">
+                                    <input name="con_descuento_{{ xDocumento.id }}" class="form-check-input"
+                                        value="{{ xDocumento.id }}" type="checkbox"
+                                        id="con_descuento_{{ xDocumento.id }}">
                                 </td>
-                                {% endif %}
-                                <td>{{xDocumento.fecha|date:"d/m/y"}}</td>
-                                <td>{{xDocumento.vencimiento|date:"d/m/y"}}</td>
-                                <td align="center">{{xDocumento.dias_v}}</td>
-                                <td>{{xDocumento.cliente__nombre}}</td>
-                                <td align="right">{{xDocumento.monto|darFormato}}</td>
-                                <td align="right">{{xDocumento.abonado|darFormato}}</td>
-                                <td align="right">{{xDocumento.saldo|darFormato}}</td>
-                                <td>{{xDocumento.cliente_id__vendedor__nombre|truncatechars:15}}</td>
-                                <td>{{xDocumento.condicion__condicion}} a {{xDocumento.credito}}</td>
-                                {% if xDocumento.iva__iva == "-" %}
-                                <td align="center">{{xDocumento.iva__iva}}</td>
-                                {% else %}
-                                <td>{{xDocumento.iva__iva}}</td>
-                                {% endif %}
+                                <td>{{ xDocumento.fecha|date:"d/m/y" }}</td>
+                                <td>{{ xDocumento.vencimiento|date:"d/m/y" }}</td>
+                                <td align="center">{{ xDocumento.dias_v }}</td>
+                                <td>{{ xDocumento.cliente__nombre }}</td>
+                                <td align="right">{{ xDocumento.monto|darFormato }}</td>
+                                <td align="right">{{ xDocumento.abonado|darFormato }}</td>
+                                <td align="right">{{ xDocumento.saldo|darFormato }}</td>
+                                <td>{{ xDocumento.cliente_id__vendedor__nombre|truncatechars:15 }}</td>
+                                <td>{{ xDocumento.condicion__condicion }} a {{ xDocumento.credito }}</td>
+                                <td {% if xDocumento.iva__iva == "-" %} align="center" {% endif %}>{{ xDocumento.iva__iva }}</td>
                                 <td style="width:0px">
-                                    {% if xDocumento.abonado > 0 %}
                                     <a href="{% url 'editar_documento' xDocumento.id %}">
                                         &nbsp;&nbsp;<i class="bi bi-pencil"></i>
                                     </a>
-                                    {% else %}
-                                    <a href="{% url 'editar_documento' xDocumento.id %}">
-                                        &nbsp;&nbsp;<i class="bi bi-pencil"></i>
-                                    </a>
+                                    {% if xDocumento.abonado == 0 %}
                                     <a href="{% url 'eliminar_documento' xDocumento.id %}">
                                         &nbsp;&nbsp;<i class="bi bi-trash3"></i>
                                     </a>
                                     {% endif %}
                                 </td>
-
-                                {% if xDocumento.seguimiento == "" %}
-                                <td align="center">-</td>
-                                {% else %}
-                                <td align="center"><a href="javascript:abrir_modal('{{xDocumento.seguimiento}}')"> <i
-                                            style="font-size: small;" class="bi bi-activity"></a></i></td>
-                                {% endif %}
+                                <td align="center">
+                                    {% if xDocumento.seguimiento %}
+                                    <a href="javascript:abrir_modal('{{ xDocumento.seguimiento }}')">
+                                        <i class="bi bi-activity" style="font-size: small;"></i>
+                                    </a>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
-                        <tfoot>
-
-                        </tfoot>
                     </table>
+
+                    {% with tiene_registros=xDocumentos|length %}
+                    <div class="mt-2 {% if xCliente_seleccionado != 0 and tiene_registros > 0 %}{% else %}d-none{% endif %}"
+                        id="botonDescuento">
+                        <button type="button" onclick="validarYConfirmar()" class="btn btn-primary"
+                            style="padding: 6px 16px; font-size: 0.9rem;">
+                            Aplicar
+                        </button>
+                    </div>
+                    {% endwith %}
                 </div>
             </div>
         </div>
-</main><!-- End #main -->
+    </div>
+</main>
+
 <button type="button" id="boton_modal" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#miModal" hidden>
-    Extra Large Moda
+    Extra Large Modal
 </button>
-<!-- Modal -->
+
 <div class="modal fade" id="miModal" tabindex="-1">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
@@ -163,101 +177,165 @@ M1 | Documentos
             <div class="modal-body">
                 <h6 id="t"></h6>
             </div>
-            <div class="modal-footer">
-                <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
-            </div>
         </div>
     </div>
-</div><!-- End Extra Large Modal-->
+</div>
 {% endblock content %}
+
 {% block Scripts_Adicionales %}
 <script>
-    // cuando cargue los datos
     $(document).ready(function () {
-
-        $(function () {
-            $("#documentos").DataTable({
-
-                language: {
-                    "sProcessing": "Procesando...",
-                    "sLengthMenu": "Mostrar _MENU_ registros",
-                    "sZeroRecords": "No se encontraron resultados",
-                    "sEmptyTable": "*** No se encontró información ***",
-                    "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                    "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-                    "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                    "sInfoPostFix": "",
-                    "sSearch": "Buscar:",
-                    "sUrl": "",
-                    "sInfoThousands": ",",
-                    "sLoadingRecords": "Cargando...",
-                    "oPaginate": {
-                        "sFirst": "Primero",
-                        "sLast": "Último",
-                        "sNext": "Siguiente",
-                        "sPrevious": "Anterior"
-                    },
-                    "oAria": {
-                        "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                        "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                    },
-                    "buttons": {
-                        "copy": "Copiar",
-                        "colvis": "Visibilidad"
-                    }
+        $("#documentos").DataTable({
+            language: {
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ registros",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "*** No se encontró información ***",
+                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                "sSearch": "Buscar:",
+                "oPaginate": {
+                    "sFirst": "Primero",
+                    "sLast": "Último",
+                    "sNext": "Siguiente",
+                    "sPrevious": "Anterior"
                 },
-
-                "ordering": false,
-                "responsive": true,
-                "lengthChange": true,
-                "autoWidth": true,
-                "pageLength": 50,
-                "scrollX": true,
-                "order": [[3, "asc"]],
-                "columnDefs": [{
-                    "targets": [1, 5, 6, 7],
-                    "orderable": false
-                }]
-            })
-        })
-
-        setTimeout(() => {
-            document.getElementById('data-section').style.opacity = 1;
-        }, 200);
-
-    });
-
-    // selectize
-    $(document).ready(function () {
-        // Activacion
-        var selectizeInstance = $('#cliente').selectize({
+                "oAria": {
+                    "sSortAscending": ": Activar para ordenar la columna ascendente",
+                    "sSortDescending": ": Activar para ordenar la columna descendente"
+                },
+                "buttons": {
+                    "copy": "Copiar",
+                    "colvis": "Visibilidad"
+                }
+            },
+            ordering: false,
+            responsive: true,
+            lengthChange: true,
+            autoWidth: true,
+            pageLength: 50,
+            scrollX: true,
+            order: [[3, "asc"]],
+            columnDefs: [{ targets: [1, 5, 6, 7], orderable: false }]
         });
+
+        var selectizeInstance = $('#cliente').selectize({});
         $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
-        // Evento click para limpiar el select input
         var selectizeControl = selectizeInstance[0].selectize;
         selectizeControl.$control.on('click', function () {
             selectizeControl.clear();
             $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
         });
+
+        setTimeout(() => {
+            document.getElementById('data-section').style.opacity = 1;
+        }, 200);
     });
 
-    // tool tip
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    [...tooltipTriggerList].map(el => new bootstrap.Tooltip(el));
 
-    // obtener docuemntos
     function obtener_documentos() {
-        filtros.action = `/documentos/${cliente.value}/${dias.value}/`
-        if (document.getElementById('cliente').value != '') {
-            filtros.submit()
-        }
-
-    } // fin obtener docuemntos 
+        filtros.action = `/documentos/${cliente.value}/${dias.value}/`;
+        if (document.getElementById('cliente').value !== '') filtros.submit();
+    }
 
     function abrir_modal(seguimiento) {
-        document.getElementById('t').innerHTML = seguimiento
+        document.getElementById('t').innerHTML = seguimiento;
         boton_modal.click();
     }
 
+    function mostrarDescuento() {
+        const clienteSelect = document.getElementById('cliente');
+        const inputDescuento = document.getElementById('inputDescuento');
+        const botonDescuento = document.getElementById('botonDescuento');
+        const tabla = document.getElementById('documentos');
+        const tieneFilas = tabla && tabla.tBodies[0].rows.length > 0;
+        const mostrar = clienteSelect.value !== "0" && tieneFilas;
+
+        if (inputDescuento) {
+            inputDescuento.classList.toggle("d-none", !mostrar);
+        }
+
+        if (botonDescuento) {
+            botonDescuento.classList.toggle("d-none", !mostrar);
+        }
+    }
+
+    function validarYConfirmar() {
+        const selectize = $('#cliente')[0].selectize;
+        const clienteSeleccionado = selectize.getValue();
+        const opcion = selectize.options[clienteSeleccionado];
+        const nombreCliente = opcion ? opcion.text : '';
+
+        if (!nombreCliente) return;
+
+        const descuento = parseFloat(document.getElementById('por_descuento').value);
+        const checkboxes = document.querySelectorAll('input[type="checkbox"][id^="con_descuento_"]:checked');
+        const ids = Array.from(checkboxes).map(cb => cb.value);
+
+        if (ids.length === 0) {
+            Swal.fire({
+                icon: "error",
+                text: "Debe seleccionar al menos un documento. Verifique...!"
+            });
+            return;
+        }
+
+        Swal.fire({
+            title: `¿Está seguro de aplicar el ${descuento}% de descuento?`,
+            html: `<h4>${nombreCliente}</h4>`,
+            showDenyButton: true,
+            confirmButtonText: "Confirmar",
+            denyButtonText: "Descartar"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                aplicarDescuento()
+            }
+            //(retorna implícito)
+        });
+    }
+
+    function aplicarDescuento(e) {
+        const descuento = parseFloat(document.getElementById('por_descuento').value);
+        const checkboxes = document.querySelectorAll('input[type="checkbox"][id^="con_descuento_"]:checked');
+        const ids = Array.from(checkboxes).map(cb => cb.value);
+
+        if (ids.length === 0) {
+            Swal.fire({
+                icon: "error",
+                text: "Debe seleccionar al menos un documento. Verifique...!"
+            });
+            return;
+        }
+
+        $.ajax({
+            url: "{% url 'aplicar_descuento' %}",
+            type: "POST",
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                ids: JSON.stringify(ids),
+                descuento: descuento
+            },
+            dataType: "json",
+            success: function (data) {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert("Error: " + data.message);
+                }
+            },
+            error: function (xhr, status, error) {
+                alert("Error al aplicar el descuento");
+                console.error(error);
+            }
+        });
+    }
+
+    function toggleCheckboxes(source) {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"][id^="con_descuento_"]');
+        checkboxes.forEach(cb => cb.checked = source.checked);
+    }
 </script>
 {% endblock Scripts_Adicionales %}
