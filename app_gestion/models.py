@@ -334,6 +334,9 @@ class Excedente(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     creado = models.DateTimeField(auto_now_add=True, null=False)
     actualizado = models.DateTimeField(auto_now_add=True, null=False)
+    pago_id = models.IntegerField(default=0)
+    
+
 
 
 

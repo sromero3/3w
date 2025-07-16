@@ -312,18 +312,27 @@ def add_documentoView(request):
             documento.save()
 
             # Buscar en excedentes
-            xExcedente = Excedente.objects.filter(cli_id=request.POST.get('cliente'), saldo__gt=0).values('doc_id__numero','saldo')
+            xExcedente = Excedente.objects.filter(cli_id=request.POST.get('cliente'), saldo__gt=0).values('pago_id','doc_id__numero','saldo')
             if xExcedente.exists(): # si el cliente tiene Excedente
-                xNumero = xExcedente[0]['doc_id__numero']
+                xNumero = xExcedente[0]['doc_id__numero'] # busco el numero del documento
                 if xExcedente[0]['saldo'] > Decimal(request.POST.get('monto')):
                     xE = request.POST.get('monto')
                     xS = xExcedente[0]['saldo']
                 else:
                     xE = xExcedente[0]['saldo']
                     xS = xExcedente[0]['saldo']
-                # guardar pago
+                xPago_excedente = Pago.objects.get(id=xExcedente[0]['pago_id'])
+                xF = xPago_excedente.forma_id
+                xT = xPago_excedente.tasa
+                xB = xPago_excedente.banco_destino_id
+                xU = xPago_excedente.usuario_id
+                if xF in [2, 3, 6]:  # si es efectivo, zelle o deposito en $
+                    xM = 0  # no se guarda el monto en bolivares
+                else:
+                    xM   = round(Decimal(xE) * Decimal(xT), 2)  # se guarda el monto en bolivares
+                # guardar pago de excedente
                 pago = Pago(fecha = request.POST.get('fecha'), cliente_id = request.POST.get('cliente'), referencia = "Abono excedente Doc: "+xNumero,
-                            monto = 0, monto_procesar = Decimal(xE), forma_id = 5, tasa = 0, banco_destino_id = 6, usuario_id = request.user.id,
+                            monto = xM, monto_procesar = Decimal(xE), forma_id = xF, tasa = xT, banco_destino_id = xB, usuario_id = xU,
                             tipo = 1, actualizado = hoy)
                 pago.save() 
                 xPago_id = pago.id     
@@ -626,6 +635,7 @@ def Pago_cuentaView(request, id, cliente):
             pago.seguimiento =  "<b>-" + request.user.username + " a las " + hoyStr + "</b>" + "<br>"
             pago.seguimiento =  pago.seguimiento + "&nbsp Procesó pago por: " + strMonto_procesar +"<br>"
             pago.tipo = 1
+            xForma =  request.POST['forma'] 
     
             # guardar el pago
             form.save()
@@ -666,7 +676,7 @@ def Pago_cuentaView(request, id, cliente):
                    print("no hay mas monto_procesar")
                    break
             
-            # si hay excedente 
+            # si hay excedente guardarlo
             if xMonto_procesar > 0:
                 print("-------------Fac: " ,xDocumento.numero,"----------------")
                 xAbono = xMonto_procesar  
@@ -677,7 +687,8 @@ def Pago_cuentaView(request, id, cliente):
                 print(xDocumento.pago,"***** Duda")
                 
                 # Guardar detelle del pago
-                detalle = Pago_detalle(pago_id = xPago_id, documento_id =  xDocumento.id, monto_procesar = xAbono)  
+                detalle = Pago_detalle(pago_id = xPago_id, documento_id =  xDocumento.id, monto_procesar = xAbono,)
+
                 detalle.save()
                 
                 xDocumento.save()
@@ -690,8 +701,9 @@ def Pago_cuentaView(request, id, cliente):
                             concepto = "Excedente ",
                             monto=xExcedente,
                             saldo=xExcedente,
-                            usuario_id=request.user.id
-                        )
+                            usuario_id=request.user.id,
+                            pago_id = xPago_id,
+                            )
                 xE.save()
    
                 print("xMonto_procesar: " ,xMonto_procesar)

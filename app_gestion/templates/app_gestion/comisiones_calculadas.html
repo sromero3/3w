@@ -9,12 +9,13 @@ M1 | Comisiones calculadas
 {% block content %}
 <main id="main" class="main" style="margin-top: 40px">
     <div class="col-lg-12">
-        <div class="card">
+         <div class="card" id="data-section" style="opacity: 0;">
             <div class="card-body">
                 <h5 class="card-title">Comisiones Calculadas<a href="{% url 'inicio'%}" class="float-end"><i
                             class="bi bi-house-door" title='Cerrar'></i></a></h5>
 
-                <form id="filtros" action="" method="post" class="row g-3">
+                <form id="filtros" action="" method="post" class="mb-4" style="width:90%;margin-bottom: 8px !important;">
+
                     {% csrf_token %}
 
                     <!-- <div class="col-md-6">
@@ -43,11 +44,7 @@ M1 | Comisiones calculadas
                     </div>
                 </form>
 
-                <div class="row">
-                 
-                </div>
-
-                <table  id="comisiones_calculadas" class="table table-hover table-bordered mt-2" style="width:100%">
+                <table id="comisiones_calculadas" class="table table-hover table-bordered mt-2" style="width:100%">
                     <thead>
                         <tr>
                             <th>Nro. Comision</th>
@@ -57,7 +54,7 @@ M1 | Comisiones calculadas
                             <th>Vendedor</th>
                             <th>Comision Bs.</th>
                             <th>Comision $</th>
-                             <th>Status</th>
+                            <th>Status</th>
                             <th>Opciones</th>
                         </tr>
                     </thead>
@@ -69,30 +66,58 @@ M1 | Comisiones calculadas
                             <td>{{xComi.periodo__desde |date:"d/m/y"}}</td>
                             <td>{{xComi.periodo__hasta |date:"d/m/y"}}</td>
                             <td>{{xComi.vendedor__nombre}}</td>
-                            <td align="right">{{xComi.total_comi_bs|darFormato}}</td> 
+                            <td align="right">{{xComi.total_comi_bs|darFormato}}</td>
                             <td align="right">{{xComi.total_comi_usd|darFormato}}</td>
                             <td>{{xComi.status}}</td>
 
                             {% if xComi.status == 'Pagada' %}
-                                <td class="text-center" style="width:50px">
-                                    <a href="{% url 'ver_comision' xComi.id %}" title="Ver comisión">
-                                        <i class="bi bi-file-earmark-pdf"></i>
-                                    </a>
-                                </td>
+                            <td class="text-center" style="width:50px">
+                                <a href="{% url 'ver_comision' xComi.id %}" title="Ver comisión">
+                                    <i class="bi bi-file-earmark-pdf"></i>
+                                </a>
+                            </td>
                             {% else %}
-                                <td class="text-center" style="width:50px">
-                                    <a href="{% url 'ver_comision' xComi.id %}" title="Ver comisión">
-                                        <i class="bi bi-file-earmark-pdf"></i>
-                                    </a>&nbsp;&nbsp;
-                                    <a href="#" class="btn-reversar" data-id="{{ xComi.id }}" data-nombre="{{ xComi.vendedor__nombre }}">
-                                        <i class="bi bi-arrow-left-circle"></i>
-                                    </a>
-                                </td>
+                            <td class="text-center" style="width:50px">
+                                <a href="{% url 'ver_comision' xComi.id %}" title="Ver comisión">
+                                    <i class="bi bi-file-earmark-pdf"></i>
+                                </a>&nbsp;&nbsp;
+                                <a href="#" class="btn-reversar" data-id="{{ xComi.id }}"
+                                    data-nombre="{{ xComi.vendedor__nombre }}">
+                                    <i class="bi bi-arrow-left-circle"></i>
+                                </a>
+                            </td>
                             {% endif %}
 
                         </tr>
                         {% endfor %}
                     </tbody>
+                    <tfoot>
+                        <tr>
+
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes izquierda">T. Pag:</td>
+                            <td id="pt_bs" class="sin-bordes"></td>
+                            <td id="pt_usd" class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                         
+                        </tr>
+                        <tr>
+
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes izquierda">T. Cons:</td>
+                            <td id="t_bs" class="sin-bordes"></td>
+                            <td id="t_usd" class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                         
+                        </tr>
+                    </tfoot>
                 </table>
 
             </div>
@@ -102,71 +127,125 @@ M1 | Comisiones calculadas
 {% endblock content %}
 {% block Scripts_Adicionales %}
 <script>
+    $(document).ready(function () {
+        $(function () {
+            $("#comisiones_calculadas").DataTable({
+                // Funcion para totales
+                footerCallback: function (row, data, start, end) {
+                    const api = this.api();
 
-    $(function () {
-        $("#clientes").DataTable({
+                    // Función segura para convertir el texto formateado en número
+                    const toNumber = s =>
+                        typeof s === 'string'
+                            ? parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0
+                            : typeof s === 'number'
+                                ? s
+                                : 0;
 
-            language: {
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "*** No se encontró información ***",
-                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                "sInfoPostFix": "",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "Primero",
-                    "sLast": "Último",
-                    "sNext": "Siguiente",
-                    "sPrevious": "Anterior"
+                    /* -------- BS (col 5) -------- */
+                    const totalBs = api.column(5).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
+                    const pageBs = api.column(5, { page: 'current' })
+                        .data()
+                        .reduce((a, b) => toNumber(a) + toNumber(b), 0);
+
+                    /* -------- USD (col 6) -------- */
+                    const totalUsd = api.column(6).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
+                    const pageUsd = api.column(6, { page: 'current' })
+                        .data()
+                        .reduce((a, b) => toNumber(a) + toNumber(b), 0);
+
+                    // Formatea (usa tu propia función darFormato o Intl.NumberFormat)
+                    const f = n => darFormato(n);   // ← tu helper
+                    $('#pt_bs').html(`<span style="font-size:15px">$ ${f(pageBs)}</span>`);
+                    $('#t_bs').html(`<span style="font-size:15px">$ ${f(totalBs)}</span>`);
+                    $('#pt_usd').html(`<span style="font-size:15px">$ ${f(pageUsd)}</span>`);
+                    $('#t_usd').html(`<span style="font-size:15px">$ ${f(totalUsd)}</span>`);
                 },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                },
-                "buttons": {
-                    "copy": "Copiar",
-                    "colvis": "Visibilidad"
-                }
-            },
-            "ordering": true,
-            "responsive": true,
-            "lengthChange": true,
-            "autoWidth": true,
-            "pageLength": 50,
-            "scrollX": true,
-            "order": [[1, "asc"]],
-            "columnDefs": [{
-                "targets": [0, 4],
-                "orderable": false
-            }]
-        })
-    })
 
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.btn-reversar').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const id = btn.dataset.id;
-                const nombre = btn.dataset.nombre;
-                Swal.fire({
-                    title: '¿Está seguro de reversar esta comisión?',
-                    html: `<h3>${nombre}</h3>`,
-                    showDenyButton: true,
-                    confirmButtonText: "Confirmar",
-                    denyButtonText: "Cancelar"
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = `/rev_comision/${id}/`;
+                language: {
+                    "sProcessing": "Procesando...",
+                    "sLengthMenu": "Mostrar _MENU_ registros",
+                    "sZeroRecords": "No se encontraron resultados",
+                    "sEmptyTable": "*** No se encontró información ***",
+                    "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                    "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                    "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                    "sInfoPostFix": "",
+                    "sSearch": "Buscar:",
+                    "sUrl": "",
+                    "sInfoThousands": ",",
+                    "sLoadingRecords": "Cargando...",
+                    "oPaginate": {
+                        "sFirst": "Primero",
+                        "sLast": "Último",
+                        "sNext": "Siguiente",
+                        "sPrevious": "Anterior"
+                    },
+                    "oAria": {
+                        "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+                        "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                    },
+                    "buttons": {
+                        "copy": "Copiar",
+                        "colvis": "Visibilidad"
                     }
+                },
+                "ordering": true,
+                "responsive": true,
+                "lengthChange": true,
+                "autoWidth": true,
+                "pageLength": 50,
+                "scrollX": true,
+                "order": [[1, "asc"]],
+                "columnDefs": [{
+                    "targets": [0, 2, 3, 4, 5, 6, 8],
+                    "orderable": false
+                }]
+            })
+        })
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.btn-reversar').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const id = btn.dataset.id;
+                    const nombre = btn.dataset.nombre;
+                    Swal.fire({
+                        title: '¿Está seguro de reversar esta comisión?',
+                        html: `<h3>${nombre}</h3>`,
+                        showDenyButton: true,
+                        confirmButtonText: "Confirmar",
+                        denyButtonText: "Cancelar"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = `/rev_comision/${id}/`;
+                        }
+                    });
                 });
             });
         });
+
+        // selectize
+        $(document).ready(function () {
+            // Activacion
+            var selectizeInstance = $('#f_vendedor').selectize({
+                //  opciones
+            });
+            $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+            // Evento click para limpiar el select input
+            var selectizeControl = selectizeInstance[0].selectize;
+            selectizeControl.$control.on('click', function () {
+                selectizeControl.clear();
+                $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+            });
+        });
+
+
+        // Mostrar con transición
+        setTimeout(() => {
+            document.getElementById('data-section').style.opacity = 1;
+        }, 200);
+
     });
 
     // tool tip
@@ -182,20 +261,7 @@ M1 | Comisiones calculadas
 
     } // fin obtener docuemntos  
 
-    // selectize
-    $(document).ready(function () {
-        // Activacion
-        var selectizeInstance = $('#f_vendedor').selectize({
-            //  opciones
-        });
-        $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
-        // Evento click para limpiar el select input
-        var selectizeControl = selectizeInstance[0].selectize;
-        selectizeControl.$control.on('click', function () {
-            selectizeControl.clear();
-            $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
-        });
-    });
+
 
 </script>
 {% endblock Scripts_Adicionales %}

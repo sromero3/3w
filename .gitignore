@@ -1,0 +1,13 @@
+app_gestion/migrations/0110_excedente_pago_id.py
+app_gestion/__pycache__/functions.cpython-312.pyc
+app_gestion/__pycache__/models.cpython-312.pyc
+app_gestion/__pycache__/views.cpython-312.pyc
+app_gestion/migrations/__pycache__/0110_excedente_forma_alter_excedente_saldo.cpython-312.pyc
+app_gestion/migrations/__pycache__/0110_excedente_forma.cpython-312.pyc
+app_gestion/migrations/__pycache__/0110_excedente_pago_id.cpython-312.pyc
+app_gestion/migrations/__pycache__/0111_alter_excedente_saldo.cpython-312.pyc
+app_gestion/migrations/__pycache__/0111_rename_forma_excedente_pago_id.cpython-312.pyc
+app_gestion/__pycache__/functions.cpython-312.pyc
+app_gestion/__pycache__/models.cpython-312.pyc
+app_gestion/__pycache__/views.cpython-312.pyc
+Queries/Docuemtos por id_cliente.sql

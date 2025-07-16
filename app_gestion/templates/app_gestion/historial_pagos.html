@@ -8,38 +8,41 @@ M1 | Historial de pagos
 {% endblock styles %}
 {% block content %}
 <main id="main" class="main" style="margin-top: 40px;">
-    <div class="col-lg-12" >
-        <div class="card">
-            <div class="card-body" >
-                    <h5 class="card-title">Historial de pagos<a href="{% url 'inicio' %}" class="float-end"><i class="bi bi-house-door" title='Cerrar'></i></a></h5>
-                                 
+    <div class="col-lg-12">
+        <div class="card" id="data-section" style="opacity: 0;">
+            <div class="card-body">
+                <h5 class="card-title">
+                    Historial de pagos
+                    <a href="{% url 'inicio' %}" class="float-end">
+                        <i class="bi bi-house-door" title='Cerrar'></i>
+                    </a>
+                </h5>
+
                 <form id="filtros" action="" method="post" class="mb-4" style="width:90%;margin-bottom: 8px !important;">
                     {% csrf_token %}
                     <div class="row">
                         <div class="col-4" style="margin-bottom: 12px;">
-                            <span class="titulos">
-                                Cliente</span>
-                                <select name="cliente" id="cliente" required onfocus="limpiar()"                                onChange="obtener_pagos()">
+                            <span class="titulos">Cliente</span>
+                            <select name="cliente" id="cliente" required onfocus="limpiar()" onChange="obtener_pagos()">
                                 <option value="0" selected>Todos</option>
                                 {% for xCliente in xClientes %}
-                                <option value={{xCliente.id}} {% if xCliente.id == xCliente_seleccionado %} selected {%endif %}>
-                                    {{xCliente.nombre}}
-                                </option>
+                                    <option value={{xCliente.id}} {% if xCliente.id == xCliente_seleccionado %} selected {% endif %}>
+                                        {{ xCliente.nombre }}
+                                    </option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <span class="titulos">
-                                Desde</span>
-                            <input type="date" id="fecha_ini" name="fecha_ini" value="{{xFecha_ini}}" class="form-control alto" onChange="obtener_pagos()"/>
+                            <span class="titulos">Desde</span>
+                            <input type="date" id="fecha_ini" name="fecha_ini" value="{{xFecha_ini}}" class="form-control alto" onChange="obtener_pagos()" />
                         </div>
                         <div class="col-md-4">
-                            <span class=" titulos">
-                                Hasta</span>
-                            <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}" class="form-control alto" onChange="obtener_pagos()"/>
+                            <span class="titulos">Hasta</span>
+                            <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}" class="form-control alto" onChange="obtener_pagos()" />
                         </div>
                     </div>
                 </form>
+
                 <table id="pagos" class="table table-hover table-bordered" style="width:100%;">
                     <thead>
                         <tr>
@@ -53,125 +56,110 @@ M1 | Historial de pagos
                             <th>Monto $</th>
                             <th>Doc</th>
                             <th>Opcion</th>
-                        </tr>  
+                        </tr>
                     </thead>
                     <tbody>
                         {% for xPago in xPagos %}
                         <tr>
-                            <td>{{xPago.cliente__nombre}}</td>
-                           
-                            <td >{{xPago.fecha|date:"d-m-Y"}}</td>
-                           
-                            <td align="center">{{xPago.creado|date:"d-m-Y"}} {{xPago.creado|time}}</td>
-  
+                            <td>{{ xPago.cliente__nombre }}</td>
+                            <td>{{ xPago.fecha|date:"d-m-Y" }}</td>
+                            <td align="center">{{ xPago.creado|date:"d-m-Y" }} {{ xPago.creado|time }}</td>
+
                             {% if xPago.observacion == "" %}
                                 {% if xPago.referencia == "-" %}
-                                    <td align="center">{{xPago.referencia}}</td>
+                                    <td align="center">{{ xPago.referencia }}</td>
                                 {% else %}
-                                    <td>{{xPago.referencia|rellenar}}</td>
+                                    <td>{{ xPago.referencia|rellenar }}</td>
                                 {% endif %}
                             {% else %}
-                                {% if xPago.referencia == "-" %}
-                                    <td align="center">{{xPago.referencia}}
-                                        <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
-                                                data-bs-html="true" data-bs-title="{{xPago.observacion}}<br>
-                                                "></i>
-                                        </a>
-                                    </td>
-                                {% else %}
-                                    <td>{{xPago.referencia|rellenar}}
-                                        <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
-                                                data-bs-html="true" data-bs-title="{{xPago.observacion}}<br>
-                                                "></i>
-                                        </a>
-                                    </td>
-                                {% endif %}
+                                <td>
+                                    {{ xPago.referencia|rellenar }}
+                                    <a href="#">
+                                        <i class="bi bi-search" style="font-size: small;" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true" data-bs-title="{{xPago.observacion}}<br>"></i>
+                                    </a>
+                                </td>
                             {% endif %}
 
                             {% if xPago.seguimiento == "" %}
                                 <td align="center">-</td>
                             {% else %}
-                                    <td align="center"><a href="javascript:abrir_modal('{{xPago.seguimiento}}')"> <i style="font-size: small;" class="bi bi-activity"></a></i></td>
+                                <td align="center">
+                                    <a href="javascript:abrir_modal('{{xPago.seguimiento}}')">
+                                        <i class="bi bi-activity" style="font-size: small;"></i>
+                                    </a>
+                                </td>
                             {% endif %}
-                            
+
                             {% if xPago.forma__forma == "Transferencia Bancos Nacionales" or xPago.forma__forma == "Bolivares en Efectivo" %}
-                                <td>{{xPago.forma__forma}}
-                                    <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip" data-bs-placement="bottom"
-                                            data-bs-html="true" data-bs-title="<b>Bs. {{xPago.monto}}</b> <br> (Tasa {{xPago.tasa}})"></i>
-                                        </i></a>
+                                <td>
+                                    {{ xPago.forma__forma }}
+                                    <a href="#">
+                                        <i class="bi bi-search" style="font-size: small;" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true" data-bs-title="<b>Bs. {{xPago.monto}}</b> <br> (Tasa {{xPago.tasa}})"></i>
+                                    </a>
                                 </td>
                             {% else %}
-                                <td>{{xPago.forma__forma}}</td>
+                                <td>{{ xPago.forma__forma }}</td>
                             {% endif %}
-                           
+
                             {% if xPago.banco_destino__nombre == "-" %}
-                              <td align="center">{{xPago.banco_destino__nombre}}</td>
+                                <td align="center">{{ xPago.banco_destino__nombre }}</td>
                             {% else %}
-                              <td>{{xPago.banco_destino__nombre}}</td>
+                                <td>{{ xPago.banco_destino__nombre }}</td>
                             {% endif %}
 
-                            <td align="right">{{xPago.monto_procesar|darFormato}}</td>
-
-                            <td align="center"><a href="{% url 'historial_pagos_detalle_doc' xPago.id xPago.monto_procesar %}"> <i style="font-size: small;" class="bi bi-file-earmark"></a></i></td>
-                            <!-- <td align="center"><a href="javascript:abrir_modal('{{xPago.seguimiento}}')"> <i style="font-size: small;" class="bi bi-activity"></a></i></td> -->
-
+                            <td align="right">{{ xPago.monto_procesar|darFormato }}</td>
+                            <td align="center">
+                                <a href="{% url 'historial_pagos_detalle_doc' xPago.id xPago.monto_procesar %}" title="Ver documentos afectados">
+                                    <i class="bi bi-file-earmark" style="font-size: small;"></i>
+                                </a>
+                            </td>
                             <td class="text-center" style="width:50px">
                                 {% if xPago.tipo == 1 %}
                                     <a href="{% url 'pago_cuenta_corregir' xPago.id xPago.forma_id %}">
-                                        <i style="font-size: small;" class="bi bi-pencil"></i>
+                                        <i class="bi bi-pencil" style="font-size: small;"></i>
                                     </a>
                                 {% else %}
                                     <a href="{% url 'pago_documentos_corregir' xPago.id xPago.forma_id %}">
-                                        <i style="font-size: small;" class="bi bi-pencil"></i>
+                                        <i class="bi bi-pencil" style="font-size: small;"></i>
                                     </a>
                                 {% endif %}
-
-                               
-                                <a href="{% url 'pago_reversar' xPago.id %}" title="Reversar pago"> &nbsp;
+                                <a href="{% url 'pago_reversar' xPago.id %}" title="Reversar pago">
                                     <i class="bi bi-arrow-counterclockwise"></i>
                                 </a>
                             </td>
-                       
-
+                        </tr>
                         {% endfor %}
                     </tbody>
-                    <tfoot>
-                    </tfoot>
                 </table>
             </div>
         </div>
     </div>
 </main><!-- End #main -->
 
-<button type="button" id="boton_modal" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#miModal"
-hidden>
-Extra Large Moda
+<button type="button" id="boton_modal" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#miModal" hidden>
+    Extra Large Modal
 </button>
+
 <!-- Modal -->
 <div class="modal fade" id="miModal" tabindex="-1">
     <div class="modal-dialog modal-xl">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" style="color:#012970">Seguimiento del Documento</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" style="color:#012970">Seguimiento del Documento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6 id="t"></h6>
+            </div>
         </div>
-        <div class="modal-body">
-            <h6 id="t"></h6>
-        </div>
-        <div class="modal-footer">
-          <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
-        </div>
-      </div>
     </div>
-  </div><!-- End Extra Large Modal-->
+</div><!-- End Modal -->
 {% endblock content %}
-
 
 {% block Scripts_Adicionales %}
 <script>
-  $(function () {
+    $(document).ready(function () {
         $("#pagos").DataTable({
-  
             language: {
                 "sProcessing": "Procesando...",
                 "sLengthMenu": "Mostrar _MENU_ registros",
@@ -180,24 +168,13 @@ Extra Large Moda
                 "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
                 "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
                 "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                "sInfoPostFix": "",
                 "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
                 "sLoadingRecords": "Cargando...",
                 "oPaginate": {
                     "sFirst": "Primero",
                     "sLast": "Último",
                     "sNext": "Siguiente",
                     "sPrevious": "Anterior"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                },
-                "buttons": {
-                    "copy": "Copiar",
-                    "colvis": "Visibilidad"
                 }
             },
             "ordering": false,
@@ -207,43 +184,37 @@ Extra Large Moda
             "pageLength": 50,
             "scrollX": true,
             "order": [[1, "desc"]],
-            "columnDefs": [{
-                "targets": [5 ],
-                "orderable": false
-            }]
-        })
-    }) //fin data table
-
-      // selectize
-      $(document).ready(function () {
-        // Activacion
-        var selectizeInstance = $('#cliente').selectize({
-            // sortField: 'text',
+            "columnDefs": [{ "targets": [5], "orderable": false }]
         });
 
-        // Evento click para limpiar el select input
-        var selectizeControl = selectizeInstance[0].selectize;
+      
+
+        // Activar selectize
+        const selectizeInstance = $('#cliente').selectize();
+        const selectizeControl = selectizeInstance[0].selectize;
+
         selectizeControl.$control.on('click', function () {
             selectizeControl.clear();
         });
-        // Agregar manualmente una flecha al control de Selectize
+
         $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+
+        // Mostrar con transición
+        setTimeout(() => {
+            document.getElementById('data-section').style.opacity = 1;
+        }, 200);
 
     });
 
-
-    // obtener docuemntos
     function obtener_pagos() {
-        // console.log(document.getElementById('cliente').value)
         filtros.action = `/historial_pagos/${cliente.value}/${fecha_ini.value}/${fecha_fin.value}/`
-        if (document.getElementById('cliente').value != '') {
-            filtros.submit()
+        if (cliente.value !== '') {
+            filtros.submit();
         }
-    } // fin obtener docuemntos
+    }
 
-    
     function abrir_modal(seguimiento) {
-        document.getElementById('t').innerHTML = seguimiento
+        document.getElementById('t').innerHTML = seguimiento;
         boton_modal.click();
     }
 </script>
