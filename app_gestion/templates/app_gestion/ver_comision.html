@@ -31,9 +31,12 @@ M1 | Comisiones calculadas
                     </tbody>
                 </table>
 
-                <row>
-                    <h6 style="text-align: center; padding-right: 10px; font-weight: 800;">COMISIONES EN BOLIVARES</h6>
-                </row>
+                <div class="row">
+                    <div class="col-12">
+                        <h5 style="text-align: center; padding-right: 10px; font-weight: 800;">COMISIONES EN
+                            BOLIVARES</h5>
+                    </div>
+                </div>
 
 
                 <table id="comisiones1" class="table table-hover table-bordered" style="width:100%">
@@ -55,7 +58,7 @@ M1 | Comisiones calculadas
                             <td>{{xComi_bs.documento}}</td>
                             <td>{{xComi_bs.cliente_nombre}}</td>
                             <td align="right">{{xComi_bs.tasa|darFormato}}</td>
-                            <td align="right">{{xComi_bs.base_impo}}</td>
+                            <td align="right">{{xComi_bs.base_impo|darFormato}}</td>
                             <td align="right">{{xComi_bs.porcentaje}}</td>
                             <td align="right">{{xComi_bs.comision_calculada|darFormato}}</td>
                         </tr>
@@ -71,11 +74,10 @@ M1 | Comisiones calculadas
                     </tfoot>
                 </table>
 
-
-                <row>
-                    <h6 style="text-align: center; padding-right: 10px; font-weight: 800;">COMISIONES EN DOLARES</h6>
-                </row>
-
+                <div class="col-12 pt-3">
+                    <h5 style="text-align: center; padding-right: 10px; font-weight: 800;">COMISIONES EN
+                        DOLARES</h5>
+                </div>
 
                 <table id="comisiones2" class="table table-hover table-bordered" style="width:100%">
                     <thead>
@@ -96,11 +98,12 @@ M1 | Comisiones calculadas
                             <td>{{xComi_usd.documento}}</td>
                             <td>{{xComi_usd.cliente_nombre}}</td>
                             <td align="center">-</td>
-                            <td align="right">{{xComi_usd.base_impo}}</td>
+                            <td align="right">{{xComi_usd.base_impo|darFormato}}</td>
                             <td align="right">{{xComi_usd.porcentaje}}</td>
                             <td align="right">{{xComi_usd.comision_calculada|darFormato}}</td>
                         </tr>
                         {% endfor %}
+                    </tbody>
                     <tfoot>
                         <tr>
                             <td colspan="6" class="text-end fw-bold">TOTAL COMISIÓN EN $:</td>
@@ -111,22 +114,22 @@ M1 | Comisiones calculadas
                     </tfoot>
                 </table>
 
+                <div class="row justify-content-end">
+                    <div class="col-auto pt-2">
+                        {% if xComisionCabecera.vendedor_id == 18 %}
+                        <button id="boton" class="btn btn-primary" style="opacity: 1; width: auto;"
+                            onclick="generarPDF_oficina()">Generar PDF</button>
+                        {% else %}
+                        <button id="boton" class="btn btn-primary" style="opacity: 1; width: auto;"
+                            onclick="generarPDF()">Generar PDF</button>
+                        {% endif %}
+                    </div> <!-- .col-auto -->
+                </div> <!-- .row -->
 
-
-            </div>
-            <div class="row justify-content-end" style="width:8
-             100%; margin: -16px 10px 10px -8px;">
-                <div class="col-auto">
-                    <button id="boton" class="btn btn-primary" style="opacity: 1; width: auto;"
-                        onclick="generarPDF()">Generar PDF</button>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-</main><!-- End #main -->
-
+            </div> <!-- .card-body -->
+        </div> <!-- .card -->
+    </div> <!-- .col-lg-12 -->
+</main> <!-- End #main -->
 
 {% endblock content %}
 
@@ -138,10 +141,10 @@ M1 | Comisiones calculadas
 
     new DataTable('#comisiones1', {
         language: {
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "*** No se encontró información ***",
+            "sProcessing": "Procesando...",
+            "sLengthMenu": "Mostrar _MENU_ registros",
+            "sZeroRecords": "No se encontraron resultados",
+            "sEmptyTable": "*** No se encontró información ***",
         },
         bInfo: false,
         ordering: false,
@@ -151,11 +154,11 @@ M1 | Comisiones calculadas
     })
 
     new DataTable('#comisiones2', {
-          language: {
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "*** No se encontró información ***",
+        language: {
+            "sProcessing": "Procesando...",
+            "sLengthMenu": "Mostrar _MENU_ registros",
+            "sZeroRecords": "No se encontraron resultados",
+            "sEmptyTable": "*** No se encontró información ***",
         },
         bInfo: false,
         ordering: false,
@@ -190,6 +193,8 @@ M1 | Comisiones calculadas
         doc.text(paginaTexto, paginaX, pageHeight - 5, { align: 'right' });
     }
 
+
+    // -------------------------------------------------------- pdf  -----------------------------------------------------------
     function generarPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
@@ -215,12 +220,12 @@ M1 | Comisiones calculadas
         doc.text(`Vendedor: ${vendedor}`, 14, y);
         y += 6;
 
-        // ------------------------------- sub titulo volivares
-        const titilo = "COMISIONES EN BOLÍVARES"
-        const textWidth = doc.getTextWidth(titilo);
+        // ------------------------------- sub titulo bolivares
+        const titulo = "COMISIONES EN BOLÍVARES"
+        const textWidth = doc.getTextWidth(titulo);
         const pageWidth = doc.internal.pageSize.getWidth();
         const x = (pageWidth - textWidth) / 2;
-        doc.text(titilo, x, y);
+        doc.text(titulo, x, y);
         y += 4;
 
         doc.autoTable({
@@ -229,102 +234,253 @@ M1 | Comisiones calculadas
                 "Fecha Doc.", "Nro. Doc.", "Cliente", "Tasa", "Base Imp.", "%", "Comisión BS"
             ]],
             body: [
-            {% for x in xComisiones_bs %}
-                [
-                    "{{ x.fecha_doc|date:'d/m/Y' }}",
-                    "{{ x.documento }}",
-                    { content: "{{ x.cliente_nombre }}", styles: { width: '400px' } },
-                    { content: "{{ x.tasa|darFormato }}", styles: { halign: 'right' } },
-                    { content: "{{ x.base_impo|darFormato }}", styles: { halign: 'right' } },
-                    { content: "{{ x.porcentaje|darFormato }}", styles: { halign: 'right' } },
-                    { content: "{{ x.comision_calculada|darFormato }}", styles: { halign: 'right' } }
-                ],
+                {% for x in xComisiones_bs %}
+        [
+            "{{ x.fecha_doc|date:'d/m/Y' }}",
+            "{{ x.documento }}",
+            { content: "{{ x.cliente_nombre }}", styles: { width: '400px' } },
+            { content: "{{ x.tasa|darFormato }}", styles: { halign: 'right' } },
+            { content: "{{ x.base_impo|darFormato }}", styles: { halign: 'right' } },
+            { content: "{{ x.porcentaje|darFormato }}", styles: { halign: 'right' } },
+            { content: "{{ x.comision_calculada|darFormato }}", styles: { halign: 'right' } }
+        ],
             {% endfor %}
             ],
-            styles: { fontSize: 8 },
-            theme: 'grid',
-            headStyles: { fillColor: [41, 128, 185] },
-            didDrawPage: agregarPieDePagina
+    styles: { fontSize: 8 },
+    theme: 'grid',
+        headStyles: { fillColor: [41, 128, 185] },
+    didDrawPage: agregarPieDePagina
         });
 
-        // total bs
-        y = doc.lastAutoTable.finalY + 5;
+    // total bs
+    y = doc.lastAutoTable.finalY + 5;
+    doc.setFontSize(9);
+    const labelBS = "TOTAL COMISIÓN Bs:";
+    const montoBS = "{{ xComisionCabecera.total_comi_bs|darFormato }}";
+    // Alineación al final de la tabla
+    const rightMargin = doc.internal.pageSize.getWidth() - 14;
+    doc.text(labelBS, rightMargin - 55, y); // etiqueta unos 60px antes
+    doc.text(montoBS, rightMargin - 2, y, { align: "right" });
+    doc.setFont("helvetica", "normal"); // Restaurar estilo por si acaso
+    y += 8;
 
-        doc.setFontSize(9);
-        const labelBS = "TOTAL COMISIÓN Bs:";
-        const montoBS = "{{ xComisionCabecera.total_comi_bs|darFormato }}";
-        // Alineación al final de la tabla
-        const rightMargin = doc.internal.pageSize.getWidth() - 14;
-        doc.text(labelBS, rightMargin - 55, y); // etiqueta unos 60px antes
-        doc.text(montoBS, rightMargin - 2, y, { align: "right" });
-        doc.setFont("helvetica", "normal"); // Restaurar estilo por si acaso
-        y += 8;
+    // ------------------------------- sub titulo dolares
+    doc.setFontSize(10);
+    const titulo2 = "COMISIONES EN DOLARES"
+    const textWidth2 = doc.getTextWidth(titulo2);
+    const pageWidth2 = doc.internal.pageSize.getWidth();
+    const x2 = (pageWidth2 - textWidth2) / 2;
+    doc.text(titulo2, x2, y);
+    y += 4;
 
-        // ------------------------------- sub titulo dolares
-        doc.setFontSize(10);
-        const titilo2 = "COMISIONES EN DOLARES"
-        const textWidth2 = doc.getTextWidth(titilo2);
-        const pageWidth2 = doc.internal.pageSize.getWidth();
-        const x2 = (pageWidth2 - textWidth2) / 2;
-        doc.text(titilo2, x2, y);
-        y += 4;
-
-        doc.autoTable({
-            startY: y,
-            head: [[
-                "Fecha Doc.", "Nro. Doc.", "Cliente", "Tasa", "Base Imp.", "%", "Comisión USD"
-            ]],
-            body: [
-                {% for x in xComisiones_usd %}
-                    [
-                        "{{ x.fecha_doc|date:'d/m/Y' }}",
-                        "{{ x.documento }}",
-                        { content: "{{ x.cliente_nombre }}", styles: { width: '400px' } },
-                        { content: "-", styles: { halign: 'center' } },
-                        { content: "{{ x.base_impo|darFormato }}", styles: { halign: 'right' } },
-                        { content: "{{ x.porcentaje|darFormato }}", styles: { halign: 'right' } },
-                        { content: "{{ x.comision_calculada|darFormato }}", styles: { halign: 'right' } }
-                    ],
-                        {% endfor %}
+    doc.autoTable({
+        startY: y,
+        head: [[
+            "Fecha Doc.", "Nro. Doc.", "Cliente", "Tasa", "Base Imp.", "%", "Comisión USD"
+        ]],
+        body: [
+            {% for x in xComisiones_usd %}
+    [
+        "{{ x.fecha_doc|date:'d/m/Y' }}",
+        "{{ x.documento }}",
+        { content: "{{ x.cliente_nombre }}", styles: { width: '400px' } },
+        { content: "-", styles: { halign: 'center' } },
+        { content: "{{ x.base_impo|darFormato }}", styles: { halign: 'right' } },
+        { content: "{{ x.porcentaje|darFormato }}", styles: { halign: 'right' } },
+        { content: "{{ x.comision_calculada|darFormato }}", styles: { halign: 'right' } }
+    ],
+        {% endfor %}
             ],
-            styles: { fontSize: 8 },
-            theme: 'grid',
-            headStyles: { fillColor: [39, 174, 96] },
-            didDrawPage: agregarPieDePagina
-        });
+        styles: { fontSize: 8 },
+        theme: 'grid',
+        headStyles: { fillColor: [39, 174, 96] },
+        didDrawPage: agregarPieDePagina
+            });
 
-        y = doc.lastAutoTable.finalY + 5;
+    y = doc.lastAutoTable.finalY + 5;
 
-        // total $
-        doc.setFontSize(9);
-        const labelUsd = "TOTAL COMISIÓN $:";
-        const montoUsd = "{{ xComisionCabecera.total_comi_usd|darFormato }}";
-        // Alineación al final de la tabla
-        const rightMargin2 = doc.internal.pageSize.getWidth() - 14;
-        doc.text(labelUsd, rightMargin2 - 55, y); // etiqueta unos 60px antes
-        doc.text(montoUsd, rightMargin2 - 2, y, { align: "right" });
-        doc.setFont("helvetica", "normal"); // Restaurar estilo por si acaso
-        y += 8;
+    // total $
+    doc.setFontSize(9);
+    const labelUsd = "TOTAL COMISIÓN $:";
+    const montoUsd = "{{ xComisionCabecera.total_comi_usd|darFormato }}";
+    // Alineación al final de la tabla
+    const rightMargin2 = doc.internal.pageSize.getWidth() - 14;
+    doc.text(labelUsd, rightMargin2 - 55, y); // etiqueta unos 60px antes
+    doc.text(montoUsd, rightMargin2 - 2, y, { align: "right" });
+    doc.setFont("helvetica", "normal"); // Restaurar estilo por si acaso
+    y += 8;
 
-        y = doc.lastAutoTable.finalY + 20;
+    y = doc.lastAutoTable.finalY + 20;
 
-        // Firmas
-        doc.setFontSize(10);
-        doc.text("Procesado por:", 52, y);
-        doc.text("Aprobado por:", 137, y);
-        y += 15;
-        doc.line(35, y, 95, y);   // línea firma 1
-        doc.line(120, y, 180, y); // línea firma 2
+    // Firmas
+    doc.setFontSize(10);
+    doc.text("Procesado por:", 52, y);
+    doc.text("Aprobado por:", 137, y);
+    y += 15;
+    doc.line(35, y, 95, y);   // línea firma 1
+    doc.line(120, y, 180, y); // línea firma 2
 
-        if (typeof doc.putTotalPages === 'function') {
+    if (typeof doc.putTotalPages === 'function') {
         doc.putTotalPages(totalPagesExp);
-        }
+    }
 
-        // Guardar
-        const nombre_doc = '{{ xComisionCabecera.vendedor__nombre }}' + ' Semana ' + '{{ xComisionCabecera.periodo__numero_semana }}' + '.pdf';
-        doc.save(nombre_doc);
+    // Guardar
+    const nombre_doc = '{{ xComisionCabecera.vendedor__nombre }}' + ' Semana ' + '{{ xComisionCabecera.periodo__numero_semana }}' + '.pdf';
+    doc.save(nombre_doc);
+
+    window.location.href = '/comisiones_calculadas/0/';
 
     }
+
 </script>
 
+
+<script>
+    // ---------------------------------------------------- pdf oficina -----------------------------------------------------
+    function generarPDF_oficina() {
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const totalPagesExp = "{total_pages_count_string}";
+        let y = 10;
+
+        doc.setFontSize(14);
+        doc.text("Comisiones Semana: ", 14, y);
+        const semana = "{{ xComisionCabecera.periodo__numero_semana }}";
+        doc.text(`${semana}`, 62, y);
+        y += 6;
+
+        const vendedor = "{{ xComisionCabecera.vendedor__nombre }}";
+        const desde = "{{ xComisionCabecera.periodo__desde | date:'d/m/Y' }}";
+        const hasta = "{{ xComisionCabecera.periodo__hasta | date:'d/m/Y' }}";
+        doc.setFontSize(10);
+        doc.text(`Desde: ${desde}`, 14, y);
+        y += 6;
+        doc.text(`Hasta: ${hasta}`, 14, y);
+        y += 6;
+        doc.text(`Vendedor: ${vendedor}`, 14, y);
+        y += 6;
+
+        const tituloBs = "COMISIONES EN BOLÍVARES";
+        const widthTituloBs = doc.getTextWidth(tituloBs);
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const xTituloBs = (pageWidth - widthTituloBs) / 2;
+        doc.text(tituloBs, xTituloBs, y);
+        y += 4;
+
+        // Variables JS para acumular total Bs
+        let totalBs = 0;
+
+        // Construimos el body de Bs en JS, pasando valores numéricos en variables aparte
+        const bodyBs = [
+            {% for x in xComisiones_bs %}
+    [
+        "{{ x.fecha_doc | date:'d/m/Y' }}",
+        "{{ x.documento }}",
+        { content: "{{ x.cliente_nombre }}", styles: { width: '400px' } },
+        { content: "{{ x.base_impo | darFormato }}", styles: { halign: 'right' } }
+    ],
+        {% endfor %}
+    ];
+
+    // Sumamos en JS aquí (pasamos los valores numéricos sin formato con {{ x.base_impo }} para sumar)
+    {% for x in xComisiones_bs %}
+    totalBs += parseFloat("{{ x.base_impo }}");
+    {% endfor %}
+
+    doc.autoTable({
+        startY: y,
+        head: [[
+            "Fecha Doc.", "Nro. Doc.", "Cliente", "Base Imp."
+        ]],
+        body: bodyBs,
+        headStyles: { fillColor: [1, 31, 58] },
+        styles: {
+            fontSize: 9,
+            overflow: 'linebreak',
+            halign: 'right',
+        },
+        theme: 'grid',
+        headStyles: { fillColor: [1, 31, 58] },
+        didDrawPage: agregarPieDePagina
+    });
+
+    y = doc.lastAutoTable.finalY + 5;
+    doc.setFontSize(9);
+    const labelBS = "TOTAL BASE IMP Bs:";
+
+    const rightMargin = pageWidth - 14;
+    doc.setFont("helvetica", "bold");
+    doc.text(labelBS, rightMargin - 60, y);
+    // Formateamos totalBs a 2 decimales y con comas (puedes adaptar según darFormato)
+    doc.text(totalBs.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), rightMargin - 2, y, { align: "right" });
+    doc.setFont("helvetica", "normal");
+    y += 10;
+
+    // Ahora el bloque dólares igual, acumulamos totalUsd
+    const tituloUsd = "COMISIONES EN DOLARES";
+    const widthTituloUsd = doc.getTextWidth(tituloUsd);
+    const xTituloUsd = (pageWidth - widthTituloUsd) / 2;
+    doc.setFontSize(10);
+    doc.text(tituloUsd, xTituloUsd, y);
+    y += 4;
+
+    let totalUsd = 0;
+
+    const bodyUsd = [
+        {% for x in xComisiones_usd %}
+    [
+        "{{ x.fecha_doc | date:'d/m/Y' }}",
+        "{{ x.documento }}",
+        { content: "{{ x.cliente_nombre }}", styles: { width: '400px' } },
+        { content: "{{ x.base_impo | darFormato }}", styles: { halign: 'right' } }
+    ],
+        {% endfor %}
+    ];
+
+    {% for x in xComisiones_usd %}
+    totalUsd += parseFloat("{{ x.base_impo }}");
+    {% endfor %}
+
+    doc.autoTable({
+        startY: y,
+        head: [[
+            "Fecha Doc.", "Nro. Doc.", "Cliente", "Base Imp."
+        ]],
+        body: bodyUsd,
+        styles: { fontSize: 8 },
+        theme: 'grid',
+        headStyles: { fillColor: [39, 174, 96] },
+        didDrawPage: agregarPieDePagina
+    });
+
+    y = doc.lastAutoTable.finalY + 5;
+    doc.setFontSize(9);
+    const labelUsd = "TOTAL BASE IMP $:";
+
+    doc.setFont("helvetica", "bold");
+    doc.text(labelUsd, rightMargin - 60, y);
+    doc.text(totalUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), rightMargin - 2, y, { align: "right" });
+    doc.setFont("helvetica", "normal");
+
+    y += 20;
+
+    doc.setFontSize(10);
+    doc.text("Procesado por:", 52, y);
+    doc.text("Aprobado por:", 137, y);
+    y += 15;
+    doc.line(35, y, 95, y);
+    doc.line(120, y, 180, y);
+
+    if (typeof doc.putTotalPages === 'function') {
+        doc.putTotalPages(totalPagesExp);
+    }
+
+    const nombre_doc = '{{ xComisionCabecera.vendedor__nombre }} Semana {{ xComisionCabecera.periodo__numero_semana }}.pdf';
+    doc.save(nombre_doc);
+
+      window.location.href = '/comisiones_calculadas/0/';
+}
+
+</script>
 {% endblock Scripts_Adicionales %}

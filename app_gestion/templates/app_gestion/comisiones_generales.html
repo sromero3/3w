@@ -1,0 +1,318 @@
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+{% block title %}
+M1 | Comisiones Generales
+{% endblock %}
+{% block styles %}
+{% endblock styles %}
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px">
+    <div class="col-lg-12">
+        <div class="card" id="data-section" style="opacity: 0;">
+            <div class="card-body">
+                <h5 class="card-title">Comisiones Generales<a href="{% url 'inicio'%}" class="float-end"><i
+                            class="bi bi-house-door" title='Cerrar'></i></a></h5>
+
+                <form id="filtros" action="" method="post" class="mb-4"
+                    style="width:90%;margin-bottom: 8px !important;">
+                    {% csrf_token %}
+                    <div class="col-md-6">
+                        <label class="titulos d-flex ms-2 me-2 mt-1">Semana</label>
+                        <select name="periodo" id="periodo" class="form-control custom-select d-flex alto" required
+                            onChange="obtener_comisiones()">
+                            <option value="0" selected></option>
+                            {% for xPeriodo in xPeriodos %}
+                            <option value="{{ xPeriodo.id }}" data-desde="{{ xPeriodo.desde |date:'Y-m-d' }}"
+                                data-semana="{{ xPeriodo.numero_semana}}"
+                                data-desde="{{ xPeriodo.desde |date:'Y-m-d' }}"
+                                data-hasta="{{ xPeriodo.hasta |date:'Y-m-d' }}" {% if xPeriodo.id == xPeriodo_seleccionado %} selected {% endif %}>
+                                {{ xPeriodo.numero_semana }} - {{ xPeriodo.desde|date:"d/m/y" }} - {{xPeriodo.hasta|date:"d/m/y" }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+
+                <table id="comisiones_generales" class="table table-hover table-bordered mt-2" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Nro. Comision</th>
+                            <th text-align: center>Vendedor</th>
+                            <th>Base Impo. Bs.</th>
+                            <th>Comision Bs.</th>
+                            <th>Base Impo. $.</th>
+                            <th>Comision $.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for xComi in xComisionGenerales %}
+                        <tr>
+                            <td>{{xComi.id|rellenar}}</td>
+                            <td>{{xComi.vendedor__nombre}}</td>
+                            <td align="right">{{ xComi.total_bs|darFormato }}</td>
+                            <td align="right">{{ xComi.total_bs_2pct|darFormato }}</td>
+                            <td align="right">{{ xComi.total_usd|darFormato }}</td>
+                            <td align="right">{{ xComi.total_usd_2pct|darFormato }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                     <tfoot>
+                        <tr>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes izquierda">T. Pagina:</td>
+                            <td id="col2" class="sin-bordes"></td>
+                            <td id="col3" class="sin-bordes"></td>
+                            <td id="col4" class="sin-bordes"></td>
+                            <td id="col5" class="sin-bordes"></td>
+                        </tr>
+                      
+                        </tr>
+                    </tfoot>
+                </table>
+                <div class="row justify-content-end">
+                    <div class="col-auto pt-2">
+                        <button id="boton" 
+                                class="btn btn-primary" 
+                                style="opacity: 1; width: auto;"
+                                onclick="generarPDF()">
+                            Generar PDF
+                        </button>
+                    </div> <!-- .col-auto -->
+                </div> <!-- .row -->
+            </div>
+        </div>
+    </div>
+</main><!-- End #main -->
+{% endblock content %}
+{% block Scripts_Adicionales %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $(function () {
+            $("#comisiones_generales").DataTable({
+                 // Funcion para totales
+                footerCallback: function (row, data, start, end) {
+                    const api = this.api();
+
+                    // Función segura para convertir el texto formateado en número
+                    const toNumber = s =>
+                        typeof s === 'string'
+                            ? parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0
+                            : typeof s === 'number'
+                                ? s
+                                : 0;
+
+                    /* -------- USD (col 2) -------- */
+                    const col2 = api.column(2).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
+                    const TotalCol2  = api.column(2, { page: 'current' })
+                        .data()
+                        .reduce((a, b) => toNumber(a) + toNumber(b), 0);
+                    
+                     /* -------- USD (col 3) -------- */
+                    const col3 = api.column(3).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
+                    const TotalCol3  = api.column(3, { page: 'current' })
+                        .data()
+                        .reduce((a, b) => toNumber(a) + toNumber(b), 0);
+                    
+                    /* -------- USD (col 4) -------- */
+                    const col4 = api.column(4).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
+                    const TotalCol4  = api.column(4, { page: 'current' })
+                        .data()
+                        .reduce((a, b) => toNumber(a) + toNumber(b), 0);
+
+                        /* -------- USD (col 5) -------- */
+                    const col5 = api.column(5).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
+                    const TotalCol5  = api.column(5, { page: 'current' })
+                        .data()
+                        .reduce((a, b) => toNumber(a) + toNumber(b), 0);
+
+                    // Formatea (usa tu propia función darFormato o Intl.NumberFormat)
+                    const f = n => darFormato(n);   // ← tu helper
+                    $('#col2').html(`<span style="font-size:15px"> ${f(col2)}</span>`);
+                    $('#TotalCol2').html(`<span style="font-size:15px"> ${f(TotalCol2)}</span>`);
+                    $('#col3').html(`<span style="font-size:15px"> ${f(col3)}</span>`);
+                    $('#TotalCol3').html(`<span style="font-size:15px"> ${f(TotalCol3)}</span>`);
+                    $('#col4').html(`<span style="font-size:15px"> ${f(col4)}</span>`);
+                    $('#TotalCol4').html(`<span style="font-size:15px"> ${f(TotalCol4)}</span>`);
+                    $('#col5').html(`<span style="font-size:15px"> ${f(col5)}</span>`);
+                    $('#TotalCol5').html(`<span style="font-size:15px"> ${f(TotalCol5)}</span>`);
+                },
+
+                language: {
+                    "sProcessing": "Procesando...",
+                    "sLengthMenu": "Mostrar _MENU_ registros",
+                    "sZeroRecords": "No se encontraron resultados",
+                    "sEmptyTable": "*** No se encontró información ***",
+                    "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                    "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                    "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                    "sInfoPostFix": "",
+                    "sSearch": "Buscar:",
+                    "sUrl": "",
+                    "sInfoThousands": ",",
+                    "sLoadingRecords": "Cargando...",
+                    "oPaginate": {
+                        "sFirst": "Primero",
+                        "sLast": "Último",
+                        "sNext": "Siguiente",
+                        "sPrevious": "Anterior"
+                    },
+                    "oAria": {
+                        "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+                        "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                    },
+                    "buttons": {
+                        "copy": "Copiar",
+                        "colvis": "Visibilidad"
+                    }
+                },
+                "ordering": true,
+                "responsive": true,
+                "lengthChange": true,
+                "autoWidth": true,
+                "pageLength": 50,
+                "scrollX": true,
+                "order": [[1, "asc"]],
+                "columnDefs": [{
+                    "targets": [],
+                    "orderable": false
+                }]
+            })
+        })
+
+     
+
+        // Mostrar con transición
+        setTimeout(() => {
+            document.getElementById('data-section').style.opacity = 1;
+        }, 200);
+
+    });
+
+    function obtener_comisiones() {
+        const periodo = document.getElementById('periodo');
+        if (periodo && periodo.value !== '') {
+            filtros.action = `/comisiones_generales/${periodo.value}/`;
+            filtros.submit();
+        }
+  
+    }
+
+
+     function agregarPieDePagina(data) {
+        const doc = data.doc;
+        const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
+        const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
+        const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
+        const totalPages = doc.internal.getNumberOfPages();
+
+        // Texto centrado (el título)
+        const titulo = "SISTEMA DE GESTIÓN EMPRESARIAL";
+        const tituloWidth = doc.getTextWidth(titulo);
+        const tituloX = (pageWidth - tituloWidth) / 2;
+
+
+        // Texto alineado a la derecha (página actual / total)
+        const paginaTexto = `Página ${pageNumber} de ${totalPages}`;
+        const paginaX = pageWidth - 14;  // Margen derecho 14 (ajustable)
+
+        doc.setFontSize(8);
+        doc.setTextColor(120);
+
+        // Dibujar título centrado
+        doc.text(titulo, tituloX, pageHeight - 5);
+
+        // Dibujar página alineada a la derecha
+        doc.text(paginaTexto, paginaX, pageHeight - 5, { align: 'right' });
+    }
+    
+  
+
+async function generarPDF(btn) {
+    // data necesaria
+    const var_periodo = document.getElementById("periodo");
+    const selectedOption = var_periodo.options[var_periodo.selectedIndex];
+    const semana = selectedOption.getAttribute("data-semana");
+    const desde = selectedOption.getAttribute("data-desde");
+    const hasta = selectedOption.getAttribute("data-hasta");
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const totalPagesExp = "{total_pages_count_string}";
+    let y = 10;
+
+    // Obtener datos desde el botón
+
+    const fechaHoy = new Date().toLocaleString("es-VE");
+
+    // Título alineado a la izquierda
+    doc.setFontSize(14);
+    doc.text(`Comisiones Generales Semana:${semana}`, 14, y);
+    y += 6;
+
+    // Fechas
+    doc.setFontSize(10);
+
+    doc.text(`Desde: ${new Date(desde).toLocaleDateString('es-VE', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+    })}`, 14, y);
+
+
+    y += 6;
+
+    doc.text(`Hasta: ${new Date(hasta).toLocaleDateString('es-VE', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+    })}`, 14, y);
+
+    // Tabla de comisiones
+    doc.autoTable({
+        html: '#comisiones_generales',
+        startY: y + 4,
+        theme: 'grid',
+        headStyles: { fillColor: [1, 31, 58] },
+        styles: {
+            fontSize: 9,
+            overflow: 'linebreak',
+            halign: 'right',
+        },
+        footStyles: { fillColor: [16, 100, 173] },
+        styles: {
+            fontSize: 9,
+            overflow: 'linebreak',
+            halign: 'right',
+        },
+        columnStyles: {
+            0: { halign: 'center' }, // Nro Comisión
+            1: { halign: 'left' },   // Vendedor
+        },
+        didDrawPage: agregarPieDePagina
+    });
+
+    // Firmas
+    let finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(10);
+    doc.text("Procesado por:", 52, finalY);
+    doc.text("Aprobado por:", 137, finalY);
+    finalY += 15;
+    doc.line(35, finalY, 95, finalY);   // línea firma 1
+    doc.line(120, finalY, 180, finalY); // línea firma 2
+
+    if (typeof doc.putTotalPages === 'function') {
+        doc.putTotalPages(totalPagesExp);
+    }
+
+    doc.save(`COMISIONES GENERALES Semana ${semana}.pdf`);
+
+}
+
+
+
+
+</script>
+{% endblock Scripts_Adicionales %}

@@ -27,6 +27,7 @@ import os
 from django.contrib.auth import logout
 from django.db.models.functions import ExtractYear
 import json
+from django.db.models import Sum, Case, When, F, DecimalField
 
 # from weasyprint import HTML
 
@@ -2570,8 +2571,8 @@ def comisiones_calculadasView(request, xVendedor):
 @login_required
 def ver_comisionView(request, xComi):
     xUsuario = request.user
-    xComisionCabecera = ComisionCabecera.objects.values('id','periodo_id','periodo__numero_semana','periodo__desde','periodo__hasta','vendedor__nombre','total_comi_bs','total_comi_usd').get(id=xComi)
-
+    xComisionCabecera = ComisionCabecera.objects.values('id','periodo_id','periodo__numero_semana','periodo__desde','periodo__hasta','vendedor_id','vendedor__nombre','total_comi_bs','total_comi_usd').get(id=xComi)
+    
    # Detalles en bolívares (tasa > 0)
     xComisiones_bs = ComisionDetalle.objects.filter(
         comision_id=xComi,
@@ -2703,4 +2704,59 @@ def aplicar_descuentoView(request):
 
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
+
+@login_required
+def comisiones_generalesView(request, xPeriodo):
+    xUsuario = request.user
+    xPeriodo_seleccionado = xPeriodo
+    xPeriodos = Periodo.objects.filter(status="Cerrado")
+
+    if request.method == 'POST':
+        xPeriodo_seleccionado = request.POST.get('periodo')
+
+    queryset = (
+        ComisionCabecera.objects
+        .filter(periodo_id=xPeriodo_seleccionado)
+        .exclude(vendedor_id=10)
+        .annotate(
+            total_bs=Sum(
+                Case(
+                    When(comisiondetalle__tasa__gt=0, then=F('comisiondetalle__base_impo')),
+                    default=0,
+                    output_field=DecimalField()
+                )
+            ),
+            total_usd=Sum(
+                Case(
+                    When(comisiondetalle__tasa=0, then=F('comisiondetalle__base_impo')),
+                    default=0,
+                    output_field=DecimalField()
+                )
+            )
+        )
+        .values(
+            'id',
+            'vendedor__nombre',
+            'total_bs',
+            'total_usd',
+        )
+        .order_by('id')
+    )
+
+    xComisionGenerales = list(queryset)
+    for item in xComisionGenerales:
+        usd = item.get('total_usd') or 0
+        bs = item.get('total_bs') or 0
+        item['total_usd_2pct'] = round(usd * Decimal('0.02'), 2)
+        item['total_bs_2pct'] = round(bs * Decimal('0.02'), 2)
+
+    context = {
+        'xUsuario': xUsuario,
+        'xComisionGenerales': xComisionGenerales,
+        'xPeriodo_seleccionado': int(xPeriodo_seleccionado),
+        'xPeriodos': xPeriodos,
+    }
+
+    return render(request, 'app_gestion/comisiones_generales.html', context)
+
 

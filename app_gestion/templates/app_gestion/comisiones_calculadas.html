@@ -15,9 +15,7 @@ M1 | Comisiones calculadas
                             class="bi bi-house-door" title='Cerrar'></i></a></h5>
 
                 <form id="filtros" action="" method="post" class="mb-4" style="width:90%;margin-bottom: 8px !important;">
-
                     {% csrf_token %}
-
                     <!-- <div class="col-md-6">
                         <label id="m" class="titulos d-flex me-2 mt-1">Status</label>
                         <select name="f_status" id="f_status" class="form-control custom-select d-flex alto" required
@@ -196,7 +194,7 @@ M1 | Comisiones calculadas
                 "autoWidth": true,
                 "pageLength": 50,
                 "scrollX": true,
-                "order": [[1, "asc"]],
+                "order": [[1, "desc"]],
                 "columnDefs": [{
                     "targets": [0, 2, 3, 4, 5, 6, 8],
                     "orderable": false
