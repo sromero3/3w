@@ -2709,8 +2709,8 @@ def aplicar_descuentoView(request):
 def comisiones_generalesView(request, xPeriodo):
     xUsuario = request.user
     xPeriodo_seleccionado = xPeriodo
-    xPeriodos = Periodo.objects.filter(status="Cerrado")
-
+    # xPeriodos = Periodo.objects.filter(status="Cerrado")
+    xPeriodos = Periodo.objects.all()
     if request.method == 'POST':
         xPeriodo_seleccionado = request.POST.get('periodo')
 
