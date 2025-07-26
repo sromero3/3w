@@ -2317,123 +2317,6 @@ def parsear_fecha(fecha_str):
     except (ValueError, TypeError):
         return None 
 
-@login_required
-def calcular_comisionView(request):
-    xUsuario = request.user
-    xPeriodos = Periodo.objects.filter(status="Abierto")
-    
-    xVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
-    
-    if request.method == 'POST':
-
-        # 1. Obtener datos
-        periodo_id = request.POST.get('periodo')
-        vendedor_id = request.POST.get('vendedor')
-        total_bs = quitarFormato(request.POST['total_comi_bs'])
-        total_usd = quitarFormato(request.POST['total_comi_usd'])
-       
-
-        # 2. Buscar o crear cabecera
-        cabecera, creado = ComisionCabecera.objects.get_or_create(
-            periodo_id=periodo_id,
-            vendedor_id=vendedor_id,
-            defaults={
-                'total_comi_bs': total_bs,
-                'total_comi_usd': total_usd,
-                'usuario': request.user,
-                'status': 'Calculado'
-            }
-        )
-
-        # 2.1. Si ya existía, actualiza valores
-        if not creado:
-            cabecera.total_comi_bs = total_bs
-            cabecera.total_comi_usd = total_usd
-            cabecera.status = 'Calculado'
-            cabecera.save()
-
-        # 3. iterar las filas bs
-        fila_bs = 1
-        while True:
-            doc_id = request.POST.get(f'bs-docId-{fila_bs}')
-            if not doc_id:
-                break  # Ya no hay más fila_bs
-
-            incluir = request.POST.get(f'incluir-{fila_bs}') 
-
-            # Guardar los detalles
-            if incluir == 'on':  # Solo si está marcado el checkbox
-                fecha_doc = parsear_fecha(request.POST.get(f'bs-fec-{fila_bs}'))
-                documento = request.POST.get(f'bs-doc-{fila_bs}')
-                cliente_nombre = request.POST.get(f'bs-cli-{fila_bs}')
-                tasa = request.POST.get(f'bs-tas-{fila_bs}') or 0
-                base_bs = request.POST.get(f'bs-xBase-{fila_bs}') or 0
-                porcentaje = request.POST.get(f'bs-xPor-{fila_bs}') or 0
-                comision_calc = request.POST.get(f'bs-xComi-{fila_bs}') or 0
-                ComisionDetalle.objects.create(
-                    comision=cabecera,
-                    fecha_doc=fecha_doc,
-                    documento=documento,
-                    cliente_nombre=cliente_nombre,
-                    tasa=quitarFormato(tasa),
-                    base_impo=quitarFormato(base_bs),
-                    porcentaje=quitarFormato(porcentaje),
-                    comision_calculada=quitarFormato(comision_calc),
-                    incluir=True
-                )
-
-            fila_bs += 1
-
-        # 4. iterar las filas usd
-        fila_usd = 1
-        while True:
-            doc_id_usd = request.POST.get(f'usd-docId-{fila_usd}')
-            if not doc_id_usd:
-                break  # Ya no hay más fila_usd
-
-            incluir2 = request.POST.get(f'usd-incluir-{fila_usd}') 
-            # Guardar los detalles de usd
-            if incluir2 == 'on':  # Solo si está marcado el checkbox
-                fecha_doc = parsear_fecha(request.POST.get(f'usd-fec-{fila_usd}'))
-                documento = request.POST.get(f'usd-doc-{fila_usd}')
-                cliente_nombre = request.POST.get(f'usd-cli-{fila_usd}')
-                tasa = request.POST.get(f'usd-tas-{fila_usd}') or 0
-                base_usd = request.POST.get(f'usd-xBase-{fila_usd}') or 0
-                porcentaje = request.POST.get(f'usd-xPor-{fila_usd}') or 0
-                comision_calc = request.POST.get(f'usd-xComi-{fila_usd}') or 0
-                ComisionDetalle.objects.create(
-                    comision=cabecera,
-                    fecha_doc=fecha_doc,
-                    documento=documento,
-                    cliente_nombre=cliente_nombre,
-                    tasa=0,
-                    base_impo=quitarFormato(base_usd),
-                    porcentaje=quitarFormato(porcentaje),
-                    comision_calculada=quitarFormato(comision_calc),
-                    incluir=True
-                )
-
-            fila_usd += 1
-
-        # Mantener el periodo, pero limpiar el vendedor
-        context = {
-            'xUsuario': xUsuario,
-            'xPeriodos': xPeriodos,
-            'xVendedores': xVendedores,
-            'xPeriodoId': int(periodo_id),  # pasar el periodo para el select
-            'xVendedorId': None,  # limpiar vendedor
-            'mensaje_exito': 'Comisión registrada correctamente.'
-        }
-        return render(request, 'app_gestion/calcular_comision.html', context)
-
-    context = {
-        'xUsuario': xUsuario,
-        'xPeriodos': xPeriodos,
-        'xVendedores': xVendedores,
-    }
-
-    return render(request, 'app_gestion/calcular_comision.html', context)
-
 
 @login_required
 def obtener_comisionesView(request):
@@ -2443,7 +2326,8 @@ def obtener_comisionesView(request):
     qDocumentos = Documento.objects.filter(
         cliente__vendedor=request.POST.get('vendedor_id'),
         cliente__comisionable='Si',          # Solo clientes comisionables
-        comision_liquidada=False             # Que no hayan sido liquidados aún
+        comision_liquidada=False,             # Que no hayan sido liquidados aún
+        dias_v__gte=-45
     ).annotate(
         saldo=F('monto') - F('abonado')
     ).filter(
@@ -2485,7 +2369,7 @@ def obtener_comisionesView(request):
 
     # 3) Devolver la data al frontend
     return JsonResponse(data_lista_bs, safe=False)
-
+    
 
 @login_required 
 def obtener_comisiones2View(request):
@@ -2496,6 +2380,7 @@ def obtener_comisiones2View(request):
     cliente__vendedor=request.POST.get('vendedor_id'),
     cliente__comisionable='Si',         # Solo clientes comisionables
     comision_liquidada=False,           # Que no hayan sido liquidados aún
+    dias_v__gte=-45
     ).annotate(
         saldo=F('monto') - F('abonado')
     ).filter(
