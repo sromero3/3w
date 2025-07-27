@@ -36,6 +36,9 @@ urlpatterns = [
      path('add_tasa/', views.Add_tasaView, name='add_tasa'),
      path('editar_tasa/<int:id>/', views.Editar_tasaView, name='editar_tasa'),
     #  path('elimina_tasa/<int:id>/', views.Eliminar_tasaView, name='eliminar_tasa'),
+
+    # Variables
+    path('editar_variables/', views.editar_variablesView, name='editar_variables'),
      
 
      # Consultas

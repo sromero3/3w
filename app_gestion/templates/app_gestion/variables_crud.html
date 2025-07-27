@@ -1,0 +1,86 @@
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+{% block title %}
+M1 | Variables crud
+{% endblock %}
+{% block styles %}
+<style>
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: auto;
+        margin: 0;
+    }
+</style>
+{% endblock styles %}
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ xOpcion }} Variables<a href="{% url 'tasas' %}" class="float-end"><i
+                            class="bi bi-arrow-return-left" title='Regresar'></i></a></h5>
+                <form id="variables_form" action="" method="post" class="row g-3">
+                    {% csrf_token %}
+
+                    <!-- ------------------------------------ editando ------------------------------------- -->
+
+                    <div class="col-md-6">
+                        <span class="titulos">Maximo de dias para documentos comisionables</span>
+
+                        <input class="form-control alto input-numero" type="number" id="dias_noComisionables"
+                            name="dias_noComisionables"
+                            value="{{ rdias_noComisionables|default_if_none:0|floatformat:0 }}" min="1" max="200"
+                            step="1" required aria-describedby="ayuda_dias" />
+                        <small id="ayuda_dias" class="form-text text-muted">Entre 1 y 100 días</small>
+
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="text-center">
+                        <button type="submit" id="guardar" class="btn btn-primary"
+                            onclick="validar(event)">Guardar</button>
+                        <button type="button" class="btn btn-secondary"
+                            onclick="javascript:window.location='/inicio'">Regresar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main><!-- End #main -->
+
+{% endblock content %}
+{% block Scripts_Adicionales %}
+<script>
+
+
+    // validar formulario
+    function validar(e) {
+        const form = document.getElementById('variables_form') // tomo el nombre del formulario
+        // si validar
+        if (form.checkValidity()) {
+            e.preventDefault()
+
+            // Condirmar
+
+            Swal.fire({
+                title: '¿ Esta seguro de guardar ?',
+                // html: `DOC: ${n}<br>DE: ${c_texto}<br><h1>${m}$</h1> `,
+                showDenyButton: true,
+                // showCancelButton: true,
+                confirmButtonText: "Guardar",
+                denyButtonText: `Descartar`
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('variables_form').submit()
+                } else {
+                    return false
+                }
+            }) // fin Confirmar        
+        } // fin de checkValidity()
+    } // fin validar formulario
+
+
+
+</script>
+{% endblock Scripts_Adicionales %}

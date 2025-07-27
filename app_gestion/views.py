@@ -2322,12 +2322,14 @@ def parsear_fecha(fecha_str):
 def obtener_comisionesView(request):
     xFecha_ini_comprable = datetime.strptime(request.POST.get('fecha_ini'), '%Y-%m-%d').date()
 
+    xVariables  = Variable.objects.first()
+ 
     # 1) Buscar documentos elegibles
     qDocumentos = Documento.objects.filter(
         cliente__vendedor=request.POST.get('vendedor_id'),
         cliente__comisionable='Si',          # Solo clientes comisionables
         comision_liquidada=False,             # Que no hayan sido liquidados aún
-        dias_v__gte=-45
+        dias_v__gte=-xVariables.dias_noComisionables
     ).annotate(
         saldo=F('monto') - F('abonado')
     ).filter(
@@ -2336,7 +2338,7 @@ def obtener_comisionesView(request):
         'id', 'fecha', 'numero', 'cliente__nombre', 'monto', 'saldo', 'dias_v'
     ).order_by(
         'fecha', 'numero'
-    )
+    ) 
 
     # 2) Iterar documentos para comisión en Bs
     data_lista_bs = []
@@ -2375,12 +2377,14 @@ def obtener_comisionesView(request):
 def obtener_comisiones2View(request):
     xFecha_ini_comprable = datetime.strptime(request.POST.get('fecha_ini'), '%Y-%m-%d').date()
     
+    xVariables  = Variable.objects.first()
+
     # 1) Filtrar documentos 
     qDocumentos = Documento.objects.filter(
     cliente__vendedor=request.POST.get('vendedor_id'),
     cliente__comisionable='Si',         # Solo clientes comisionables
     comision_liquidada=False,           # Que no hayan sido liquidados aún
-    dias_v__gte=-45
+    dias_v__gte=-xVariables.dias_noComisionables
     ).annotate(
         saldo=F('monto') - F('abonado')
     ).filter(
@@ -2645,3 +2649,27 @@ def comisiones_generalesView(request, xPeriodo):
     return render(request, 'app_gestion/comisiones_generales.html', context)
 
 
+
+@login_required
+def editar_variablesView(request):
+    xUsuario = request.user
+    xOpcion = "Editando"
+
+    xVariables  = Variable.objects.first()
+    rdias_noComisionables = xVariables.dias_noComisionables
+
+    if request.method == 'POST':
+
+        xVariables.dias_noComisionables = request.POST.get('dias_noComisionables') 
+        xVariables.save()
+        return redirect('inicio')
+
+
+    context = {
+        # 'form': form,
+        'xOpcion': xOpcion,
+        'rdias_noComisionables': rdias_noComisionables,
+    
+    }
+    
+    return render(request, 'app_gestion/variables_crud.html', context)

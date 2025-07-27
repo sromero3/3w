@@ -337,7 +337,20 @@ class Excedente(models.Model):
     pago_id = models.IntegerField(default=0)
     
 
+class Variable(models.Model):
+    fecha = models.DateField()
+    dias_noComisionables = models.IntegerField(default=0)
+    createdo = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(null=False)
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    seguimiento = models.TextField(blank=True, null=True)
+    modulo = models.TextField(max_length=50)
+    
+    def __str__(self):
+        return self.fuente
 
+    class Meta:
+        ordering = ["-id"] 
 
 
 
