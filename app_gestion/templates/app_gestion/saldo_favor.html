@@ -2,7 +2,7 @@
 {% load static %}
 {% load filtros %}
 {% block title %}
-M1 | Cobranza
+M1 | Saldo a favor
 {% endblock %}
 {% block styles %}
 {% endblock styles %}
@@ -19,85 +19,43 @@ M1 | Cobranza
                 <table id="con_saldo" class="table table-hover table-bordered" style="width:100%">
                     <thead>
                         <tr>
-                            <th>Documento</th>
+                            <th>Referencia</th>
                             <th>Fecha</th>
-                            <th>Vence</th>
-                            <th>DV</th>
                             <th style="width:350px">Cliente</th>
                             <th>Monto</th>
-                            <th>Abonado</th>
-                            <th>Pendiente</th>
-                            <!-- <th>Ciudad</th> -->
-                            <th style="width:150px">Vendedor</th>
-                            <th style="width:50px">Iva</th>
-                            <th style="width:90px">Condición</th>
+                            <th>Excedente</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for xDocumento in xDocumentos %}
+                        {% for xDoc in xDocumentos %}
                         <tr>
-                            {% if xDocumento.observacion == "" %}
-                            <td>{{xDocumento.numero|rellenar}}</td>
-                            {% else %}
-                            <td>{{xDocumento.numero|rellenar}}
-                                <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip"
-                                        data-bs-placement="bottom" data-bs-html="true"
-                                        data-bs-title="{{xDocumento.observacion}}<br>"></i>
-                                    </i></a>
-                            </td>
-                            {% endif %}
-                            <td>{{xDocumento.fecha|date:"d/m/y"}}</td>
-                            <td>{{xDocumento.vencimiento|date:"d/m/y"}}</td>
-                            <td align="center">{{xDocumento.dias_v}}</td>
-                            <td>{{xDocumento.cliente__nombre}}</td>
-                            <td align="right">{{xDocumento.monto|darFormato}}</td>
-                            <td align="right">{{xDocumento.abonado|darFormato}}</td>
-                            <td align="right">{{xDocumento.saldo|darFormato}}</td>
-                            <!-- <td>{{xDocumento.cliente_id__ciudad__ciudad}}</td> -->
-                            <td>{{xDocumento.cliente_id__vendedor__nombre|truncatechars:15}}</td>
-                            {% if xDocumento.iva__iva == "-" %}
-                            <td align="center">{{xDocumento.iva__iva}}</td>
-                            {% else %}
-                            <td>{{xDocumento.iva__iva}}</td>
-                            {% endif %}
-                            <!-- <td style="width:30px; color: rgb(90, 91, 92);">{{xDocumento.id|rellenar}}</td> -->
-                            {% if xDocumento.condicion__condicion == "Contado" %}
-                            <td style="color: red;">{{xDocumento.condicion__condicion}} a {{xDocumento.credito}}</td>
-                            {% else %}
-                            <td>{{xDocumento.condicion__condicion}} a {{xDocumento.credito}}</td>
-                            {% endif %}
+                            <td>{{ xDoc.pago_referencia }}</td>
+                            <td>{{ xDoc.creado|date:"d/m/y" }}</td>
+                            <td>{{ xDoc.cli.nombre }}</td>
+                            <td align="right">{{ xDoc.monto|darFormato }}</td>
+                            <td align="right">{{ xDoc.saldo|darFormato  }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
+
                     <tfoot>
                         <tr>
 
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
                             <td class="sin-bordes izquierda">T. Pag:</td>
                             <td id="pt" class="sin-bordes"></td>
-                            <!-- <td class="sin-bordes"></td> -->
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
+
                         </tr>
                         <tr>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
+
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes izquierda">T. Cons:</td>
                             <td id="t" class="sin-bordes"></td>
-                            <!-- <td class="sin-bordes"></td> -->
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
+
                         </tr>
                     </tfoot>
                 </table>
@@ -162,7 +120,7 @@ M1 | Cobranza
                     }
                     // Total over all pages
                     total = api
-                        .column(7)
+                        .column(4)
                         .data()
                         .reduce(function (a, b) {
                             b = b.replace(".", "") // Eliminado el punto en la undad de mil
@@ -171,7 +129,7 @@ M1 | Cobranza
                         }, 0)
                     // Total over this page
                     pageTotal = api
-                        .column(7, { page: 'current' })
+                        .column(4, { page: 'current' })
                         .data()
                         .reduce(function (a, b) {
                             b = b.replace(".", "") // Eliminado el punto en la undad de mil
@@ -215,16 +173,16 @@ M1 | Cobranza
                     }
                 },
 
-                "ordering": false,
+                "ordering": true,
                 "responsive": true,
                 "lengthChange": true,
                 "autoWidth": true,
                 "pageLength": 500,
                 "lengthMenu": [100, 200, 300, 400, 500],
                 "scrollX": true,
-                "order": [[3, "asc"]],
+                "order": [[1, "desc"]],
                 "columnDefs": [{
-                    "targets": [0, 5, 6, 7],
+                    "targets": [],
                     "orderable": false
                 }]
             })
@@ -242,7 +200,7 @@ M1 | Cobranza
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
-  
+
 
 
 
