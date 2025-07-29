@@ -9,15 +9,15 @@ M1 | Documentos crud
 {% block content %}
 <main id="main" class="main" style="margin-top: 40px">
     <div class="col-lg-12">
-        <div class="card">
+        <div class="card" id="data-section" style="opacity: 0;">
             <div class="card-body">
                 <!-- <h5 class="card-title">{{ xOpcion }} un Documento<a href="{% url 'documentos' 0 1 %}" -->
                 <h5 class="card-title">{{ xOpcion }} un Documento<a href="javascript:history.back()"
                         class="float-end"><i class="bi bi-arrow-return-left" title='Regresar'></i></a></h5>
-               
+
                 <form id="documento_form" action="" method="post" class="row g-3">
-                    
-                    <input id="opcion" value="{{ xOpcion }}" hidden/>
+
+                    <input id="opcion" value="{{ xOpcion }}" hidden />
                     {% csrf_token %}
                     <!-- ------------------------------------ agregando ------------------------------------- -->
                     {% if xOpcion == 'Agregando' %}
@@ -150,8 +150,7 @@ M1 | Documentos crud
                         <select name="condicion" id="condicion" class="form-control d-flex alto" required>
                             <option selected></option>
                             {% for xCondicion in xCondiciones %}
-                            <option id={{xCondicion.id}} value="{{xCondicion.id}}" {% if xCondicion.id == rCondicionId %}
-                                selected {% endif %}>
+                            <option id={{xCondicion.id}} value="{{xCondicion.id}}" {% if xCondicion.id == rCondicionId %} selected {% endif %}>
                                 {{xCondicion.condicion}}
                             </option>
                             {% endfor %}
@@ -164,14 +163,13 @@ M1 | Documentos crud
                     </div>
                     {% endif %} <!-- fin editando -->
 
- <!-- ------------------------------------ eliminando ------------------------------------- -->
+                    <!-- ------------------------------------ eliminando ------------------------------------- -->
                     {% if xOpcion == 'Eliminando' %}
-                   
+
                     <div class="col-6">
                         <span class="titulos">
                             Cliente</span>
-                        <input type="text" id="cliente" value="{{rCliente}}"
-                            class="form-control alto" disabled/>
+                        <input type="text" id="cliente" value="{{rCliente}}" class="form-control alto" disabled />
                     </div>
                     <div class="col-6">
                         <span class="titulos">Número</span>
@@ -187,7 +185,7 @@ M1 | Documentos crud
                     </div>
                     <div class="col-6">
                         <span class="titulos">{{form.monto.label}}</span>
-                        <input name="monto" id="id_monto" value="{{rMonto}}" class="form-control input-numero alto" 
+                        <input name="monto" id="id_monto" value="{{rMonto}}" class="form-control input-numero alto"
                             disabled maxlength="10">
                     </div>
                     <div class="col-6">
@@ -198,13 +196,15 @@ M1 | Documentos crud
                     <div class="col-6">
                         <span class="titulos">
                             Condición</span>
-                        <input name="condicion" id="condicion" value="{{rCondicion}}" class="form-control d-flex alto" disabled/>
+                        <input name="condicion" id="condicion" value="{{rCondicion}}" class="form-control d-flex alto"
+                            disabled />
                     </div>
 
                     <div class="col-12 pb-4">
                         <span class="titulos">
                             {{form.observacion.label}}</span>
-                            <textarea name="rObserva" id="iva" class="form-control d-flex" row="3" disabled>{{rObserva}}  </textarea>
+                        <textarea name="rObserva" id="iva" class="form-control d-flex" row="3"
+                            disabled>{{rObserva}}  </textarea>
                     </div>
                     {% endif %} <!-- fin eliminado -->
 
@@ -213,10 +213,10 @@ M1 | Documentos crud
                         <button id="GuardarButton" type="submit" id="guardar" class="btn btn-primary"
                             onclick="validar(event)">Guardar</button>
                         <button id="EliminarButton" type="submit" class="btn btn-danger" hidden
-                        onclick="eliminar(event)">Eliminar</button>
+                            onclick="eliminar(event)">Eliminar</button>
                         <button type="button" class="btn btn-secondary"
                             onclick="javascript:history.back()">Regresar</button>
-                        
+
                     </div>
                 </form>
             </div>
@@ -301,57 +301,62 @@ M1 | Documentos crud
 {% endif %}
 
 <script>
-
-    function llenar_nombre() {
-        let cliente_select = document.getElementById("cliente")
-        let texto_cliente = cliente_select.options[cliente_select.selectedIndex].text
-        document.getElementById("nombreClienteInput").value = texto_cliente
-    }
-
-    checkPattern("id_monto")
-    // Si editando dar formato
-    if (document.getElementById('id_monto').value != "") {
-        // document.getElementById('id_monto').value = darFormato(document.getElementById('id_monto').value)
-    }
-
-    // formatear entrada
-    function checkPattern(e) {
-        $("#" + e).on({
-            "focus": function (event) {
-                $(event.target).select()
-            },
-            "keyup": function (event) {
-                $(event.target).val(function (index, value) {
-                    return value.replace(/\D/g, "")
-                        .replace(/([0-9])([0-9]{2})$/, '$1,$2')
-                        .replace(/\B(?=(\d{3})+(?!\d)\.?)/g, ".")
-                })
-            }
-        })
-    } // fin formatear entrada
-
-    // selectize
     $(document).ready(function () {
-    
+
+        function llenar_nombre() {
+            let cliente_select = document.getElementById("cliente")
+            let texto_cliente = cliente_select.options[cliente_select.selectedIndex].text
+            document.getElementById("nombreClienteInput").value = texto_cliente
+        }
+
+        checkPattern("id_monto")
+        // Si editando dar formato
+        if (document.getElementById('id_monto').value != "") {
+            // document.getElementById('id_monto').value = darFormato(document.getElementById('id_monto').value)
+        }
+
+        // formatear entrada
+        function checkPattern(e) {
+            $("#" + e).on({
+                "focus": function (event) {
+                    $(event.target).select()
+                },
+                "keyup": function (event) {
+                    $(event.target).val(function (index, value) {
+                        return value.replace(/\D/g, "")
+                            .replace(/([0-9])([0-9]{2})$/, '$1,$2')
+                            .replace(/\B(?=(\d{3})+(?!\d)\.?)/g, ".")
+                    })
+                }
+            })
+        } // fin formatear entrada
+
+        // selectize
+
+
         if (document.getElementById('opcion').value == "Eliminando") {
-                EliminarButton.removeAttribute('hidden');
-                GuardarButton.setAttribute('hidden', 'true');
-            } else {
-               
-                var selectizeInstance = $('#cliente').selectize({
-                    // sortField: 'text',
-                    // maxOptions: 20
-                });
-                // Evento click para limpiar el select input
-                var selectizeControl = selectizeInstance[0].selectize;
-                selectizeControl.$control.on('click', function () {
-                    selectizeControl.clear();
-                    $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
-                });
-                // Agregar manualmente una flecha al control de Selectize
+            EliminarButton.removeAttribute('hidden');
+            GuardarButton.setAttribute('hidden', 'true');
+        } else {
+
+            var selectizeInstance = $('#cliente').selectize({
+                // sortField: 'text',
+                // maxOptions: 20
+            });
+            // Evento click para limpiar el select input
+            var selectizeControl = selectizeInstance[0].selectize;
+            selectizeControl.$control.on('click', function () {
+                selectizeControl.clear();
                 $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
-            
-            }
+            });
+            // Agregar manualmente una flecha al control de Selectize
+            $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+
+        }
+
+        setTimeout(() => {
+            document.getElementById('data-section').style.opacity = 1;
+        }, 200);
     });
 
 
@@ -698,40 +703,40 @@ M1 | Documentos crud
 
     function eliminar(e) {
         const form = document.getElementById('documento_form') // tomo el nombre del formulario
-      
-            e.preventDefault()
- 
-     
-            // Confirmar
-            let c = document.getElementById('cliente').value
-            let m = document.getElementById('id_monto').value
-            let n = document.getElementById('numero').value
-            Swal.fire({
-                title: '¿ Esta seguro de Eliminar ?',
-                html: `DOC: ${n}<br>DE: ${c}<br><h1>${m}$</h1> `,
-                showDenyButton: true,
-                // showCancelButton: true,
-                confirmButtonText: "Eliminar",
-                denyButtonText: `Descartar`
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: '¿ El sistema eliminará el Documento ?',
-                        html: `<h1>${n}</h1><br><span style="color: red">Proceda si está seguro...</span>`,
-                        showDenyButton: true,
-                        confirmButtonText: "Proceder",
-                        denyButtonText: `Descartar`,
 
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            document.getElementById('documento_form').submit()
-                        } else {
-                            return false
-                        }
-                    })
-                }
-            }) // fin reConfirmar
-        }
+        e.preventDefault()
+
+
+        // Confirmar
+        let c = document.getElementById('cliente').value
+        let m = document.getElementById('id_monto').value
+        let n = document.getElementById('numero').value
+        Swal.fire({
+            title: '¿ Esta seguro de Eliminar ?',
+            html: `DOC: ${n}<br>DE: ${c}<br><h1>${m}$</h1> `,
+            showDenyButton: true,
+            // showCancelButton: true,
+            confirmButtonText: "Eliminar",
+            denyButtonText: `Descartar`
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: '¿ El sistema eliminará el Documento ?',
+                    html: `<h1>${n}</h1><br><span style="color: red">Proceda si está seguro...</span>`,
+                    showDenyButton: true,
+                    confirmButtonText: "Proceder",
+                    denyButtonText: `Descartar`,
+
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('documento_form').submit()
+                    } else {
+                        return false
+                    }
+                })
+            }
+        }) // fin reConfirmar
+    }
 
 
 
