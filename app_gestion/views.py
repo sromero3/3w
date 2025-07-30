@@ -669,7 +669,7 @@ def Pago_cuentaView(request, id, cliente):
                 print("-------------Fac: " ,xDocumento.numero,"----------------")
                 print("xMonto_procesar: " ,xMonto_procesar)
                 print("Saldo: " ,xDocumento.saldo)
-                xMonto_procesar = xMonto_procesar - xAbono
+                xMonto_procesar = xMonto_procesar - xAbono # controlo lo que queda 
                 print("xAbono: " ,xAbono)
                 print("Monto restante",  xMonto_procesar )
                
@@ -683,7 +683,6 @@ def Pago_cuentaView(request, id, cliente):
                 # xAbono = xMonto_procesar  
                 # xDocumento.abonado = xDocumento.abonado + xAbono
                 # print(xDocumento.abonado )
-                print('===Excdente: ', xMonto_procesar)
                 
                 # xDocumento.pago = pago.id
                 
