@@ -2667,15 +2667,21 @@ def editar_variablesView(request):
     return render(request, 'app_gestion/variables_crud.html', context)
 
 @login_required
-def ingreso_rangoView(request, xTipo, fecha_ini, fecha_fin):
+def ingreso_rangoView(request, xTipo, xCta, fecha_ini, fecha_fin):
     xUsuario = request.user
+    
     if xTipo != 0:
-         xTipo_seleccionado = xTipo
-         print("Tipo seleccionado: ", xTipo_seleccionado)
+        xTipo_seleccionado = xTipo
     else:
         xTipo_seleccionado = 0
 
-    xTipos = PagoForma.objects.all()
+    if xCta != 0:
+         xCta_seleccionada = xCta
+    else:
+        xCta_seleccionada = 0
+
+    xTipos = PagoForma.objects.exclude(id__in=[5,6]).order_by('orden')
+    xCtas = BancoDestino.objects.exclude(id__in=[6]).order_by('nombre')
     
     if request.method == 'GET':
         # print("--------- Parametros recibidos GET ----------") 
@@ -2689,26 +2695,45 @@ def ingreso_rangoView(request, xTipo, fecha_ini, fecha_fin):
         xFecha_fin = fecha_fin 
     
     qPagos = Pago.objects.filter(
-    fecha__range=(fecha_ini, fecha_fin)
+        fecha__range=(fecha_ini, fecha_fin)
     ).exclude(
         referencia__icontains='Abono excedente'
     ).values(
-        'id','cliente_id','referencia','fecha','monto','monto_procesar',
-        'forma__forma', 'tasa','cliente__nombre','observacion', 
-        'seguimiento', 'forma_id','banco_destino__nombre','tipo','creado'
-    ).order_by('-fecha', '-creado')
+        'id',
+        'cliente_id',
+        'cliente__nombre',  
+        'referencia',
+        'fecha',
+        'monto',
+        'monto_procesar',
+        'forma__forma',
+        'tasa',
+        'observacion',
+        'seguimiento',
+        'forma_id',
+        'banco_destino__nombre',
+        'tipo',
+        'creado'
+    ).order_by('-id')
 
+    if xTipo == 0 and xCta == 0:
+       xPagos=qPagos
+     
+    elif xTipo == 0 and xCta != 0:
+         xPagos=qPagos.filter(banco_destino_id=xCta)
 
-    if xTipo == 0 :
-       xPagos=qPagos.all()
-    else:
-
-        xPagos=qPagos.filter(forma_id=xTipo)
+    elif xTipo != 0 and xCta == 0:
+         xPagos=qPagos.filter(forma_id=xTipo)
+    
+    elif xTipo != 0 and xCta != 0:
+        xPagos = qPagos.filter(forma_id=xTipo, banco_destino_id=xCta)
 
     context = {
         'xUsuario': xUsuario,
         'xPagos': xPagos,
         'xTipos': xTipos,
+        'xCtas': xCtas,
+        'xCta_seleccionada': int(xCta_seleccionada),
         'xTipo_seleccionado': int(xTipo_seleccionado),
         'xFecha_ini': xFecha_ini,
         'xFecha_fin': xFecha_fin,

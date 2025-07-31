@@ -23,9 +23,17 @@ M1 | Ingresos por rango
                 <form id="filtros" action="" method="post" class="mb-4" style="margin-bottom: 8px !important;">
                     {% csrf_token %}
                     <div class="row col" >
+                         <div class="col-md-3">
+                            <span class="titulos">Desde</span>
+                            <input type="date" id="fecha_ini" name="fecha_ini" value="{{xFecha_ini}}" class="form-control alto" onChange="obtener_ingresos()" />
+                        </div>
+                        <div class="col-md-3">
+                            <span class="titulos">Hasta</span>
+                            <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}" class="form-control alto" onChange="obtener_ingresos()" />
+                        </div>
                         <div class="col-3" style="margin-bottom: 12px;">
                             <span class="titulos">Forma de pago</span>
-                            <select name="tipo" id="tipo" required onfocus="limpiar()" onChange="obtener_ingresos()" class="form-control d-flex alto">
+                            <select name="tipo" id="tipo" required onfocus="limpiar()" onChange="obtener_ingresos()" class="form-control custom-selectd-flex alto">
                                 <option value="0" selected>Todos</option>
                                 {% for xTipo in xTipos %}
                                     <option value={{xTipo.id}} {% if xTipo.id == xTipo_seleccionado %} selected {% endif %}>
@@ -34,18 +42,16 @@ M1 | Ingresos por rango
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-3">
-                            <span class="titulos">Desde</span>
-                            <input type="date" id="fecha_ini" name="fecha_ini" value="{{xFecha_ini}}" class="form-control alto" onChange="obtener_ingresos()" />
-                        </div>
-                        <div class="col-md-3">
-                            <span class="titulos">Hasta</span>
-                            <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}" class="form-control alto" onChange="obtener_ingresos()" />
-                        </div>
+                       
                          <div class="col-md-3">
                             <span class="titulos">A Cuenta</span>
-                            <select name="cuenta" id="cuenta" required onfocus="limpiar()" onChange="obtener_ingresos()" class="form-control d-flex alto">
-                       
+                            <select name="cuenta" id="cuenta" required onfocus="limpiar()" onChange="obtener_ingresos()" class="form-control custom-selectd-flex alto">
+                                <option value="0" selected>Todos</option>
+                                {% for xCta in xCtas %}
+                                    <option value={{xCta.id}} {% if xCta.id == xCta_seleccionada %} selected {% endif %}>
+                                        {{ xCta.nombre }}
+                                    </option>
+                                {% endfor %}
                             </select>
                         </div>
                     </div>
@@ -54,18 +60,19 @@ M1 | Ingresos por rango
                 <table id="ingresos" class="table table-hover table-bordered" style="width:100%;">
                     <thead>
                         <tr>
-                            <th>Fecha</th>
+                            
                             <th>Procesado</th>
                             <th>Referencia</th>
                             <th>Forma</th>
+                            <th>Cliente</th>
                             <th>A Cuenta</th>
-                            <th>Monto $</th>
+                            <th style="width:120px">Monto $</th>
+                         <th>Doc</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for xPago in xPagos %}
                         <tr>
-                            <td>{{ xPago.fecha|date:"d-m-Y" }}</td>
                             <td align="center">{{ xPago.creado|date:"d-m-Y" }} {{ xPago.creado|time }}</td>
 
                             {% if xPago.observacion == "" %}
@@ -93,7 +100,7 @@ M1 | Ingresos por rango
                             {% else %}
                                 <td>{{ xPago.forma__forma }}</td>
                             {% endif %}
-
+                            <td >{{ xPago.cliente__nombre}}</td>
                             {% if xPago.banco_destino__nombre == "-" %}
                                 <td align="center">{{ xPago.banco_destino__nombre }}</td>
                             {% else %}
@@ -101,6 +108,13 @@ M1 | Ingresos por rango
                             {% endif %}
 
                             <td align="right">{{ xPago.monto_procesar|darFormato }}</td>
+
+                              <td align="center">
+                                <a href="{% url 'historial_pagos_detalle_doc' xPago.id xPago.monto_procesar %}" title="Ver documentos afectados">
+                                    <i class="bi bi-file-earmark" style="font-size: small;"></i>
+                                </a>
+                            </td>
+               
                        
                         </tr>
                         {% endfor %}
@@ -112,21 +126,14 @@ M1 | Ingresos por rango
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
-                            <td class="sin-bordes izquierda">T. Pag:</td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes izquierda">T. Consulta:</td>
                             <td id="pt_bs" class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
 
 
                         </tr>
-                        <tr>
-
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes izquierda">T. Cons:</td>
-                            <td id="t_bs" class="sin-bordes"></td>
-                       
-
-                        </tr>
+                  
                     </tfoot>
                    </table>
             </div>
@@ -210,7 +217,7 @@ M1 | Ingresos por rango
             "responsive": true,
             "lengthChange": true,
             "autoWidth": true,
-            "pageLength": 50,
+            "pageLength": 500,
             "scrollX": true,
             "order": [[1, "desc"]],
             "columnDefs": [{ "targets": [5], "orderable": false }]
@@ -224,7 +231,7 @@ M1 | Ingresos por rango
     });
 
     function obtener_ingresos() {
-        filtros.action = `/ingreso_rango/${tipo.value}/${fecha_ini.value}/${fecha_fin.value}/`
+        filtros.action = `/ingreso_rango/${tipo.value}/${cuenta.value}/${fecha_ini.value}/${fecha_fin.value}/`
         if (tipo.value !== '') {
             filtros.submit();
         }
