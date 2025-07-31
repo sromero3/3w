@@ -2665,3 +2665,53 @@ def editar_variablesView(request):
     }
     
     return render(request, 'app_gestion/variables_crud.html', context)
+
+@login_required
+def ingreso_rangoView(request, xTipo, fecha_ini, fecha_fin):
+    xUsuario = request.user
+    if xTipo != 0:
+         xTipo_seleccionado = xTipo
+         print("Tipo seleccionado: ", xTipo_seleccionado)
+    else:
+        xTipo_seleccionado = 0
+
+    xTipos = PagoForma.objects.all()
+    
+    if request.method == 'GET':
+        # print("--------- Parametros recibidos GET ----------") 
+        fecha_ini  = date.today() 
+        fecha_fin  = date.today() 
+        xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
+        xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
+    else:  
+        # print("--------- Parametros recibidos POST ----------")
+        xFecha_ini = fecha_ini
+        xFecha_fin = fecha_fin 
+    
+    qPagos = Pago.objects.filter(
+    fecha__range=(fecha_ini, fecha_fin)
+    ).exclude(
+        referencia__icontains='Abono excedente'
+    ).values(
+        'id','cliente_id','referencia','fecha','monto','monto_procesar',
+        'forma__forma', 'tasa','cliente__nombre','observacion', 
+        'seguimiento', 'forma_id','banco_destino__nombre','tipo','creado'
+    ).order_by('-fecha', '-creado')
+
+
+    if xTipo == 0 :
+       xPagos=qPagos.all()
+    else:
+
+        xPagos=qPagos.filter(forma_id=xTipo)
+
+    context = {
+        'xUsuario': xUsuario,
+        'xPagos': xPagos,
+        'xTipos': xTipos,
+        'xTipo_seleccionado': int(xTipo_seleccionado),
+        'xFecha_ini': xFecha_ini,
+        'xFecha_fin': xFecha_fin,
+     }
+ 
+    return render(request, 'app_gestion/ingresos_rango.html', context)

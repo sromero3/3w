@@ -1,0 +1,238 @@
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+{% block title %}
+M1 | Ingresos por rango
+{% endblock title %}
+{% block icon %}
+{% endblock %}
+{% block styles %}
+{% endblock styles %}
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px;">
+    <div class="col-lg-12">
+        <div class="card" id="data-section" style="opacity: 0;">
+            <div class="card-body">
+                <h5 class="card-title">
+                    Ingresos por rango y forma de pago
+                    <a href="{% url 'inicio' %}" class="float-end">
+                        <i class="bi bi-house-door" title='Cerrar'></i>
+                    </a>
+                </h5>
+
+                <form id="filtros" action="" method="post" class="mb-4" style="margin-bottom: 8px !important;">
+                    {% csrf_token %}
+                    <div class="row col" >
+                        <div class="col-3" style="margin-bottom: 12px;">
+                            <span class="titulos">Forma de pago</span>
+                            <select name="tipo" id="tipo" required onfocus="limpiar()" onChange="obtener_ingresos()" class="form-control d-flex alto">
+                                <option value="0" selected>Todos</option>
+                                {% for xTipo in xTipos %}
+                                    <option value={{xTipo.id}} {% if xTipo.id == xTipo_seleccionado %} selected {% endif %}>
+                                        {{ xTipo.forma }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <span class="titulos">Desde</span>
+                            <input type="date" id="fecha_ini" name="fecha_ini" value="{{xFecha_ini}}" class="form-control alto" onChange="obtener_ingresos()" />
+                        </div>
+                        <div class="col-md-3">
+                            <span class="titulos">Hasta</span>
+                            <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}" class="form-control alto" onChange="obtener_ingresos()" />
+                        </div>
+                         <div class="col-md-3">
+                            <span class="titulos">A Cuenta</span>
+                            <select name="cuenta" id="cuenta" required onfocus="limpiar()" onChange="obtener_ingresos()" class="form-control d-flex alto">
+                       
+                            </select>
+                        </div>
+                    </div>
+                </form>
+
+                <table id="ingresos" class="table table-hover table-bordered" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Procesado</th>
+                            <th>Referencia</th>
+                            <th>Forma</th>
+                            <th>A Cuenta</th>
+                            <th>Monto $</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for xPago in xPagos %}
+                        <tr>
+                            <td>{{ xPago.fecha|date:"d-m-Y" }}</td>
+                            <td align="center">{{ xPago.creado|date:"d-m-Y" }} {{ xPago.creado|time }}</td>
+
+                            {% if xPago.observacion == "" %}
+                                {% if xPago.referencia == "-" %}
+                                    <td align="center">{{ xPago.referencia }}</td>
+                                {% else %}
+                                    <td>{{ xPago.referencia|rellenar }}</td>
+                                {% endif %}
+                            {% else %}
+                                <td>
+                                    {{ xPago.referencia|rellenar }}
+                                    <a href="#">
+                                        <i class="bi bi-search" style="font-size: small;" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true" data-bs-title="{{xPago.observacion}}<br>"></i>
+                                    </a>
+                                </td>
+                            {% endif %}
+                   
+                            {% if xPago.forma__forma == "Transferencia Bancos Nacionales" or xPago.forma__forma == "Bolivares en Efectivo" %}
+                                <td>
+                                    {{ xPago.forma__forma }}
+                                    <a href="#">
+                                        <i class="bi bi-search" style="font-size: small;" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true" data-bs-title="<b>Bs. {{xPago.monto}}</b> <br> (Tasa {{xPago.tasa}})"></i>
+                                    </a>
+                                </td>
+                            {% else %}
+                                <td>{{ xPago.forma__forma }}</td>
+                            {% endif %}
+
+                            {% if xPago.banco_destino__nombre == "-" %}
+                                <td align="center">{{ xPago.banco_destino__nombre }}</td>
+                            {% else %}
+                                <td>{{ xPago.banco_destino__nombre }}</td>
+                            {% endif %}
+
+                            <td align="right">{{ xPago.monto_procesar|darFormato }}</td>
+                       
+                        </tr>
+                        {% endfor %}
+                    </tbody>    
+                    <tfoot>
+                        <tr>
+
+                           
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes izquierda">T. Pag:</td>
+                            <td id="pt_bs" class="sin-bordes"></td>
+
+
+                        </tr>
+                        <tr>
+
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes izquierda">T. Cons:</td>
+                            <td id="t_bs" class="sin-bordes"></td>
+                       
+
+                        </tr>
+                    </tfoot>
+                   </table>
+            </div>
+        </div>
+    </div>
+</main><!-- End #main -->
+
+<button type="button" id="boton_modal" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#miModal" hidden>
+    Extra Large Modal
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="miModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" style="color:#012970">Seguimiento del Documento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6 id="t"></h6>
+            </div>
+        </div>
+    </div>
+</div><!-- End Modal -->
+{% endblock content %}
+
+{% block Scripts_Adicionales %}
+<script>
+    $(document).ready(function () {
+        $("#ingresos").DataTable({
+
+            // Funcion para totales
+            footerCallback: function (row, data, start, end) {
+                const api = this.api();
+
+                // Función segura para convertir el texto formateado en número
+                const toNumber = s =>
+                    typeof s === 'string'
+                        ? parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0
+                        : typeof s === 'number'
+                            ? s
+                            : 0;
+
+                /* -------- BS (col 5) -------- */
+                const totalBs = api.column(5).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
+                const pageBs = api.column(5, { page: 'current' })
+                    .data()
+                    .reduce((a, b) => toNumber(a) + toNumber(b), 0);
+
+           
+
+                // Formatea (usa tu propia función darFormato o Intl.NumberFormat)
+                const f = n => darFormato(n);   // ← tu helper
+                $('#pt_bs').html(`<span style="font-size:15px">$ ${f(pageBs)}</span>`);
+                $('#t_bs').html(`<span style="font-size:15px">$ ${f(totalBs)}</span>`);
+
+            },
+
+
+
+
+            language: {
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ registros",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "*** No se encontró información ***",
+                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                "sSearch": "Buscar:",
+                "sLoadingRecords": "Cargando...",
+                "oPaginate": {
+                    "sFirst": "Primero",
+                    "sLast": "Último",
+                    "sNext": "Siguiente",
+                    "sPrevious": "Anterior"
+                }
+            },
+            "ordering": false,
+            "responsive": true,
+            "lengthChange": true,
+            "autoWidth": true,
+            "pageLength": 50,
+            "scrollX": true,
+            "order": [[1, "desc"]],
+            "columnDefs": [{ "targets": [5], "orderable": false }]
+        });
+
+        // Mostrar con transición
+        setTimeout(() => {
+            document.getElementById('data-section').style.opacity = 1;
+        }, 200);
+
+    });
+
+    function obtener_ingresos() {
+        filtros.action = `/ingreso_rango/${tipo.value}/${fecha_ini.value}/${fecha_fin.value}/`
+        if (tipo.value !== '') {
+            filtros.submit();
+        }
+    }
+
+    function abrir_modal(seguimiento) {
+        document.getElementById('t').innerHTML = seguimiento;
+        boton_modal.click();
+    }
+</script>
+{% endblock Scripts_Adicionales %}
