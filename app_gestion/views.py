@@ -2008,24 +2008,6 @@ def cerrarView(request):
     return redirect('/')
 
 @login_required
-# def historial_pagos_detalle_docView(request, id, xMonto):
-#     xUsuario = request.user
-    
-#     xPagos_detalle = Pago_detalle.objects.filter(pago_id = id).values('documento__numero','documento__fecha','pago__fecha', 'monto_procesar','pago__referencia','pago__forma__forma').order_by('pago__fecha', 'id')
-
-#     xDoc = id
-#     xMon = xMonto
-
-#     context = {
-#         'xUsuario': xUsuario,
-#         'xPagos_detalle': xPagos_detalle,
-#         'xDoc': xDoc,
-#         'xMon': Decimal(xMon)
-#     }
-    
-#     return render(request, 'app_gestion/historial_pagos_detalle_doc.html', context)
-
-
 def historial_pagos_detalle_docView(request, id, xMonto):
     xUsuario = request.user
 
@@ -2043,18 +2025,11 @@ def historial_pagos_detalle_docView(request, id, xMonto):
     # Convertir monto original a Decimal
     xMon = Decimal(xMonto)
 
-    # Sumar los montos procesados
-    total_abonado = sum(Decimal(detalle['monto_procesar']) for detalle in xPagos_detalle)
-
-    # Calcular excedente
-    xExcedente = xMon - total_abonado
-
     context = {
         'xUsuario': xUsuario,
         'xPagos_detalle': xPagos_detalle,
         'xDoc': id,
-        'xMon': xMon,
-        'xExcedente': xExcedente
+        'xMon': xMon
     }
 
     return render(request, 'app_gestion/historial_pagos_detalle_doc.html', context)

@@ -11,19 +11,12 @@ M1 | historial_pagos_detalle_doc
     <div class="col-lg-12">
         <div class="card mx-auto" style="width:60%;margin-bottom: 8px !important; ">
             <div class="card-body">
-
                 <h5 class="card-title">Detalle de documentos afectados <a href="javascript:history.back()"
                         class="float-end">
                         <i class="bi bi-arrow-return-left" title='Regresar'></i>
                     </a></h5>
-
-                <h6>Pago...: {{xDoc|rellenar}} </h6>
-                {% if xExcedente > 0 %}
-                <h6>Monto: $ {{xMon|darFormato}} </h6>
-                {% else %}
-                <h6>Monto: $ {{xMon|darFormato}} <span style="color: rgb(2, 160, 81);">⚙️ Abono automático desde excedente</span></h6>
-                {% endif %}
-
+                <!-- <h6>Pago...: {{xDoc|rellenar}} </h6> -->
+                <h6>Monto del abono recibido: $ {{xMon|darFormato}} </h6>
                 <table id="asientos" class="table table-hover table-bordered " style="width:100%">
                     <thead>
                         <tr>
@@ -34,19 +27,22 @@ M1 | historial_pagos_detalle_doc
                     <tbody>
                         {% for xDetalle in xPagos_detalle %}
                         <tr>
-                            <td>{{xDetalle.documento__numero|rellenar}}</td>
-                            <td align="right">{{xDetalle.monto_procesar|darFormato}}</td>
+                            
+                            {% if xDetalle.pago__referencia|default:''|slice:":5" == "Abono" %}
+                            <td>
+                                {{xDetalle.documento__numero|rellenar}}
+                                <span style="color: rgb(2, 160, 81);">⚙️ Abono automático desde excedente</span>
+                            </td>
+                            {% else %}
+                                <td>{{xDetalle.documento__numero|rellenar}}</td>
+                            {% endif %}
+                            <td align="right">
+                                {{ xDetalle.monto_procesar|darFormato }}
+                            </td>
+
                         </tr>
                         {% endfor %}
-                        {% if xExcedente > 0 %}
-                        <tr>
-                            <td>Pendiente en Excedente</td>
-                            <td align="right">{{ xExcedente|darFormato }}</td>
-                        </tr>
-                        {% endif %}
-
                     </tbody>
-
                 </table>
             </div>
         </div>
@@ -57,7 +53,6 @@ M1 | historial_pagos_detalle_doc
 <script>
     $(function () {
         $("#asientos").DataTable({
-
             language: {
                 "sProcessing": "Procesando...",
                 "sLengthMenu": "Mostrar _MENU_ registros",
@@ -102,6 +97,5 @@ M1 | historial_pagos_detalle_doc
             // }]
         })
     }) // fin tabla
-
 </script>
 {% endblock Scripts_Adicionales %}
