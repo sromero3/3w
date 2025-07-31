@@ -2022,6 +2022,9 @@ def historial_pagos_detalle_docView(request, id, xMonto):
         'pago__forma__forma'
     ).order_by('pago__fecha', 'id')
 
+    es_automatico = any(detalle['pago__referencia'].startswith('Abono') for detalle in xPagos_detalle)
+
+
     # Convertir monto original a Decimal
     xMon = Decimal(xMonto)
 
@@ -2029,7 +2032,8 @@ def historial_pagos_detalle_docView(request, id, xMonto):
         'xUsuario': xUsuario,
         'xPagos_detalle': xPagos_detalle,
         'xDoc': id,
-        'xMon': xMon
+        'xMon': xMon,
+        'es_automatico': es_automatico
     }
 
     return render(request, 'app_gestion/historial_pagos_detalle_doc.html', context)
@@ -2715,3 +2719,43 @@ def ingreso_rangoView(request, xTipo, xCta, fecha_ini, fecha_fin):
      }
  
     return render(request, 'app_gestion/ingresos_rango.html', context)
+
+
+from django.db.models import Sum
+
+@login_required
+def ingreso_resumenView(request, fecha_ini, fecha_fin):
+    xUsuario = request.user
+
+    # Si es GET, usar la fecha de hoy por defecto
+    if request.method == 'GET':
+        fecha_ini  = date.today()
+        fecha_fin  = date.today()
+        xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
+        xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
+    else:
+        xFecha_ini = fecha_ini
+        xFecha_fin = fecha_fin
+
+    # Agrupar por forma de pago (forma_id), excluyendo abonos de excedente
+    resumen_pagos = Pago.objects.filter(
+        fecha__range=(fecha_ini, fecha_fin)
+    ).exclude(
+        referencia__icontains='Abono excedente'
+    ).exclude(
+        forma_id__in=[5, 6]  # Excluir formas específicas si deseas
+    ).values(
+        'forma_id',
+        'forma__forma'
+    ).annotate(
+        total_monto=Sum('monto_procesar')
+    ).order_by('forma__orden')  # orden personalizado si tienes campo `orden` en PagoForma
+
+    context = {
+        'xUsuario': xUsuario,
+        'resumen_pagos': resumen_pagos,
+        'xFecha_ini': xFecha_ini,
+        'xFecha_fin': xFecha_fin,
+    }
+
+    return render(request, 'app_gestion/ingresos_resumen.html', context)

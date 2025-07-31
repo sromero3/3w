@@ -1,0 +1,116 @@
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+{% block title %}
+M1 | Ingresos resumen por forma de pago
+{% endblock title %}
+
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px;">
+    <div class="col-lg-12">
+        <div class="card" id="data-section" style="opacity: 0;">
+            <div class="card-body">
+                <h5 class="card-title">
+                    Resumen de ingresos por forma de pago
+                    <a href="{% url 'inicio' %}" class="float-end">
+                        <i class="bi bi-house-door" title='Cerrar'></i>
+                    </a>
+                </h5>
+
+                <form id="filtros" action="" method="post" class="mb-4">
+                    {% csrf_token %}
+                    <div class="row col">
+                        <div class="col-md-4">
+                            <span class="titulos">Desde</span>
+                            <input type="date" id="fecha_ini" name="fecha_ini" value="{{xFecha_ini}}" class="form-control alto" onChange="obtener_ingresos()" />
+                        </div>
+                        <div class="col-md-4">
+                            <span class="titulos">Hasta</span>
+                            <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}" class="form-control alto" onChange="obtener_ingresos()" />
+                        </div>
+                    </div>
+                </form>
+
+                <table id="resumen" class="table table-hover table-bordered" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th>Forma de Pago</th>
+                            <th style="width:120px">Total ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fila in resumen_pagos %}
+                        <tr>
+                            <td>{{ fila.forma__forma }}</td>
+                            <td align="right">{{ fila.total_monto|darFormato }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th class="izquierda">Total general:</th>
+                            <th id="total_general" class="text-end"></th>
+
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock content %}
+
+{% block Scripts_Adicionales %}
+<script>
+    $(document).ready(function () {
+        $("#resumen").DataTable({
+            footerCallback: function (row, data, start, end) {
+                const api = this.api();
+                const toNumber = s =>
+                    typeof s === 'string'
+                        ? parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0
+                        : typeof s === 'number'
+                            ? s
+                            : 0;
+
+                const total = api.column(1).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
+                const f = n => darFormato(n);
+                $('#total_general').html(`<span style="font-size:15px">$ ${f(total)}</span>`);
+                
+            },
+
+            language: {
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ registros",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "*** No se encontró información ***",
+                "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                "sInfoEmpty": "Mostrando 0 a 0 de 0 registros",
+                "sInfoFiltered": "(filtrado de _MAX_ registros)",
+                "sSearch": "Buscar:",
+                "oPaginate": {
+                    "sFirst": "Primero",
+                    "sLast": "Último",
+                    "sNext": "Siguiente",
+                    "sPrevious": "Anterior"
+                }
+            },
+            "ordering": false,
+            "responsive": true,
+            "lengthChange": false,
+            "autoWidth": true,
+            "pageLength": 100,
+            "scrollX": false
+        });
+
+        setTimeout(() => {
+            document.getElementById('data-section').style.opacity = 1;
+        }, 200);
+    });
+
+    function obtener_ingresos() {
+        filtros.action = `/ingreso_resumen/${fecha_ini.value}/${fecha_fin.value}/`;
+        filtros.submit();
+    }
+</script>
+{% endblock Scripts_Adicionales %}

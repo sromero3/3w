@@ -15,8 +15,13 @@ M1 | historial_pagos_detalle_doc
                         class="float-end">
                         <i class="bi bi-arrow-return-left" title='Regresar'></i>
                     </a></h5>
-                <!-- <h6>Pago...: {{xDoc|rellenar}} </h6> -->
-                <h6>Monto del abono recibido: $ {{xMon|darFormato}} </h6>
+
+                {% if es_automatico %}
+                    <h6>Monto excedente procesado: $ {{ xMon|darFormato }}</h6>
+                {% else %}
+                    <h6>Monto del pago recibido: $ {{ xMon|darFormato }}</h6>
+                {% endif %}
+
                 <table id="asientos" class="table table-hover table-bordered " style="width:100%">
                     <thead>
                         <tr>
