@@ -123,7 +123,9 @@ M1 | Comisiones calculadas
                         <button id="boton" class="btn btn-primary" style="opacity: 1; width: auto;"
                             onclick="generarPDF()">Generar PDF</button>
                         {% endif %}
+                        
                     </div> <!-- .col-auto -->
+                    <span class="text-muted" style="font-size: 0.8em;">(Procesado: {{ xComisionCabecera.creado| date:"d/m/Y H:i:s" }})</span>
                 </div> <!-- .row -->
 
             </div> <!-- .card-body -->

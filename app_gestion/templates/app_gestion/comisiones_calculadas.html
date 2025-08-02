@@ -5,6 +5,14 @@
 M1 | Comisiones calculadas
 {% endblock %}
 {% block styles %}
+<!-- <style>
+    .text-gris-oscuro,
+    .text-gris-oscuro td,
+    .text-gris-oscuro td a,
+    .text-gris-oscuro td i {
+        color: #8f8e8e !important;
+    }
+</style> -->
 {% endblock styles %}
 {% block content %}
 <main id="main" class="main" style="margin-top: 40px">
@@ -14,32 +22,46 @@ M1 | Comisiones calculadas
                 <h5 class="card-title">Comisiones Calculadas<a href="{% url 'inicio'%}" class="float-end"><i
                             class="bi bi-house-door" title='Cerrar'></i></a></h5>
 
-                <form id="filtros" action="" method="post" class="mb-4"
-                    style="width:90%;margin-bottom: 8px !important;">
-                    {% csrf_token %}
-                    <!-- <div class="col-md-6">
-                        <label id="m" class="titulos d-flex me-2 mt-1">Status</label>
-                        <select name="f_status" id="f_status" class="form-control custom-select d-flex alto" required
-                            onChange="obtener_comisiones()">
-                            <option value="0" selected>Todos</option>
-                            {% for xStatu in xStatus_select %}
-                            <option value={{xStatu.id}} {% if xStatu.id == xStatu_seleccionado %} selected {%endif %}>
-                                {{xStatu.statu}}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>  -->
-                    <div class="col-md-6">
-                        <label class="titulos d-flex ms-2 me-2 mt-1">Vend.</label>
-                        <select name="f_vendedor" id="f_vendedor" onChange="obtener_comisiones()">
-                            <option value="0" selected>TODOS</option>
-                            {% for xVendedor in xVendedores %}
-                            <option value={{xVendedor.id}} {% if xVendedor.id == xVendedor_seleccionado %} selected
-                                {%endif %}>
-                                {{xVendedor.nombre}}
-                            </option>
-                            {% endfor %}
-                        </select>
+                <form id="filtros" action="" method="post" class="mb-4">
+                    <div class="row">
+
+                        {% csrf_token %}
+                        <div style="flex: 1; min-width: 150px;">
+                            <label for="f_periodo" class="titulos d-block mb-1">Semana</label>
+                            <select name="f_periodo" id="f_periodo" class="form-control custom-select alto" required
+                                onChange="obtener_comisiones()">
+                                <option value=0 selected>Todas</option>
+                                {% for xPeriodo in xPeriodos %}
+                                <option value="{{xPeriodo.id}}" {% if xPeriodo.id == xPeriodo_seleccionado %}selected{% endif %}>
+                                    {{ xPeriodo.numero_semana }} - {{ xPeriodo.desde|date:"d/m/y" }} - {{xPeriodo.hasta|date:"d/m/y" }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div style="flex: 1; min-width: 150px;">
+                            <label for="f_status" class="titulos d-block mb-1">Status de la comisión</label>
+                            <select name="f_status" id="f_status" class="form-control custom-select alto" required
+                                onChange="obtener_comisiones()">
+                                <option value="Todas" {% if xStatus_seleccionado == 'Todas' %} selected {% endif %}>Todas</option>
+                                <option value="Calculada" {% if xStatus_seleccionado == 'Calculada' %}selected {% endif %}>Calculada</option>
+                                <option value="Pagada" {% if xStatus_seleccionado == 'Pagada' %} selected {% endif %}>Pagada</option>
+                                <option value="Reversada" {% if xStatus_seleccionado == 'Reversada' %} selected {% endif %}>Reversada</option>
+                            </select>
+                        </div>
+
+                        <div style="flex: 1; min-width: 150px;">
+                            <label for="f_vendedor" class="titulos d-block mb-1">Vendedor</label>
+                            <select name="f_vendedor" id="f_vendedor" class="form-control"
+                                onChange="obtener_comisiones()">
+                                <option value="0" selected>TODOS</option>
+                                {% for xVendedor in xVendedores %}
+                                <option value={{xVendedor.id}} {% if xVendedor.id == xVendedor_seleccionado %}selected{%endif %}>
+                                    {{xVendedor.nombre}}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
                 </form>
 
@@ -59,7 +81,9 @@ M1 | Comisiones calculadas
                     </thead>
                     <tbody>
                         {% for xComi in xComisionCabecera %}
+
                         <tr>
+
                             <td>{{xComi.id|rellenar}}</td>
                             <td>{{xComi.periodo__numero_semana}}</td>
                             <td>{{xComi.periodo__desde |date:"d/m/y"}}</td>
@@ -226,13 +250,7 @@ M1 | Comisiones calculadas
             //  opciones
         });
         $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
-        // Evento click para limpiar el select input
-        var selectizeControl = selectizeInstance[0].selectize;
-        selectizeControl.$control.on('click', function () {
-            selectizeControl.clear();
-            $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
-        });
-
+ 
         // Mostrar con transición
         setTimeout(() => {
             document.getElementById('data-section').style.opacity = 1;
@@ -246,7 +264,7 @@ M1 | Comisiones calculadas
 
     // obtener docuemntos
     function obtener_comisiones() {
-        filtros.action = `/comisiones_calculadas/${f_vendedor.value}/`
+        filtros.action = `/comisiones_calculadas/${f_periodo.value}/${f_status.value}/${f_vendedor.value}/`
         if (document.getElementById('f_vendedor').value != '') {
             filtros.submit()
         }
