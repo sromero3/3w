@@ -534,9 +534,9 @@ def cobranzaView(request, xCliente, xVendedor, xIva, xVencido):
 
     actualizar_dias_vencido()
     if xVencido_seleccionado == 1:
-       qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado','saldo','dias_v','condicion__condicion','credito').filter(dias_v__lte=0)
+       qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','iva__id','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado','saldo','dias_v','condicion__condicion','credito').filter(dias_v__lte=0)
     else: 
-       qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado','saldo','dias_v','condicion__condicion','credito')
+       qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','iva__id','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado','saldo','dias_v','condicion__condicion','credito')
  
     if xCliente == 0 and xVendedor == 0 and xIva == 0:
        xDocumentos=qDocumentos
@@ -921,6 +921,27 @@ def Actualizar_fechasView(request):
     dias_creito  =  fecha_v - fecha_f
     documento.credito = dias_creito.days 
           
+    documento.save()
+    
+    return JsonResponse(data, safe=False)
+
+
+@login_required
+def Actualizar_ivaView(request):
+    # parametros
+    id =  request.POST.get('reg_id')
+    data = {'status': True}
+    iva_id = request.POST.get('iva_id')
+    fecha_actual = datetime.now()
+    # Obtengo el registro a editar
+    try:
+        documento = Documento.objects.get(id=id)
+    except documento.DoesNotExist:
+        data = {'status': False}
+    
+    # actualizo el iva
+    documento.iva_id = iva_id
+
     documento.save()
     
     return JsonResponse(data, safe=False)

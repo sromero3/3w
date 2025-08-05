@@ -69,6 +69,7 @@ urlpatterns = [
      path('validar_referencia/', views.Validar_referenciaView, name='validar_referencia'),
      path('cargar_bancos/', views.Cargar_bancosView, name='cargar_bancos'),
      path('actualizar_fechas/', views.Actualizar_fechasView, name='actualizar_fechas'),
+     path('actualizar_iva/', views.Actualizar_ivaView, name='actualizar_iva'),
      path('validar_cliente/', views.Validar_clienteView, name='validar_cliente'),
      path('agregar_ciudad_desde_agregar_vendedor/', views.agregar_ciudad_desde_agregar_vendedorView, name='agregar_ciudad_desde_agregar_vendedor'),
      path('obtener_ciudades/', views.obtener_ciudadesView, name='obtener_ciudades'),

@@ -68,12 +68,12 @@ M1 | Cobranza
                     <div class="row">
                         <div class="mt-1 col-lg-3 col-sm-12">
                             <span id="enlaces" hidden>
-                                <a id="url_pago_cuenta">Pago a cuenta<a /><br>
-                                    <a id="url_pago_documentos">Pago a documentos<a /><br>
+                                <a id="url_pago_cuenta">Pago a cuenta</a><br>
+                                <a id="url_pago_documentos">Pago a documentos</a><br>
                             </span>
                             <div id="enlaces2" hidden>
                                 <span>
-                                    <a id="url_estado">Estado de cuenta<a />
+                                    <a id="url_estado">Estado de cuenta</a>
                                 </span>
                             </div>
                             <input type="text" id="xDoc_encontrados" value="{{xDoc_encontrados}}" hidden>
@@ -93,7 +93,7 @@ M1 | Cobranza
                             <th>Pendiente</th>
                             <!-- <th>Ciudad</th> -->
                             <th style="width:150px">Vendedor</th>
-                            <th style="width:50px">Iva</th>
+                            <th style="width:100px">Iva</th>
                             <th style="width:90px">Condición</th>
                         </tr>
                     </thead>
@@ -110,9 +110,9 @@ M1 | Cobranza
                                 </a>
                             </td>
                             {% endif %}
-                            <td>{{xDocumento.fecha|date:"d/m/y"}}<a
-                                    href="javascript:abrir_modal( '{{xDocumento.fecha|date:"Y-m-d"}}','{{xDocumento.vencimiento|date:"Y-m-d"}}','{{xDocumento.id}}' )"> <i
-                                        style="font-size: small;" class="bi bi-pencil"></a></i></td>
+                            <td>{{xDocumento.fecha|date:"d/m/y"}}<a href="javascript:abrir_modal( '{{xDocumento.fecha|date:"Y-m-d"}}','{{xDocumento.vencimiento|date:"Y-m-d"}}','{{xDocumento.id}}' )">
+                                 <i style="font-size: small;" class="bi bi-pencil"></a></i>
+                            </td>
                             <td>{{xDocumento.vencimiento|date:"d/m/y"}}</td>
                             {% if xDocumento.dias_v < 0  %}
                                 <td style="color: red;">{{xDocumento.dias_v}} </td>
@@ -128,7 +128,9 @@ M1 | Cobranza
                             {% if xDocumento.iva__iva == "-" %}
                             <td align="center">{{xDocumento.iva__iva}}</td>
                             {% else %}
-                            <td>{{xDocumento.iva__iva}}</td>
+                            <td>{{xDocumento.iva__iva}}<a href="javascript:abrir_modalIva( '{{xDocumento.iva__id}}','{{xDocumento.id}}' )">
+                                 <i style="font-size: small;" class="bi bi-pencil"></a></i>
+                            </td>
                             {% endif %}
                             <!-- <td style="width:30px; color: rgb(90, 91, 92);">{{xDocumento.id|rellenar}}</td> -->
                             {% if xDocumento.condicion__condicion == "Contado" %}
@@ -209,7 +211,40 @@ M1 | Cobranza
     </div> <!-- fin modal-dialog -->
 </div><!-- fin modal-->
 
-
+<button type="button" id="modal_iva" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#smallModalIva"
+    hidden>
+    Small Modal Iva
+</button>
+<!-- modal -->
+<div class="modal fade" id="smallModalIva" tabindex="-1" style="margin-top: 100px;">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="card-title">Actualizando el IVA</h5>
+            </div>
+            <form id="modal-iva-form" action="" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <span class="titulos">IVA</span>
+                    <select name="modal_iv" id="modal_iv" class="form-control d-flex alto">
+                        {% for xIva in xIvas %}
+                        <option id={{xIva.id}} value="{{xIva.id}}" {% if xIva.id == modal_iv %} selected {% endif %}>
+                            {{xIva.iva}}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <input type="text" id="modal_i" hidden>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="submit" class="btn btn-primary" id="gurdar_iva"
+                        onclick="guardar_iva(event)">Guardar</button>
+                    <button type="button" class="btn btn-secondary" id="cerrar_iva"
+                        data-bs-dismiss="modal">Descartar</button>
+                </div>
+            </form>
+        </div> <!-- fin modal content -->
+    </div> <!-- fin modal-dialog -->
+</div><!-- fin modal-->
 {% endblock content %}
 {% block Scripts_Adicionales %}
 <script>
@@ -323,7 +358,7 @@ M1 | Cobranza
 
     // obtener docuemntos
     function obtener_documentos() {
-        console.log(document.getElementById('cliente').value)
+        // console.log(document.getElementById('cliente').value)
         let ven
         checkBox = document.getElementById("vencido")
         if (checkBox.checked == true) {
@@ -366,9 +401,8 @@ M1 | Cobranza
         // // construir el url para estado de cuenta
         let cliente_select = document.getElementById("cliente")
         let id_cliente = cliente_select.options[cliente_select.selectedIndex].value
-        console.log(typeof id_cliente)
         if (id_cliente != "0") {
-            console.log("mstrar")
+            
             let anchor3 = document.getElementById('url_estado')
             anchor3.href = `/estado_cuentas/${id_cliente}/cobranza/' '/' '/`
             document.getElementById('enlaces2').removeAttribute('hidden')
@@ -376,12 +410,61 @@ M1 | Cobranza
 
     }) // documente load
 
+  
+    function abrir_modalIva(iva, i) {
+        document.getElementById('modal_iv').value = Number(iva)
+        document.getElementById('modal_i').value = i
+        modal_iva.click();
+    }
+
+    function guardar_iva(e) {
+        e.preventDefault();
+
+        const form = document.getElementById('modal-iva-form');
+        if (!form.checkValidity()) {
+            return false;
+        }
+
+        let op_exitosa = false;
+        const iva_id = document.getElementById('modal_iv').value;  // id del select
+        const reg_id = document.getElementById('modal_i').value;
+
+        $.ajax({
+            url: "{% url 'actualizar_iva' %}",
+            type: 'POST',
+            // async: false,
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                'reg_id': reg_id,
+                'iva_id': iva_id,
+            },
+            datatype: 'json',
+            success: function (data) {
+                // console.log('RESULTADO', data.status, typeof data.status);
+                op_exitosa = data.status;
+                    cerrar_iva.click();
+
+        const checkBox = document.getElementById("vencido");
+        const ven = checkBox.checked ? "1" : "0";
+
+        filtros.action = `/cobranza/${cliente.value}/${vendedor.value}/${iva.value}/${ven}/`;
+        filtros.submit();
+            },
+            error: function (xhr, status, error) {
+                console.error('Error en AJAX:', error);
+            }
+        });
+
+    
+    }
+
     function abrir_modal(f, v, i) {
         document.getElementById('modal_f').value = f
         document.getElementById('modal_v').value = v
         document.getElementById('modal_i').value = i
         modal_fechas.click();
     }
+
 
     // guardar fechas
     function guardar_fechas(e) {
