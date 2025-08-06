@@ -28,6 +28,7 @@ from django.contrib.auth import logout
 from django.db.models.functions import ExtractYear
 import json
 from django.db.models import Sum, Case, When, F, DecimalField
+from django.views.decorators.http import require_POST
 
 # from weasyprint import HTML
 
@@ -2601,6 +2602,27 @@ def aplicar_descuentoView(request):
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
 
+@require_POST
+def marcar_recibidoView(request):
+    try:
+        data = json.loads(request.body)  # leer JSON puro del body
+
+        marcar_ids = data.get('marcar', [])
+        desmarcar_ids = data.get('desmarcar', [])
+
+        # Actualizar pagos a recibido=True
+        if marcar_ids:
+            Pago.objects.filter(id__in=marcar_ids).update(recibido=True)
+
+        # Actualizar pagos a recibido=False
+        if desmarcar_ids:
+            Pago.objects.filter(id__in=desmarcar_ids).update(recibido=False)
+
+        return JsonResponse({'success': True})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
 @login_required
 def comisiones_generalesView(request, xPeriodo):
     xUsuario = request.user
@@ -2716,9 +2738,10 @@ def ingreso_rangoView(request, xTipo, xCta, fecha_ini, fecha_fin):
         xFecha_fin = fecha_fin 
     
     qPagos = Pago.objects.filter(
-        fecha__range=(fecha_ini, fecha_fin)
+        fecha__range=(fecha_ini, fecha_fin),
     ).exclude(
         referencia__icontains='Abono excedente'
+        ).exclude(forma_id=6
     ).values(
         'id',
         'cliente_id',
@@ -2734,7 +2757,8 @@ def ingreso_rangoView(request, xTipo, xCta, fecha_ini, fecha_fin):
         'forma_id',
         'banco_destino__nombre',
         'tipo',
-        'creado'
+        'creado',
+        'recibido'
     ).order_by('-id')
 
     if xTipo == 0 and xCta == 0:

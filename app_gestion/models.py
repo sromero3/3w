@@ -246,7 +246,7 @@ class Documento(models.Model):
     actualizado = models.DateTimeField(null=False)
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     condicion = models.ForeignKey(Condicion, on_delete=models.CASCADE)
-    comision_liquidada = models.BooleanField(default=False)  # NUEVO CAMPO Este campo indica si ya se calculó y se "cerró" la comisión de esa factura.
+    comision_liquidada = models.BooleanField(default=False)  # NUEVO CAMPO Este campo indica si ya se calculó y se "cerró" la comisión de este docuemnto.
     fecha_liquidacion_comision = models.DateField(null=True, blank=True)
     
     def __str__(self) -> str:
@@ -298,6 +298,8 @@ class Pago(models.Model):
     actualizado = models.DateTimeField(null=False)
     tasa = models.DecimalField(max_digits=5, decimal_places=2)
     tipo = models.IntegerField() # 1 = cuenta 2 = documento
+    recibido = models.BooleanField(default=False)  # Este campo indica si ya se recibio en la ofina el pago.
+
   
     def __str__(self):
          return self.id

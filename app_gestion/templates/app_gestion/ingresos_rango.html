@@ -60,14 +60,14 @@ M1 | Ingresos por rango
                 <table id="ingresos" class="table table-hover table-bordered" style="width:100%;">
                     <thead>
                         <tr>
-                            
                             <th>Procesado</th>
                             <th>Referencia</th>
                             <th>Forma</th>
                             <th>Cliente</th>
                             <th>A Cuenta</th>
                             <th style="width:120px">Monto $</th>
-                         <th>Doc</th>
+                            <th style="width:60px">Recibido</th>
+                            <th>Doc</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -100,42 +100,61 @@ M1 | Ingresos por rango
                             {% else %}
                                 <td>{{ xPago.forma__forma }}</td>
                             {% endif %}
+
                             <td >{{ xPago.cliente__nombre}}</td>
+                            
                             {% if xPago.banco_destino__nombre == "-" %}
                                 <td align="center">{{ xPago.banco_destino__nombre }}</td>
                             {% else %}
                                 <td>{{ xPago.banco_destino__nombre }}</td>
                             {% endif %}
 
-                            <td align="right">{{ xPago.monto_procesar|darFormato }}</td>
+                            {% if xPago.forma__forma == "Dolares en Efectivo" and not xPago.recibido %}
+                                <td align="right" style="color: red;">{{ xPago.monto_procesar|darFormato }}</td>
+                            {% else %}
+                                <td align="right">{{ xPago.monto_procesar|darFormato }}</td>
+                            {% endif %}
 
-                              <td align="center">
+                            
+                            {% if xPago.forma__forma == "Dolares en Efectivo" %}
+                            <td align="center">
+                                <input type="checkbox" name="recibido" data-id="{{ xPago.id }}" {% if xPago.recibido %}checked{% endif %} />
+                            </td>
+                            {% else %}
+                                <td align="center">-</td>
+                            {% endif %}
+
+                            <td align="center">
                                 <a href="{% url 'historial_pagos_detalle_doc' xPago.id xPago.monto_procesar %}" title="Ver documentos afectados">
                                     <i class="bi bi-file-earmark" style="font-size: small;"></i>
                                 </a>
                             </td>
                
-                       
                         </tr>
                         {% endfor %}
                     </tbody>    
                     <tfoot>
                         <tr>
-
-                           
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes izquierda">T. Consulta:</td>
                             <td id="pt_bs" class="sin-bordes"></td>
+                            <td style="color: green;" id="total_recibidos" class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
-
-
                         </tr>
-                  
                     </tfoot>
                    </table>
+                     {% with tiene_registros=xPagos|length %}
+                    <div class="mt-2 {% if xCliente_seleccionado != 0 and tiene_registros > 0 %}{% else %}d-none{% endif %}"
+                        id="botonMarcarRecibidos">
+                        <button type="button" onclick="marcarRecibidos()" class="btn btn-primary"
+                            style="padding: 6px 16px; font-size: 0.9rem;">
+                            Aplicar
+                        </button>
+                    </div>
+                    {% endwith %}
             </div>
         </div>
     </div>
@@ -177,25 +196,35 @@ M1 | Ingresos por rango
                         : typeof s === 'number'
                             ? s
                             : 0;
-
+                // Sumar solo montos donde el checkbox esté marcado
+                let totalRecibidos = 0;
+                 // Recorremos las filas visibles (de la página actual)
+                api.rows({ page: 'current' }).every(function (rowIdx, tableLoop, rowLoop) {
+                    const rowNode = this.node();
+                    // Buscar checkbox en la columna 6 (índice 6)
+                    const checkbox = rowNode.querySelector('input[name="recibido"]');
+                    if (checkbox && checkbox.checked) {
+                        // Obtener el valor del monto en columna 5 (índice 5)
+                        const montoText = api.cell(rowIdx, 5).data();
+                        totalRecibidos += toNumber(montoText);
+                    }
+                });
+                console.log("Total Recibidos:", totalRecibidos);
                 /* -------- BS (col 5) -------- */
                 const totalBs = api.column(5).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
                 const pageBs = api.column(5, { page: 'current' })
                     .data()
                     .reduce((a, b) => toNumber(a) + toNumber(b), 0);
 
-           
+               
 
                 // Formatea (usa tu propia función darFormato o Intl.NumberFormat)
-                const f = n => darFormato(n);   // ← tu helper
+                const f = n => darFormato(n);  
+                const tRecibidos = f(totalRecibidos);
                 $('#pt_bs').html(`<span style="font-size:15px">$ ${f(pageBs)}</span>`);
-                $('#t_bs').html(`<span style="font-size:15px">$ ${f(totalBs)}</span>`);
+                $('#total_recibidos').html(`<span style="font-size:15px">$ ${tRecibidos}</span>`);
 
             },
-
-
-
-
             language: {
                 "sProcessing": "Procesando...",
                 "sLengthMenu": "Mostrar _MENU_ registros",
@@ -229,6 +258,52 @@ M1 | Ingresos por rango
         }, 200);
 
     });
+
+   
+    function marcarRecibidos() {
+        const checkboxes = document.querySelectorAll('input[name="recibido"]');
+        const marcar = [];
+        const desmarcar = [];
+
+        checkboxes.forEach(cb => {
+            if (cb.checked) {
+                marcar.push(cb.dataset.id);
+            } else {
+                desmarcar.push(cb.dataset.id);
+            }
+        });
+
+        console.log('Marcar recibidos:', marcar);
+        console.log('Desmarcar recibidos:', desmarcar);
+
+        $.ajax({
+            url: "{% url 'marcar_recibido' %}",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({
+                marcar: marcar,
+                desmarcar: desmarcar
+            }),
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            dataType: "json",
+            success: function (data) {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert("Error: " + data.message);
+                }
+            },
+            error: function (xhr, status, error) {
+                alert("Error al marcar como recibido: " + error);
+                console.error(error);
+            }
+        });
+    }
+
+
+
 
     function obtener_ingresos() {
         filtros.action = `/ingreso_rango/${tipo.value}/${cuenta.value}/${fecha_ini.value}/${fecha_fin.value}/`
