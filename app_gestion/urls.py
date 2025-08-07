@@ -51,6 +51,7 @@ urlpatterns = [
      path('ingreso_resumen/<fecha_ini>/<fecha_fin>/', views.ingreso_resumenView, name='ingreso_resumen'),
      path('doc_pro/<fecha_ini>/<fecha_fin>/', views.doc_proView, name='doc_pro'),
      path('saldo_favor/', views.saldo_favorView, name='saldo_favor'),
+     path('dolares_no_recibidos/', views.dolares_no_recibidosView, name='dolares_no_recibidos'),
 
     # Comisiones  
      path('calcular_comision/', views.calcular_comisionView, name='calcular_comision'),

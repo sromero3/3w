@@ -2100,7 +2100,6 @@ def doc_proView(request, fecha_ini, fecha_fin):
 def saldo_favorView(request):
     xUsuario = request.user
 
-
     # Subconsulta para traer referencia del pago relacionado
     pago_referencia_subquery = Pago.objects.filter(id=OuterRef('pago_id')).values('referencia')[:1]
 
@@ -2113,9 +2112,33 @@ def saldo_favorView(request):
     context = {
     'xUsuario': xUsuario,
     'xDocumentos': xDocumentos,
-}
+    }
+
     return render(request, 'app_gestion/saldo_favor.html', context)
 
+@login_required
+def dolares_no_recibidosView(request):
+    xUsuario = request.user
+
+    xPagos = Pago.objects.filter(
+        recibido=False, forma_id=2
+    ).values(
+        'id',
+        'creado',
+        'cliente_id',
+        'cliente__nombre',  
+        'monto_procesar',
+        'cliente__vendedor__nombre', 
+        'observacion',
+      
+    ).order_by('-creado')
+
+    context = {
+    'xUsuario': xUsuario,
+    'xPagos': xPagos,
+    }
+    
+    return render(request, 'app_gestion/dolares_no_recibidos.html', context)
 
 
 @login_required
