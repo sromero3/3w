@@ -1,6 +1,6 @@
 |{% load static %}
-<header id="header" style="background-color: rgb(1, 31, 58);" class="header fixed-top d-flex align-items-center">
-  <!-- <header id="header" style="background-color:#1977CC" class="header fixed-top d-flex align-items-center"> -->
+<!-- <header id="header" style="background-color: rgb(1, 31, 58);" class="header fixed-top d-flex align-items-center"> -->
+  <header id="header" style="background-color:#1977CC" class="header fixed-top d-flex align-items-center">
   <div class="d-flex align-items-center justify-content-between">
     <a href="#" class="logo d-flex align-items-center">
       <img src="{% static 'app_website/custom-files/assets_m1/img/logo1.png' %}" alt="" data-aos="fade-in">
@@ -139,17 +139,17 @@
             <span>Cerrar</span>
           </a>
         </li>
-         <li>
+        <li>
           <a href="{% url 'comisiones_generales' 0  %}">
             <span>Generales</span>
           </a>
         </li>
-         <li>
+        <li>
           <a href="#">
             <span>Totales por perido</span>
           </a>
         </li>
-      
+
 
       </ul>
     </li><!-- fin comisiones Nav -->
@@ -165,19 +165,20 @@
             <span>Doc. proc. x fechas</span>
           </a>
         </li>
-          <li>
-          <a href="{% url 'dolares_no_recibidos' %}">
-            <span>Dolares no recibidos </span>
-          </a>
-        </li>
-         <li>
+
+        <li>
           <a href="{% url 'ingreso_rango' 0 0  ' ' ' ' %}">
             <span>Ingresos </span>
           </a>
         </li>
-         <li>
+        <li>
           <a href="{% url 'ingreso_resumen'  ' ' ' ' %}">
             <span>Ingresos resumen </span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'dolares_no_recibidos' %}">
+            <span>Dolares no recibidos </span>
           </a>
         </li>
         <li>
@@ -192,7 +193,7 @@
         </li>
         <li>
           <a href="{% url 'saldo_favor' %}">
-            <span>Clientes con saldo a favor</span>
+            <span>Clientes con Excedentes</span>
           </a>
         </li>
       </ul>
@@ -209,7 +210,7 @@
             <span>Tasa del dolar</span>
           </a>
         </li>
-          <li>
+        <li>
           <a href="{% url 'editar_variables' %}">
             <span>Variables</span>
           </a>

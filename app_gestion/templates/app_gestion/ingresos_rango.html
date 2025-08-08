@@ -55,6 +55,11 @@ M1 | Ingresos por rango
                             </select>
                         </div>
                     </div>
+                    <div class="row" style="margin-top: -7px;">
+                        <div class="mt-1 col-lg-12 col-sm-12 text-end">
+                            <a id="url_pago_cuenta" href="#" data-bs-toggle="modal" data-bs-target="#modalDolares">Ver todos los dólares no recibidos</a>
+                        </div>
+                    </div>
                 </form>
 
                 <table id="ingresos" class="table table-hover table-bordered" style="width:100%;">
@@ -164,20 +169,23 @@ M1 | Ingresos por rango
     Extra Large Modal
 </button>
 
-<!-- Modal -->
-<div class="modal fade" id="miModal" tabindex="-1">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" style="color:#012970">Seguimiento del Documento</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <h6 id="t"></h6>
-            </div>
-        </div>
+
+<!-- Modal Bootstrap con iframe -->
+<div class="modal fade" id="modalDolares" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="card-title">Dólares no recibidos</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body p-0" style="height: 80vh;">
+        <iframe src="{% url 'dolares_no_recibidos_modal' %}" width="100%" height="100%" style="border: none;"></iframe>
+      </div>
     </div>
-</div><!-- End Modal -->
+  </div>
+</div>
+
+
 {% endblock content %}
 
 {% block Scripts_Adicionales %}
@@ -209,7 +217,7 @@ M1 | Ingresos por rango
                         totalRecibidos += toNumber(montoText);
                     }
                 });
-                console.log("Total Recibidos:", totalRecibidos);
+                
                 /* -------- BS (col 5) -------- */
                 const totalBs = api.column(5).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
                 const pageBs = api.column(5, { page: 'current' })
@@ -312,9 +320,9 @@ M1 | Ingresos por rango
         }
     }
 
-    function abrir_modal(seguimiento) {
-        document.getElementById('t').innerHTML = seguimiento;
-        boton_modal.click();
-    }
+  
+
+
+
 </script>
 {% endblock Scripts_Adicionales %}

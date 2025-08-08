@@ -29,7 +29,7 @@ from django.db.models.functions import ExtractYear
 import json
 from django.db.models import Sum, Case, When, F, DecimalField
 from django.views.decorators.http import require_POST
-
+from django.views.decorators.clickjacking import xframe_options_exempt
 # from weasyprint import HTML
 
 
@@ -2116,6 +2116,7 @@ def saldo_favorView(request):
 
     return render(request, 'app_gestion/saldo_favor.html', context)
 
+
 @login_required
 def dolares_no_recibidosView(request):
     xUsuario = request.user
@@ -2139,6 +2140,31 @@ def dolares_no_recibidosView(request):
     }
     
     return render(request, 'app_gestion/dolares_no_recibidos.html', context)
+
+@login_required
+@xframe_options_exempt
+def dolares_no_recibidos_modalView(request):
+    xUsuario = request.user
+
+    xPagos = Pago.objects.filter(
+        recibido=False, forma_id=2
+    ).values(
+        'id',
+        'creado',
+        'cliente_id',
+        'cliente__nombre',  
+        'monto_procesar',
+        'cliente__vendedor__nombre', 
+        'observacion',
+      
+    ).order_by('-creado')
+
+    context = {
+    'xUsuario': xUsuario,
+    'xPagos': xPagos,
+    }
+
+    return render(request, 'app_gestion/dolares_no_recibidos_modal.html', context)
 
 
 @login_required
