@@ -66,7 +66,9 @@ M1 | Comisiones calculadas
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="6" class="text-end fw-bold">TOTAL COMISIÓN EN BS:</td>
+                            <td colspan="4" class="text-end fw-bold">TOTAL COMISIÓN EN BS:</td>
+                            <td id="pt" class="text-end fw-bold"></td>
+                            <td></td>
                             <td class="text-end fw-bold">
                                 {{ xComisionCabecera.total_comi_bs|darFormato }}
                             </td>
@@ -106,7 +108,9 @@ M1 | Comisiones calculadas
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="6" class="text-end fw-bold">TOTAL COMISIÓN EN $:</td>
+                            <td colspan="4" class="text-end fw-bold">TOTAL COMISIÓN EN $:</td>
+                            <td id="pt2" class="text-end fw-bold"></td>
+                            <td></td>
                             <td class="text-end fw-bold">
                                 {{ xComisionCabecera.total_comi_usd|darFormato }}
                             </td>
@@ -142,6 +146,32 @@ M1 | Comisiones calculadas
 <script>
 
     new DataTable('#comisiones1', {
+        
+        // Funcion para totales
+        footerCallback: function (row, data, start, end, display) {
+            var api = this.api()
+            var x = 0
+            // Remove the formatting to get integer data for summation
+            var intVal = function (i) {
+                x = x + 1
+                return typeof i === 'string' ? i.replace(/[\$,]/g, '.') * 1 : typeof i === 'number' ? i : 0
+            }
+            // Total over all pages
+    
+            // Total over this page
+            pageTotal = api
+                .column(4, { page: 'current' })
+                .data()
+                .reduce(function (a, b) {
+                    b = b.replace(".", "") // Eliminado el punto en la undad de mil
+                    return intVal(a) + intVal(b)
+                }, 0)
+            
+            // Update footer
+            let pt = darFormato(pageTotal)
+            $('#pt').html('<span style="font-size: 15px">' + pt + '</span>')
+        },
+
         language: {
             "sProcessing": "Procesando...",
             "sLengthMenu": "Mostrar _MENU_ registros",
@@ -156,6 +186,32 @@ M1 | Comisiones calculadas
     })
 
     new DataTable('#comisiones2', {
+
+        // Funcion para totales
+        footerCallback: function (row, data, start, end, display) {
+            var api = this.api()
+            var x = 0
+            // Remove the formatting to get integer data for summation
+            var intVal = function (i) {
+                x = x + 1
+                return typeof i === 'string' ? i.replace(/[\$,]/g, '.') * 1 : typeof i === 'number' ? i : 0
+            }
+            // Total over all pages
+    
+            // Total over this page
+            pageTotal = api
+                .column(4, { page: 'current' })
+                .data()
+                .reduce(function (a, b) {
+                    b = b.replace(".", "") // Eliminado el punto en la undad de mil
+                    return intVal(a) + intVal(b)
+                }, 0)
+            
+            // Update footer
+            let pt2 = darFormato(pageTotal)
+            $('#pt2').html('<span style="font-size: 15px">' + pt2 + '</span>')
+        },
+
         language: {
             "sProcessing": "Procesando...",
             "sLengthMenu": "Mostrar _MENU_ registros",
@@ -257,7 +313,7 @@ M1 | Comisiones calculadas
     // total bs
     y = doc.lastAutoTable.finalY + 5;
     doc.setFontSize(9);
-    const labelBS = "TOTAL COMISIÓN Bs:";
+    const labelBS = "TOTAL COMISIÓN BS:";
     const montoBS = "{{ xComisionCabecera.total_comi_bs|darFormato }}";
     // Alineación al final de la tabla
     const rightMargin = doc.internal.pageSize.getWidth() - 14;
@@ -330,7 +386,7 @@ M1 | Comisiones calculadas
     const nombre_doc = '{{ xComisionCabecera.vendedor__nombre }}' + ' Semana ' + '{{ xComisionCabecera.periodo__numero_semana }}' + '.pdf';
     doc.save(nombre_doc);
 
-    window.location.href = '/comisiones_calculadas/0/';
+    window.location.href = '/comisiones_calculadas/0/Todas/0/';  // Redirigir después de generar el PDF
 
     }
 
@@ -354,7 +410,7 @@ M1 | Comisiones calculadas
 
         const vendedor = "{{ xComisionCabecera.vendedor__nombre }}";
         const desde = "{{ xComisionCabecera.periodo__desde | date:'d/m/Y' }}";
-        const hasta = "{{ xComisionCabecera.periodo__hasta | date:'d/m/Y' }}";
+        const hasta = "{{ xComisionCabecera.periodo__hasta | date:'d/m/Y' }}";http://127.0.0.1:8000/calcular_comision/
         doc.setFontSize(10);
         doc.text(`Desde: ${desde}`, 14, y);
         y += 6;
@@ -387,7 +443,7 @@ M1 | Comisiones calculadas
 
     // Sumamos en JS aquí (pasamos los valores numéricos sin formato con {{ x.base_impo }} para sumar)
     {% for x in xComisiones_bs %}
-    totalBs += parseFloat("{{ x.base_impo }}");
+        totalBs += parseFloat(quitarFormato("{{ x.base_impo }}"));
     {% endfor %}
 
     doc.autoTable({
@@ -409,13 +465,13 @@ M1 | Comisiones calculadas
 
     y = doc.lastAutoTable.finalY + 5;
     doc.setFontSize(9);
-    const labelBS = "TOTAL BASE IMP Bs:";
+    const labelBS = "TOTAL BASE IMP BS:";
 
     const rightMargin = pageWidth - 14;
     doc.setFont("helvetica", "bold");
     doc.text(labelBS, rightMargin - 60, y);
     // Formateamos totalBs a 2 decimales y con comas (puedes adaptar según darFormato)
-    doc.text(totalBs.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), rightMargin - 2, y, { align: "right" });
+    doc.text(darFormato(totalBs), rightMargin - 2, y, { align: "right" });
     doc.setFont("helvetica", "normal");
     y += 10;
 
@@ -441,8 +497,9 @@ M1 | Comisiones calculadas
     ];
 
     {% for x in xComisiones_usd %}
-    totalUsd += parseFloat("{{ x.base_impo }}");
+        totalUsd += parseFloat(quitarFormato("{{ x.base_impo }}"));
     {% endfor %}
+
 
     doc.autoTable({
         startY: y,
@@ -462,7 +519,7 @@ M1 | Comisiones calculadas
 
     doc.setFont("helvetica", "bold");
     doc.text(labelUsd, rightMargin - 60, y);
-    doc.text(totalUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), rightMargin - 2, y, { align: "right" });
+    doc.text(darFormato(totalUsd), rightMargin - 2, y, { align: "right" });
     doc.setFont("helvetica", "normal");
 
     y += 20;
@@ -481,7 +538,8 @@ M1 | Comisiones calculadas
     const nombre_doc = '{{ xComisionCabecera.vendedor__nombre }} Semana {{ xComisionCabecera.periodo__numero_semana }}.pdf';
     doc.save(nombre_doc);
 
-      window.location.href = '/comisiones_calculadas/0/';
+    window.location.href = '/comisiones_calculadas/0/Todas/0/'; // Redirigir después de generar el PDF
+
 }
 
 </script>
