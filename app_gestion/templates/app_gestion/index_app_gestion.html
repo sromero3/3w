@@ -16,10 +16,10 @@ Content: pagina de inicio
 
   <header id="header" class="header sticky-top">
 
-    <div class="topbar d-flex align-items-center" style="background-color: rgb(1, 31, 58);">
+    <div class="topbar d-flex align-items-center">
       <div class="container d-flex justify-content-center justify-content-md-between">
         <div class="contact-info d-flex align-items-center">
-          <i class="d-flex align-items-center"><a href="#">M1 Cobranza | Gestión empresarial óptima</a></i>
+          <i class="d-flex align-items-center"><a href="#">M1 Cobranza y M2 Ventas | Gestión empresarial óptima</a></i>
           <!-- <i class="bi bi-phone d-flex align-items-center ms-4"><span></span></i> -->
         </div>
         <div class="social-links d-none d-md-flex align-items-center">
@@ -65,11 +65,15 @@ Content: pagina de inicio
             <li><a href="#contact">Contact</a></li>
           </ul> -->
           <!-- <i class="mobile-nav-toggle d-xl-none bi bi-list"></i> -->
-          
-          <a class="cta-btn" href="{% url 'login' %}">Ingresar</a>
+
+          <a class="cta-btn" href="{% url 'login' %}"
+            style="; border-radius: 6px; padding: 6px 12px; display: inline-block; text-decoration: none;line-height: 1.2; font-size: 1 rem;">
+            Ingresar
+          </a>
+
         </nav>
 
-        
+
         <!-- <li><a  class="getstarted n2">Ingresar</a></li> -->
 
       </div>
@@ -89,7 +93,7 @@ Content: pagina de inicio
       <div class="container position-relative">
 
         <div class="welcome position-relative" data-aos="fade-down" data-aos-delay="100">
-          <h2>SISTEMA DE GESTION EMPRESARIAL</h2>
+          <h2 style="color: rgb(1, 40, 73);">SISTEMA DE GESTION EMPRESARIAL</h2>
           <p>Gestión empresarial óptima</p>
 
         </div><!-- End Welcome -->
@@ -131,7 +135,7 @@ Content: pagina de inicio
                   <div class="icon-box" data-aos="zoom-out" data-aos-delay="400">
                     <i class="fas fa-database"></i>
                     <h4>Centralización de la información</h4>
-                    <p>AInformación centralizada en una base de datos lo cual elimina errores de inconsistencias y
+                    <p>Información centralizada en una base de datos lo cual elimina errores de inconsistencias y
                       repetición de datos.</p>
                   </div>
                 </div><!-- End Icon Box -->
@@ -150,9 +154,68 @@ Content: pagina de inicio
               </div>
             </div>
           </div>
-        </div><!-- End  Content-->
 
-      </div>
+
+          <div class="content row gy-4">
+            <div class="col-lg-4 d-flex align-items-stretch">
+              <div class="why-box" style="background-color: rgb(1, 40, 73);" data-aos="zoom-out" data-aos-delay="200">
+                <h3>El M2 Ventas:</h3>
+                <p>
+                  El M2 es el módulo de ventas. Continuando con la automatización de los procesos de 3W, esta vez le
+                  toca al departamento de ventas. Allí, el sistema módulo M2 se encargará de integrar y automatizar los procesos de
+                  Facturación, Ventas y Gerencia de Ventas.
+                  Tiene como obejetivos principales:<br><br>
+                  - Control del inventario <br>
+                  - Mejor control de los pedidos <br>
+                  - Aumento de la eficiencia <br>
+                  - Gestión de vendedores <br>
+                  - Indicadores a un clic
+
+              </div>
+            </div><!-- End Why Box -->
+
+            <div class="col-lg-8 d-flex align-items-stretch">
+              <div class="d-flex flex-column justify-content-center">
+                <div class="row gy-4">
+
+                  <div class="col-xl-4 d-flex align-items-stretch">
+                    <div class="icon-box" data-aos="zoom-out" data-aos-delay="300">
+                      <i class="fas fa-check-circle" ></i> 
+                      <h4>Clasificación de deudores</h4>
+                      <p>Procesos óptimos, donde se registran los documentos de las ventas a crédito permitiendo así
+                        identificar y clasificar los clientes que tienen una deuda pendiente.
+
+                      </p>
+                    </div>
+                  </div><!-- End Icon Box -->
+
+                  <div class="col-xl-4 d-flex align-items-stretch">
+                    <div class="icon-box" data-aos="zoom-out" data-aos-delay="400" >
+                      <i class="fas fa-database"></i>
+                      <h4>Centralización de la información</h4>
+                      <p>Información centralizada 24/7 en una base de datos lo cual elimina errores de inconsistencias y lentitud en los procesos.</p>
+                    </div>
+                  </div><!-- End Icon Box -->
+
+                  <div class="col-xl-4 d-flex align-items-stretch">
+
+                    <div class="icon-box" data-aos="zoom-out" data-aos-delay="500">
+                      <!-- <i class="bi bi-gem"></i> -->
+                      <i class="fas fa-medal"></i>
+                      <h4>Calidad de trabajo</h4>
+                      <p>Información precisa y oportuna que reduce los errores en los pedidos y las facturas, ayudando así a que el proceso de venta sea más cómodo para clientes, vendedores y la propia empresa.</p>
+                    </div>
+                  </div><!-- End Icon Box -->
+
+                </div>
+              </div>
+            </div>
+
+
+
+          </div><!-- End  Content-->
+
+        </div>
 
     </section><!-- /Hero Section -->
 

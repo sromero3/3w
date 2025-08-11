@@ -1,0 +1,299 @@
+{% extends "app_gestion/base_m2.html" %}
+{% load static %}
+{% load filtros %}
+{% block title %}
+M2 | Cobranza
+{% endblock %}
+{% block styles %}
+{% endblock styles %}
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px">
+
+    <div class="col-lg-12">
+        <div class="card" id="data-section" style="opacity: 0;">
+            <div class="card-body">
+
+                <h5 class="card-title">Cobranza <a href="{% url 'inicio_m2' %}" class="float-end"><i
+                            class="bi bi-house-door" title='Cerrar'></i></a></h5>
+
+                <form id="filtros" action="" method="post" class="row g-3">
+                    {% csrf_token %}
+
+                    <div class="col-md-6">
+                        <label id="m" class="titulos d-flex me-2 mt-1">Cliente</label>
+                        <select name="cliente" id="cliente" required class="form-control  alto" onChange="obtener_documentos()">
+                            <option value="0" selected>TODOS</option>
+                            {% for xCliente in xClientes %}
+                            <option value={{xCliente.id}} {% if xCliente.id == xCliente_seleccionado %} selected {%endif %}>
+                                {{xCliente.nombre}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="titulos d-flex me-2 mt-1">Vend.</label>
+                        <select name="vendedor" id="vendedor" class="form-control custom-select d-flex alto" required
+                            onChange="obtener_documentos()">
+                            <option value="0" selected>TODOS</option>
+                            {% for xVendedor in xVendedores %}
+                            <option value={{xVendedor.id}} {% if xVendedor.id == xVendedor_seleccionado %} selected
+                                {%endif %}>
+                                {{xVendedor.nombre}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="titulos d-flex me-2 mt-1">Iva</label>
+                        <select name="iva" id="iva" class="form-control custom-select d-flex alto" required
+                            onChange="obtener_documentos()">
+                            <option value="0" selected>TODOS</option>
+                            {% for xIva in xIvas %}
+                            <option value={{xIva.id}} {% if xIva.id == xIva_seleccionado %} selected {% endif %}>
+                                {{xIva.iva}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6" style="padding-top: 10px">
+                        <label class="titulos  me-2 mt-1">Vencidos</label>
+                        {% if xVencido_seleccionado == 0 %}
+                        <input name="vencido" class="form-check-input" type="checkbox" id="vencido"
+                            style="padding-top: 20px" onChange="obtener_documentos()">
+                        {% else %}
+                        <input name="vencido" class="form-check-input" type="checkbox" id="vencido" checked
+                            onChange="obtener_documentos()">
+                        {% endif %}
+                    </div>
+                </form>
+                <table id="cobranza" class="table table-hover table-bordered" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Documento</th>
+                            <th>Fecha</th>
+                            <th>Vence</th>
+                            <th>DV</th>
+                            <th style="width:350px">Cliente</th>
+                            <th>Monto</th>
+                            <th>Abonado</th>
+                            <th>Pendiente</th>
+                            <!-- <th>Ciudad</th> -->
+                            <th style="width:150px">Vendedor</th>
+                            <th style="width:100px">Iva</th>
+                            <th style="width:90px">Condición</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for xDocumento in xDocumentos %}
+                        <tr>
+                            {% if xDocumento.observacion == "" %}
+                            <td>{{xDocumento.numero|rellenar}}</td>
+                            {% else %}
+                            <td>{{xDocumento.numero|rellenar}}
+                                <a href="#"> <i style="font-size: small;" class="bi bi-search" data-bs-toggle="tooltip"
+                                        data-bs-placement="bottom" data-bs-html="true"
+                                        data-bs-title="{{xDocumento.observacion}}<br>"></i>
+                                </a>
+                            </td>
+                            {% endif %}
+                            <td>{{xDocumento.fecha|date:"d/m/y"}}</td>
+                            <td>{{xDocumento.vencimiento|date:"d/m/y"}}</td>
+                            {% if xDocumento.dias_v < 0  %}
+                                <td style="color: red;">{{xDocumento.dias_v}} </td>
+                            {% else %}
+                                <td>{{xDocumento.dias_v}}</td>
+                            {% endif %}
+                            <td>{{xDocumento.cliente__nombre}}</td>
+                            <td align="right">{{xDocumento.monto|darFormato}}</td>
+                            <td align="right">{{xDocumento.abonado|darFormato}}</td>
+                            <td align="right">{{xDocumento.saldo|darFormato}}</td>
+                            <td>{{xDocumento.cliente_id__vendedor__nombre|truncatechars:15}}</td>
+                            {% if xDocumento.iva__iva == "-" %}
+                            <td align="center">{{xDocumento.iva__iva}}</td>
+                            {% else %}
+                            <td>{{xDocumento.iva__iva}}</td>
+                            {% endif %}
+                            {% if xDocumento.condicion__condicion == "Contado" %}
+                            <td style="color: red;">{{xDocumento.condicion__condicion}} a {{xDocumento.credito}}</td>
+                            {% else %}
+                            <td>{{xDocumento.condicion__condicion}} a {{xDocumento.credito}}</td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes izquierda">T. Pag:</td>
+                            <td id="pt" class="sin-bordes"></td>
+                            <!-- <td class="sin-bordes"></td> -->
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                        </tr>
+                        <tr>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes izquierda">T. Cons:</td>
+                            <td id="t" class="sin-bordes"></td>
+                            <!-- <td class="sin-bordes"></td> -->
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</main><!-- End #main -->
+
+
+
+{% endblock content %}
+{% block Scripts_Adicionales %}
+<script>
+    // cuando cargue los datos
+    $(document).ready(function () {
+        $(function () {
+            $("#cobranza").DataTable({
+                // Funcion para totales
+                footerCallback: function (row, data, start, end, display) {
+                    var api = this.api()
+                    var x = 0
+                    // Remove the formatting to get integer data for summation
+                    var intVal = function (i) {
+                        x = x + 1
+                        // console.log(intVal)
+                        // console.log("ciclo:",x)
+                        // console.log("Valor de i: ",i,"tipo: ",typeof(i))
+                        return typeof i === 'string' ? i.replace(/[\$,]/g, '.') * 1 : typeof i === 'number' ? i : 0
+                    }
+                    // Total over all pages
+                    total = api
+                        .column(7)
+                        .data()
+                        .reduce(function (a, b) {
+                            b = b.replace(".", "") // Eliminado el punto en la undad de mil
+                            //  console.log('Monto: ', intVal(b),' Acumulador: ', intVal(a))
+                            return intVal(a) + intVal(b)
+                        }, 0)
+                    // Total over this page
+                    pageTotal = api
+                        .column(7, { page: 'current' })
+                        .data()
+                        .reduce(function (a, b) {
+                            b = b.replace(".", "") // Eliminado el punto en la undad de mil
+                            return intVal(a) + intVal(b)
+                        }, 0)
+                    // Update footer
+
+                    let pt = darFormato(pageTotal)
+                    let t = darFormato(total)
+
+                    $('#pt').html('<span style="font-size: 15px">$' + pt + '</span>')
+                    $('#t').html('<span style="font-size: 15px">$' + t + '</span>')
+
+                },
+                language: {
+                    "sProcessing": "Procesando...",
+                    "sLengthMenu": "Mostrar _MENU_ registros",
+                    "sZeroRecords": "No se encontraron resultados",
+                    "sEmptyTable": "*** No se encontró información ***",
+                    "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                    "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                    "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                    "sInfoPostFix": "",
+                    "sSearch": "Buscar:",
+                    "sUrl": "",
+                    "sInfoThousands": ",",
+                    "sLoadingRecords": "Cargando...",
+                    "oPaginate": {
+                        "sFirst": "Primero",
+                        "sLast": "Último",
+                        "sNext": "Siguiente",
+                        "sPrevious": "Anterior"
+                    },
+                    "oAria": {
+                        "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+                        "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                    },
+                    "buttons": {
+                        "copy": "Copiar",
+                        "colvis": "Visibilidad"
+                    }
+                },
+
+                "ordering": false,
+                "responsive": true,
+                "lengthChange": true,
+                "autoWidth": true,
+                "pageLength": 500,
+                "lengthMenu": [100, 200, 300, 400, 500],
+                "scrollX": true,
+                // "order": [[3, "asc"]],
+                // "columnDefs": [{
+                //     "targets": [0, 5, 6, 7],
+                //     "orderable": false
+                // }]
+            })
+        }) // fin data table
+
+        //  da tiempo para que carguen los estilos
+        setTimeout(() => {
+            document.getElementById('data-section').style.opacity = 1;
+        }, 200);
+    }); // fin document.ready
+
+    // selectize
+    $(document).ready(function () {
+        // Activacion
+        var selectizeInstance = $('#cliente').selectize({
+            //  opciones
+        });
+        $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+        // Evento click para limpiar el select input
+        var selectizeControl = selectizeInstance[0].selectize;
+        selectizeControl.$control.on('click', function () {
+            selectizeControl.clear();
+            $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+        });
+    });
+
+
+    // obtener docuemntos
+    function obtener_documentos() {
+        // console.log(document.getElementById('cliente').value)
+        let ven
+        checkBox = document.getElementById("vencido")
+        if (checkBox.checked == true) {
+            ven = "1"
+        } else {
+            ven = "0"
+        }
+
+        filtros.action = `/cobranza/${cliente.value}/${vendedor.value}/${iva.value}/${ven}/`
+        if (document.getElementById('cliente').value != '') {
+            filtros.submit()
+        }
+
+    } // fin obtener docuemntos
+
+    // tool tip
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
+
+   
+</script>
+{% endblock Scripts_Adicionales %}

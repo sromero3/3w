@@ -1,10 +1,10 @@
 |{% load static %}
-<header id="header" style="background-color: #5c5e5f" class="header fixed-top d-flex align-items-center">
-  <!-- <header id="header" style="background-color:#1977CC" class="header fixed-top d-flex align-items-center"> -->
+<!-- <header id="header" style="background-color: rgb(1, 31, 58);" class="header fixed-top d-flex align-items-center"> -->
+  <header id="header" style="background-color:#5c5e5f" class="header fixed-top d-flex align-items-center">
   <div class="d-flex align-items-center justify-content-between">
     <a href="#" class="logo d-flex align-items-center">
       <img src="{% static 'app_website/custom-files/assets_m1/img/logo1.png' %}" alt="" data-aos="fade-in">
-      <span class="d-none d-lg-block">M1 Cobranza</span>
+      <span class="d-none d-lg-block">M2 Ventas</span>
     </a>
     <i class="bi bi-list toggle-sidebar-btn"></i>
   </div><!-- End Logo -->
@@ -79,152 +79,83 @@
 <aside id="sidebar" class="sidebar">
   <h6 align="center"><span id="f" style="color: #1977cc; font-size: 15px;"></span></h6>
   <h6 align="center"><span id="h" class="clockf"></span></h6>
+
   <ul class="sidebar-nav" id="sidebar-nav" style="min-height: 900px; margin-top: 20px;">
     <li class="nav-item">
-      <a id="inicio_link" class="nav-link" href="{% url 'inicio' %}">
+      <a id="inicio_link" class="nav-link" href="{% url 'inicio_m2' %}">
         <i class="bi bi-house-door"></i>
         <span>&nbsp;&nbsp;Inicio</span>
       </a>
     </li>
+
     <li class="nav-item">
       <a class="nav-link" href="{% url 'cobranza' 0 0 0 0 %}">
         <i class="bi bi-cash-coin" style="font-size: large;"></i>
         <span>&nbsp;&nbsp;Cobranza</span>
       </a>
     </li>
+
     <li class="nav-item">
-      <a class="nav-link" href="{% url 'documentos' 0 1 %}">
+      <a class="nav-link">
         <i class="bi bi-stickies"></i>
-        <span>&nbsp;&nbsp;Documentos</span>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="{% url 'historial_pagos' 0  ' ' ' ' %}">
-        <i class="bi bi-credit-card-2-back"></i>
-        <span>&nbsp;&nbsp;Historial de pagos</span>
+        <span>&nbsp;&nbsp;Actualizar Inv.</span>
       </a>
     </li>
 
     <li class="nav-item">
-      <a class="nav-link" href="{% url 'clientes' 1 0 %}">
-        <i class="bi bi-people"></i>
-        <span>&nbsp;&nbsp;Clientes</span>
+      <a class="nav-link">
+        <i class="bi bi-stickies"></i>
+        <span>&nbsp;&nbsp;Tomar pedidos</span>
       </a>
     </li>
+
     <li class="nav-item">
-      <a class="nav-link" href="{% url 'vendedores' 1 0 %}">
+      <a class="nav-link" href="#">
         <i class="bi bi-person-badge"></i>
         <span>&nbsp;&nbsp;Vendedores</span>
       </a>
     </li>
 
-    <li class="nav-item">
-      <a class="nav-link collapsed" data-bs-target="#componentsC-nav" data-bs-toggle="collapse" href="#">
-        <i class="bi bi-columns-gap"></i>
-        <span>&nbsp;&nbsp;Comisiones</span><i class="bi bi-chevron-down ms-auto"></i>
-      </a>
-      <ul id="componentsC-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-        <li>
-          <a href="{% url 'calcular_comision'  %}">
-            <span>Calcular</span>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'comisiones_calculadas' 0 'Todas' 0  %}">
-            <span>Calculdas</span>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'cerrar_comision'   %}">
-            <span>Cerrar</span>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'comisiones_generales' 0  %}">
-            <span>Generales</span>
-          </a>
-        </li>
-        <li>
-          <a href="#">
-            <span>Totales por perido</span>
-          </a>
-        </li>
-
-
-      </ul>
-    </li><!-- fin comisiones Nav -->
-
+    <!-- Consultas -->
     <li class="nav-item">
       <a class="nav-link collapsed" data-bs-target="#components-nav" data-bs-toggle="collapse" href="#">
         <i class="bi bi-card-text"></i>
-        <span>&nbsp;&nbsp;Consultas</span><i class="bi bi-chevron-down ms-auto"></i>
+        <span>&nbsp;&nbsp;Consultas</span>
+        <i class="bi bi-chevron-down ms-auto"></i>
       </a>
-      <ul id="components-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+      <ul id="components-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
         <li>
-          <a href="{% url 'doc_pro' ' '  ' ' %}">
-            <span>Doc. proc. x fechas</span>
-          </a>
-        </li>
-
-        <li>
-          <a href="{% url 'ingreso_rango' 0 0  ' ' ' ' %}">
-            <span>Ingresos </span>
-          </a>
+          <a href="#"><span>-</span></a>
         </li>
         <li>
-          <a href="{% url 'ingreso_resumen'  ' ' ' ' %}">
-            <span>Ingresos resumen </span>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'dolares_no_recibidos' %}">
-            <span>Dolares no recibidos </span>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'cobranza_vendedor' 0  ' ' 0 %}">
-            <span>Cobranza x vendedor</span>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'estado_cuenta' 0 'menu' ' ' ' ' %}">
-            <span>Estado de cuenta</span>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'saldo_favor' %}">
-            <span>Clientes con Excedentes</span>
-          </a>
+          <a href="#"><span>-</span></a>
         </li>
       </ul>
     </li><!-- fin consultas Nav -->
 
-
+    <!-- Configuración -->
     <li class="nav-item">
       <a class="nav-link collapsed" data-bs-target="#icons2-nav" data-bs-toggle="collapse" href="#">
-        <i class="bi bi-gear"></i><span>&nbsp;&nbsp;Configuración</span><i class="bi bi-chevron-down ms-auto"></i>
+        <i class="bi bi-gear"></i>
+        <span>&nbsp;&nbsp;Configuración</span>
+        <i class="bi bi-chevron-down ms-auto"></i>
       </a>
-      <ul id="icons2-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+      <ul id="icons2-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
         <li>
-          <a href="{% url 'tasas' %}">
-            <span>Tasa del dolar</span>
-          </a>
+          <a href="#"><span>-</span></a>
         </li>
         <li>
-          <a href="{% url 'editar_variables' %}">
-            <span>Variables</span>
-          </a>
+          <a href="#"><span>-</span></a>
         </li>
         <li>
-          <!-- <a href="#">
-            <span>Ciudades</span>
-          </a> -->
+          <!-- <a href="#"><span>Ciudades</span></a> -->
         </li>
       </ul>
-    </li><!-- fin configuracion Nav -->
+    </li><!-- fin configuración Nav -->
 
   </ul> <!-- fin sidebar-nav -->
-</aside><!-- End Sidebar-->
+</aside><!-- End Sidebar -->
+
 <script>
   // Funciones para mostra la hora
   mostrar_hora();
@@ -248,42 +179,11 @@
       var min = hoy.getMinutes();
     }
     let hora = hoy.getHours() + ':' + min;
-    // if (hoy.getHours() == 1){
 
-    // $.ajax({
-    //     url: "{% url 'inicio' %}",
-    //     type: 'POST',
-    //     async: false,
-    //     data: {
-    //         csrfmiddlewaretoken: '{{ csrf_token }}',
-
-    //     },
-    //     datatype: 'json',
-    //     success: function(data) {
-    //         //console.log('RESULTADO', data.status, typeof data.status)
-    //         existe = data.status
-    //     },
-    //     error: function(xhr, status, error) {
-    //         // console.log("Error ocurrido: ", error)
-    //         // console.log("Status: ", status)
-    //     }
-    // })
-
-
-
-
-    // }
     let ho = hoy.getHours()
     h.innerHTML = hora;
     f.innerHTML = fecha;
-    // if (ho >= 12) {
-    //   document.getElementById("saludo").innerHTML = "!Buenas tardes!";
-    //   if (ho >= 18) {
-    //     document.getElementById("saludo").innerHTML = "!Buenas noches!";
-    //   }
-    // } else {
-    //   document.getElementById("saludo").innerHTML = "!Buenos dias!";
-    // }
+
   }
   // Funcion para recargara la hora
   function repetirCadaMinuto() {

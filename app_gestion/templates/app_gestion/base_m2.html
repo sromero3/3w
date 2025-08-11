@@ -1,0 +1,135 @@
+<!-- base_m1.html -->
+<!DOCTYPE html>
+<html lang="es">
+{% load static %}
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>
+    {% block title %}
+    {% endblock %}
+  </title>
+  <meta content="" name="">
+  <meta content="" name="">
+
+  <!-- Favicons -->
+  <link href="{% static 'app_website/custom-files/assets_m1/img/favicon.png' %}" rel="icon">
+  <link href="{% static 'app_website/custom-files/assets_m1/img/apple-touch-icon.png' %}" rel="apple-touch-icon">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.gstatic.com" rel="preconnect">
+  <link
+    href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i"
+    rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="{% static 'app_website/custom-files/assets_m1/vendor/bootstrap/css/bootstrap.min.css' %}"
+    rel="stylesheet">
+  <link href="{% static 'app_website/custom-files/assets_m1/vendor/bootstrap-icons/bootstrap-icons.css' %}"
+    rel="stylesheet">
+  <link href="{% static 'app_website/custom-files/assets_m1/vendor/boxicons/css/boxicons.min.css' %}" rel="stylesheet">
+  <link href="{% static 'app_website/custom-files/assets_m1/vendor/quill/quill.snow.css' %}" rel="stylesheet">
+  <link href="{% static 'app_website/custom-files/assets_m1/vendor/quill/quill.bubble.css' %}" rel="stylesheet">
+  <link href="{% static 'app_website/custom-files/assets_m1/vendor/remixicon/remixicon.css' %}" rel="stylesheet">
+  <link href="{% static 'app_website/custom-files/assets_m1/vendor/simple-datatables/style.css' %}" rel="stylesheet">
+
+  <!-- Template Main CSS File -->
+  <link href="{% static 'app_website/custom-files/assets_m1/css/style.css' %}" rel="stylesheet">
+
+  <!-- Estilos de los DataTables -->
+  <link href="{% static 'app_website/DataTables/datatables.css' %}" rel="stylesheet">
+
+  <link href='https://fonts.googleapis.com/css?family=Orbitron' rel='stylesheet' type='text/css'>
+
+  <!-- Estilos sweetalert2 -->
+  <link rel="stylesheet" href="{% static 'app_website/custom-files/assets_m1/css/sweetalert2.css' %}" />
+
+  <!-- Estilos de selectize-->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css"
+    integrity="sha256-ze/OEYGcFbPRmvCnrSeKbRTtjG4vGLHXgOqsyLFTRjg=" crossorigin="anonymous" />
+
+  <!-- Estilos adicionales de pagina hija-->
+  {% block styles %}
+  {% endblock styles %}
+</head>
+
+<body>
+  <!-- ======= Header ======= -->
+
+  {% if request.user.profile.rango == "Usuario" %}
+  {% include '/navbar-menu_m2.html' %}
+  {% else %}
+  {% include 'app_gestion/navbar-menu_m2.html' %}
+  {% endif %}
+
+  {% include 'app_gestion/mensajes.html' %} <!-- Gestor demensajes del backend -->
+
+  <!-- ======= Content ======= -->
+  {% block content %}
+  {% endblock content %}
+
+  <!-- ======= Footer ======= -->
+
+
+  <!-- ======= Flecha ir al top ======= -->
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
+      class="bi bi-arrow-up-short"></i></a>
+
+  <!-- ======= Archivos JavaScript ======== -->
+  <!-- Vendor JS Files -->
+
+  <script src="{% static 'app_website/custom-files/assets_m1/vendor/apexcharts/apexcharts.min.js' %}"></script>
+  <script src="{% static 'app_website/custom-files/assets_m1/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  <script src="{% static 'app_website/custom-files/assets_m1/vendor/chart.js/chart.umd.js' %}"></script>
+  <script src="{% static 'app_website/custom-files/assets_m1/vendor/echarts/echarts.min.js' %}"></script>
+  <script src="{% static 'app_website/custom-files/assets_m1/vendor/quill/quill.js' %}"></script>
+  <script
+    src="{% static 'app_website/custom-files/assets_m1/vendor/simple-datatables/simple-datatables.js' %}"></script>
+  <script src="{% static 'app_website/custom-files/assets_m1/vendor/tinymce/tinymce.min.js' %}"></script>
+  <script src="{% static 'app_website/custom-files/assets_m1/vendor/php-email-form/validate.js' %}"></script>
+
+  <!-- Template Main JS File -->
+  <script src="{% static 'app_website/custom-files/assets_m1/js/main.js' %}"></script>
+
+  <!-- sweetalert scripts -->
+  <script src="{% static 'app_website/custom-files/assets_m1/js/sweetalert2.js' %}"></script>
+
+  <!-- funciones scripts -->
+  <script src="{% static 'app_website/custom-files/assets_m1/js/funciones.js' %}"></script>
+
+  <!-- DataTables scripts -->
+  <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+  <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+  <script src="{% static 'app_website/DataTables/datatables.js' %}"></script>
+
+  <script src="https://cdn.datatables.net/rowgroup/1.5.1/js/dataTables.rowGroup.js"></script>
+  <script src="https://cdn.datatables.net/rowgroup/1.5.1/js/rowGroup.dataTables.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/selectize/dist/js/standalone/selectize.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js"
+    integrity="sha256-+C0A5Ilqmu4QcSPxrlGpaZxJ04VjsRjKu+G82kl5UJk=" crossorigin="anonymous"></script>
+
+  </script>
+
+  <footer id="footer" class="footer light-background">
+    <div class="container copyright text-center mt-4">
+      <p>© <span>Copyright</span> <strong class="px-1 sitename">3W2014, C.A. y Tecnología de la Información Tolal,
+          C.A.</strong> <span>All Rights Reserved</span></p>
+      <div class="credits">
+        Desarrollado por <strong>Tecnología de la Información Tolal, C.A. (0414-6771868)</strong>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Archivos JS adicionales de paginas hijas -->
+  {% block Scripts_Adicionales %}
+  {% endblock Scripts_Adicionales %}
+</body>
+
+</html>

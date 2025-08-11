@@ -30,7 +30,25 @@ import json
 from django.db.models import Sum, Case, When, F, DecimalField
 from django.views.decorators.http import require_POST
 from django.views.decorators.clickjacking import xframe_options_exempt
+from django.contrib.auth.views import LoginView
+from django.urls import reverse_lazy
 # from weasyprint import HTML
+
+class CustomLoginView(LoginView):
+    def get_success_url(self):
+        user = self.request.user
+        # if user.groups.exists():
+        #     grupo = user.groups.first().name
+        #     print("login", user, grupo)
+        # else:
+        #   print("login", user, "No pertenece a ningún grupo")
+
+        # Ejemplo: si el usuario está en el grupo 'ventas', redirige a 'inicio_m2'
+        if user.groups.filter(name='m2').exists():
+            return reverse_lazy('inicio_m2')
+
+        # Si no, redirige a 'inicio'
+        return reverse_lazy('inicio')
 
 
 # Create your views here.
@@ -66,6 +84,36 @@ def InicioView(request):
     }
     
     return render(request, 'app_gestion/inicio.html', context)
+
+def InicioM2View(request):
+    xAcceso = "Administrador"
+    xUsuario = request.user
+
+    # Actauliza los dias de vencimiento 
+    actualizar_dias_vencido()
+    
+    # calcualar tolal 
+    qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0)
+    qTotal = qDocumentos.aggregate(total=Sum("saldo")).get('total')
+    total_cxc = 0
+
+    # Busca la tasa catual
+    xTasas = Tasa.objects.all()
+    if xTasas.exists():
+        xTasa = xTasas[0].monto
+        xActual = xTasas[0].actualizado
+    else:
+        messages.error(
+            request, "No ha fijado ninguna tasa de cambio")
+        return redirect('tasas')
+    
+    context = {
+      'total_cxc': total_cxc,
+      'xTasa': xTasa,
+      'xActual': xActual
+    }
+    
+    return render(request, 'app_gestion/inicio_m2.html', context)
 
 
 @login_required
@@ -586,8 +634,15 @@ def cobranzaView(request, xCliente, xVendedor, xIva, xVencido):
         'xVencido_seleccionado': xVencido_seleccionado,
         'xDoc_encontrados': xDoc_encontrados 
     }
-    
-    return render(request, 'app_gestion/cobranza.html', context)
+
+    if xUsuario.groups.exists():
+        grupo = xUsuario.groups.first().name
+        if grupo == 'm2':
+            print("m2")
+            return render(request, 'app_gestion/cobranza_m2.html', context)
+    else:
+        return render(request, 'app_gestion/cobranza.html', context)
+
 
 
 @login_required

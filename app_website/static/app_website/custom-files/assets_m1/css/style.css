@@ -1271,6 +1271,12 @@ h6 {
   background: url("../img/cxc.jpg") no-repeat center;
 }
 
+.fondo-m2{
+  /* min-height: 600px;
+  background-color: #328bd8!important; */
+  background: url("../img/cxc.jpg") no-repeat center;
+}
+
 .clockf {
   color: #1977cc;
   font-family: 'Orbitron';

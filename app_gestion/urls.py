@@ -7,11 +7,15 @@ urlpatterns = [
      # Accesos
      path('', views.Index_gestion, name="index_gestion"), # Vista inicial del proyecto
 
-     path('accounts/login/', auth_views.LoginView.as_view(
-       authentication_form=LoginForm,
-     ), name="login"), 
+    #  path('accounts/login/', auth_views.LoginView.as_view(
+    #    authentication_form=LoginForm,
+    #  ), name="login"), 
+
+    path('accounts/login/', views.CustomLoginView.as_view(authentication_form=LoginForm), name='login'),
+
      #       url     -    vista     -    nombre_u
      path('inicio/', views.InicioView, name='inicio'),
+     path('inicio-m2/', views.InicioM2View, name='inicio_m2'),
      path('documentos/<int:xCliente>/<int:xDias>/', views.documentosView, name='documentos'),
      path('add_documento/', views.add_documentoView, name='add_documento'),
      path('editar_documento/<int:id>/', views.Editar_documentoView, name='editar_documento'),
