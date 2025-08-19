@@ -1,33 +1,51 @@
 |{% load static %}
 <!-- <header id="header" style="background-color: rgb(1, 31, 58);" class="header fixed-top d-flex align-items-center"> -->
-  <header id="header" style="background-color:#5c5e5f" class="header fixed-top d-flex align-items-center">
+<header
+  id="header"
+  style="background-color: #5c5e5f"
+  class="header fixed-top d-flex align-items-center"
+>
   <div class="d-flex align-items-center justify-content-between">
     <a href="#" class="logo d-flex align-items-center">
-      <img src="{% static 'app_website/custom-files/assets_m1/img/logo1.png' %}" alt="" data-aos="fade-in">
+      <img
+        src="{% static 'app_website/custom-files/assets_m1/img/logo1.png' %}"
+        alt=""
+        data-aos="fade-in"
+      />
       <span class="d-none d-lg-block">M2 Ventas</span>
     </a>
     <i class="bi bi-list toggle-sidebar-btn"></i>
-  </div><!-- End Logo -->
+  </div>
+  <!-- End Logo -->
   <nav class="header-nav ms-auto">
     <ul class="d-flex align-items-center">
       <li class="nav-item dropdown pe-3">
-        <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
+        <a
+          class="nav-link nav-profile d-flex align-items-center pe-0"
+          href="#"
+          data-bs-toggle="dropdown"
+        >
           <i class="bi bi-person-fill"></i>
-          <span class="d-md-block dropdown-toggle ps-2">{{request.user|upper}}</span>
-        </a><!-- End Profile Iamge Icon -->
+          <span class="d-md-block dropdown-toggle ps-2"
+            >{{request.user|upper}}</span
+          > </a
+        ><!-- End Profile Iamge Icon -->
 
         <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
           <li class="dropdown-header">
-            <span style="font-size: 0.80rem; color: rgb(73, 73, 73);"></span>
+            <span style="font-size: 0.8rem; color: rgb(73, 73, 73)"></span>
           </li>
           <li>
-            <a class="dropdown-item d-flex align-items-center" href="users-profile.html">
+            <a
+              class="dropdown-item d-flex align-items-center"
+              href="users-profile.html"
+            >
               <i class="bi bi-person"></i>
               <span>{{request.user.first_name}}</span>
             </a>
           </li>
           <li>
-            <hr class="dropdown-divider">
+            <hr class="dropdown-divider" />
           </li>
           <li>
             <a class="dropdown-item d-flex align-items-center" href="#">
@@ -56,31 +74,34 @@
 
           <!-- </ul>  -->
           <!-- End Profile Dropdown Items -->
-
         </ul>
-
-      </li><!-- End Profile Nav -->
-      <li class="nav-item dropdown pe-3">
-        <span style="font-size: 0.80rem; color: rgb(159, 193, 238);">V-2.00.005 |18-07-25 00:15</span>
       </li>
-
+      <!-- End Profile Nav -->
+      <li class="nav-item dropdown pe-3">
+        <span style="font-size: 0.8rem; color: rgb(159, 193, 238)"
+          >V-2.00.005 |18-07-25 00:15</span
+        >
+      </li>
     </ul>
-
-  </nav><!-- End Icons Navigation -->
-
+  </nav>
+  <!-- End Icons Navigation -->
 
   <a href="{% url 'cerrar' %}">
-    <i class="bi bi-x-square pe-4" style="color:white;"></i> </a>
-
-
-
+    <i class="bi bi-x-square pe-4" style="color: white"></i>
+  </a>
 </header>
 <!-- ======= Sidebar ======= -->
 <aside id="sidebar" class="sidebar">
-  <h6 align="center"><span id="f" style="color: #1977cc; font-size: 15px;"></span></h6>
+  <h6 align="center">
+    <span id="f" style="color: #1977cc; font-size: 15px"></span>
+  </h6>
   <h6 align="center"><span id="h" class="clockf"></span></h6>
 
-  <ul class="sidebar-nav" id="sidebar-nav" style="min-height: 900px; margin-top: 20px;">
+  <ul
+    class="sidebar-nav"
+    id="sidebar-nav"
+    style="min-height: 900px; margin-top: 20px"
+  >
     <li class="nav-item">
       <a id="inicio_link" class="nav-link" href="{% url 'inicio_m2' %}">
         <i class="bi bi-house-door"></i>
@@ -90,20 +111,20 @@
 
     <li class="nav-item">
       <a class="nav-link" href="{% url 'cobranza' 0 0 0 0 %}">
-        <i class="bi bi-cash-coin" style="font-size: large;"></i>
+        <i class="bi bi-cash-coin" style="font-size: large"></i>
         <span>&nbsp;&nbsp;Cobranza</span>
       </a>
     </li>
 
     <li class="nav-item">
-      <a class="nav-link">
+      <a class="nav-link" href="{% url 'cargar_inventario' %}">
         <i class="bi bi-stickies"></i>
         <span>&nbsp;&nbsp;Actualizar Inv.</span>
       </a>
     </li>
 
     <li class="nav-item">
-      <a class="nav-link">
+      <a class="nav-link" ">
         <i class="bi bi-stickies"></i>
         <span>&nbsp;&nbsp;Tomar pedidos</span>
       </a>
@@ -118,12 +139,21 @@
 
     <!-- Consultas -->
     <li class="nav-item">
-      <a class="nav-link collapsed" data-bs-target="#components-nav" data-bs-toggle="collapse" href="#">
+      <a
+        class="nav-link collapsed"
+        data-bs-target="#components-nav"
+        data-bs-toggle="collapse"
+        href="#"
+      >
         <i class="bi bi-card-text"></i>
         <span>&nbsp;&nbsp;Consultas</span>
         <i class="bi bi-chevron-down ms-auto"></i>
       </a>
-      <ul id="components-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+      <ul
+        id="components-nav"
+        class="nav-content collapse"
+        data-bs-parent="#sidebar-nav"
+      >
         <li>
           <a href="#"><span>-</span></a>
         </li>
@@ -131,16 +161,26 @@
           <a href="#"><span>-</span></a>
         </li>
       </ul>
-    </li><!-- fin consultas Nav -->
+    </li>
+    <!-- fin consultas Nav -->
 
     <!-- Configuración -->
     <li class="nav-item">
-      <a class="nav-link collapsed" data-bs-target="#icons2-nav" data-bs-toggle="collapse" href="#">
+      <a
+        class="nav-link collapsed"
+        data-bs-target="#icons2-nav"
+        data-bs-toggle="collapse"
+        href="#"
+      >
         <i class="bi bi-gear"></i>
         <span>&nbsp;&nbsp;Configuración</span>
         <i class="bi bi-chevron-down ms-auto"></i>
       </a>
-      <ul id="icons2-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+      <ul
+        id="icons2-nav"
+        class="nav-content collapse"
+        data-bs-parent="#sidebar-nav"
+      >
         <li>
           <a href="#"><span>-</span></a>
         </li>
@@ -151,10 +191,12 @@
           <!-- <a href="#"><span>Ciudades</span></a> -->
         </li>
       </ul>
-    </li><!-- fin configuración Nav -->
-
-  </ul> <!-- fin sidebar-nav -->
-</aside><!-- End Sidebar -->
+    </li>
+    <!-- fin configuración Nav -->
+  </ul>
+  <!-- fin sidebar-nav -->
+</aside>
+<!-- End Sidebar -->
 
 <script>
   // Funciones para mostra la hora
@@ -164,26 +206,24 @@
   function mostrar_hora() {
     let hoy = new Date();
     let options = {
-      weekday: 'long',
+      weekday: "long",
       // year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+      month: "long",
+      day: "numeric",
     };
     let fecha = hoy.toLocaleString(undefined, options);
     if (hoy.getMinutes() < 10) {
       hoyMin = hoy.getMinutes();
       let minString = hoyMin.toString();
       var min = "0" + minString;
-    }
-    else {
+    } else {
       var min = hoy.getMinutes();
     }
-    let hora = hoy.getHours() + ':' + min;
+    let hora = hoy.getHours() + ":" + min;
 
-    let ho = hoy.getHours()
+    let ho = hoy.getHours();
     h.innerHTML = hora;
     f.innerHTML = fecha;
-
   }
   // Funcion para recargara la hora
   function repetirCadaMinuto() {

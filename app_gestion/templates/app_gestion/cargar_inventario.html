@@ -1,0 +1,55 @@
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+{% block title %}
+M1 | Vendedores
+{% endblock %}
+{% block styles %}
+{% endblock styles %}
+{% block content %}
+
+
+<!-- Contenido -->
+<div style="padding-top: 50px;" >
+    <form method="post" enctype="multipart/form-data" >
+    
+        <!-- Emcabezado-->
+        <div class="row" style="padding-top: 50px;">
+            <div class="col-md-4">
+            </div>
+            <div class="col-md-4">
+                <h5 class="h5-suave margen-bottom" align="center">!Vamos a Migrar el Invetario!</h5>
+            </div>
+            <div class="col-md-4 text-right">
+                <a href="{% url 'inicio_m2' %}" class="float-end">
+                    <i class="fas fa-times color-alterno"></i>
+                </a>
+            </div>
+        </div>
+        {% csrf_token %}
+        <div class="row" style="margin-bottom: 10px">
+            <div class="col-md-4">
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="upload-box">
+            <p>Seleccione el archivo de inventario (.xlsx) exportado de A2</p>
+            <input type="file" name="archivo_excel" accept=".xlsx" required>
+        </div>
+                <div style="padding-top: 50px; color: gray">
+                    <p>
+                        Asegurese de que el archivo excel este correcto.
+                    </p>
+                </div>
+                <div>
+                    
+                    <button  type="submit">Subir y Actualizar</button>
+                </div>
+            </div>
+            <!-- <div class="col-md-4 mt-3 mt-md-0"> -->
+            </div>
+        </div>
+    </form>
+    
+</div>
+
+{% endblock content %}

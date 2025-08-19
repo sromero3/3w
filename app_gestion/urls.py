@@ -89,6 +89,9 @@ urlpatterns = [
      path('aplicar_descuento/', views.aplicar_descuentoView, name='aplicar_descuento'),
      path('marcar_recibido/', views.marcar_recibidoView, name='marcar_recibido'),
 
+     # Ventas
+      path('cargar-inventario/', views.cargar_inventarioView, name='cargar_inventario'),
+
 
      # Migrar
     #  path('e/', views.MigrarView, name='migrar'), 

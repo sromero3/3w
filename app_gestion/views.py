@@ -33,6 +33,9 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 # from weasyprint import HTML
+# Ventas
+import pandas as pd
+from django.core.files.storage import FileSystemStorage
 
 class CustomLoginView(LoginView):
     def get_success_url(self):
@@ -2927,3 +2930,65 @@ def ingreso_resumenView(request, fecha_ini, fecha_fin):
     }
 
     return render(request, 'app_gestion/ingresos_resumen.html', context)
+
+
+
+    # ========================================== Ventas =====================================================================
+
+def cargar_inventarioView(request):
+    if request.method == 'POST' and request.FILES.get('archivo_excel'):
+        archivo = request.FILES['archivo_excel']
+
+        # Guardar temporalmente el archivo
+        fs = FileSystemStorage(location='tmp/')
+        filename = fs.save(archivo.name, archivo)
+        ruta_archivo = fs.path(filename)
+
+        try:
+            # Leer Excel (hoja por defecto o especificar nombre)
+            # df = pd.read_excel(ruta_archivo, engine='openpyxl')  # para .xlsx
+            df = pd.read_excel(ruta_archivo, engine='xlrd', skiprows=11)
+            # print("Columnas detectadas:", df.columns.tolist())
+
+        
+            fila_inicio = 11  # Fila 12 en Excel → índice 11
+
+            # Recorrer desde fila 12 hasta el final
+            for idx in range(fila_inicio, len(df)):
+                # Columna A → índice 0
+                codigo = df.iloc[idx, 0]
+
+                # Saltar si está vacío o es NaN
+                if pd.isna(codigo):
+                    continue
+
+                # Convertir todo a string y limpiar espacios
+                fila = [str(c).strip() if not pd.isna(c) else "" for c in df.iloc[idx].tolist()]
+
+                # Mostrar fila completa
+                print(f"Fila {idx+1}: {fila}")
+
+
+
+
+
+            # --- Aquí adaptas a las columnas reales del A2 ---
+            # for _, row in df.iterrows():
+            #     codigo = str(row.get('codigo', '')).strip()
+            #     descripcion = str(row.get('descripcion', '')).strip()
+            #     cantidad = float(row.get('cantidad_disponible', 0))
+            #      # 👀 Mostrar lo que está leyendo
+            #     print(f"COD: {codigo} | DESC: {descripcion} | CANT: {cantidad}")
+
+                # Aquí actualizas tu base de datos
+                # Producto.objects.filter(codigo=codigo).update(stock=cantidad)
+
+            messages.success(request, "Inventario actualizado correctamente.")
+        except Exception as e:
+            messages.error(request, f"Error procesando el archivo: {e}")
+        finally:
+            fs.delete(filename)
+
+        return redirect('cargar_inventario')
+
+    return render(request, 'app_gestion/cargar_inventario.html')
