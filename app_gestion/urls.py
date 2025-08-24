@@ -90,7 +90,9 @@ urlpatterns = [
      path('marcar_recibido/', views.marcar_recibidoView, name='marcar_recibido'),
 
      # Ventas
-      path('cargar-inventario/', views.cargar_inventarioView, name='cargar_inventario'),
+     path('cargar-inventario/', views.cargar_inventarioView, name='cargar_inventario'),
+     path('pedidos_tomar/', views.pedidos_tomarView, name='pedidos_tomar'),
+
 
 
      # Migrar

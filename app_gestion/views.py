@@ -1646,6 +1646,10 @@ def Pago_cuenta_corregirView(request, id, forma_id):
         xBancosdestino = BancoDestino.objects.exclude(tipo='Inter')
     elif forma_id == 6:
         xBancosdestino = BancoDestino.objects.exclude(tipo='Inter')
+    elif forma_id == 7:
+        xBancosdestino = BancoDestino.objects.exclude(tipo='Inter')    
+    elif forma_id == 8:
+        xBancosdestino = BancoDestino.objects.exclude(tipo='Inter')   
 
 
     # Obtengo el registro a editar
@@ -1877,6 +1881,10 @@ def Pago_documentos_corregirView(request, id, forma_id):
         xBancosdestino = BancoDestino.objects.exclude(tipo='Inter')
     elif forma_id == 6:
         xBancosdestino = BancoDestino.objects.exclude(tipo='Inter')
+    elif forma_id == 7:
+        xBancosdestino = BancoDestino.objects.exclude(tipo='Inter')    
+    elif forma_id == 8:
+        xBancosdestino = BancoDestino.objects.exclude(tipo='Inter')    
 
 
     # Obtengo el registro a editar
@@ -2933,7 +2941,12 @@ def ingreso_resumenView(request, fecha_ini, fecha_fin):
 
 
 
-    # ========================================== Ventas =====================================================================
+# ========================================== Ventas =====================================================================
+@login_required
+def pedidos_tomarView(request):
+     
+     return render(request, 'app_gestion/pedidos_tomar.html')
+
 
 def cargar_inventarioView(request):
     if request.method == 'POST' and request.FILES.get('archivo_excel'):

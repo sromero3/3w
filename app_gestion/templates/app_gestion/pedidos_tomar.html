@@ -1,0 +1,249 @@
+{% extends "app_gestion/base_m1.html" %} {% load static %} {% block title %} M1
+| Pedidos CRUD {% endblock %} {% block content %}
+<main id="main" class="main" style="margin-top: 0px">
+  <!-- <div class="col-lg-12"> -->
+  <!-- <div class="card shadow-lg"> -->
+  <div class="card-body">
+    <h4 class="card-title mb-4">TOMADOR DE PEDIDOS</h4>
+
+    <!-- Datos iniciales -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <label class="form-label fw-bold">Fecha</label>
+        <input type="date" class="form-control" />
+      </div>
+      <div class="col-md-5">
+        <label class="form-label fw-bold">Cliente</label>
+        <select class="form-select">
+          <option value="">Seleccione cliente</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-bold">Tipo de Precio</label>
+        <select class="form-select">
+          <option value="precio1">Precio 1</option>
+          <option value="precio2">Precio 2</option>
+          <option value="precio3">Precio 3</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Sección Agregar Item Mejorada con producto ancho -->
+    <div class="card mb-4 shadow-sm" style="background-color: #ececec">
+      <div class="card-header" style="background-color: #ececec">
+        <h5 class="mb-0 text-center" style="color: #041a46">AGREGAR ITEMS</h5>
+      </div>
+      <div class="card-body">
+        <div class="row g-3 align-items-center">
+          <!-- Select producto -->
+          <div class="col-md-7">
+            <label for="producto" class="form-label fw-bold"
+              >Seleccione un producto</label
+            >
+            <select
+              id="producto"
+              class="form-control selectize"
+              placeholder="Buscar producto..."
+            ></select>
+          </div>
+
+          <!-- Cantidad con botones grandes -->
+          <div class="col-md-3">
+            <label for="cantidad" class="form-label fw-bold">Cantidad</label>
+            <div class="input-group input-group-lg">
+              <button
+                class="btn btn-danger fw-bold"
+                type="button"
+                id="btn-decrement"
+              >
+                &#8595;
+              </button>
+              <input
+                type="number"
+                id="cantidad"
+                class="form-control text-center"
+                min="1"
+                value="1"
+                step="1"
+              />
+              <button
+                class="btn btn-dark fw-bold"
+                type="button"
+                id="btn-increment"
+              >
+                &#8593;
+              </button>
+            </div>
+          </div>
+
+          <div class="col-md-2">
+            <label for="cantidad" class="form-label fw-bold mt-3"></label>
+            <button type="button" class="btn btn-primary w-100 fw-bold">
+              Agregar
+            </button>
+          </div>
+
+          <!-- Espacio de margen -->
+          <div class="col-md-2"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Script para incrementar/decrementar -->
+    <script>
+      const inputCantidad = document.getElementById("cantidad");
+      const btnIncrement = document.getElementById("btn-increment");
+      const btnDecrement = document.getElementById("btn-decrement");
+
+      btnIncrement.addEventListener("click", () => {
+        inputCantidad.value = parseInt(inputCantidad.value) + 1;
+      });
+
+      btnDecrement.addEventListener("click", () => {
+        if (parseInt(inputCantidad.value) > 1) {
+          inputCantidad.value = parseInt(inputCantidad.value) - 1;
+        }
+      });
+    </script>
+
+    <!-- Tabla de items agregados -->
+    <div class="table-responsive mb-4">
+      <table class="table table-striped table-hover">
+        <thead class="table-dark">
+          <tr style="background-color: rgb(1, 31, 58)">
+            <th>Código</th>
+            <th>Descripción</th>
+            <th>Cantidad</th>
+            <th>Empaque</th>
+            <th>Descuento %</th>
+            <th>Subtotal</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>001</td>
+            <td>Producto A</td>
+            <td>10</td>
+            <td>Caja</td>
+            <td>5%</td>
+            <td>$100</td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-dark">
+                <i class="bi bi-arrow-up"></i>
+              </button>
+              <button class="btn btn-sm btn-danger">
+                <i class="bi bi-arrow-down"></i>
+              </button>
+              &nbsp;&nbsp;&nbsp;
+              <button class="btn btn-sm btn-danger">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </td>
+
+            <!-- Aquí se insertarán los items -->
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="row mt-4">
+      <!-- Columna izquierda: Condiciones -->
+      <div class="col-md-6">
+        <div class="card p-3 shadow-sm">
+          <h5 class="mb-3">Condiciones</h5>
+
+          <!-- Plazo de crédito -->
+          <div class="mb-3">
+            <select id="plazo" class="form-select">
+              <option selected disabled>Plazo de crédito</option>
+              <option value="15">15 días</option>
+              <option value="30">30 días</option>
+              <option value="60">60 días</option>
+            </select>
+          </div>
+
+          <!-- Descuento -->
+          <div class="mb-3">
+            <input
+              type="number"
+              class="form-control"
+              id="descuento"
+              placeholder="Descuento (%)"
+            />
+          </div>
+
+          <!-- Flete -->
+          <div class="mb-3">
+            <select id="flete" class="form-select">
+              <option selected disabled>Flete</option>
+              <option value="no">No</option>
+              <option value="si">Sí</option>
+            </select>
+          </div>
+
+          <!-- Tipo de documento -->
+          <div class="mb-3">
+            <select id="tipoDoc" class="form-select">
+              <option selected disabled>Tipo de Documento</option>
+              <option value="factura">Factura</option>
+              <option value="nota">Nota de entrega</option>
+              <option value="cotizacion">Cotización</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna derecha: Totales -->
+      <div class="col-md-3"></div>
+
+      <div class="col-md-3">
+        <div class="card p-3 shadow-sm">
+          <h5 class="mb-3">Totales</h5>
+
+          <!-- Plazo de crédito -->
+          <div class="mb-1">
+            <li class="list-group-item d-flex justify-content-between">
+              <span>Descuento:</span>
+              <strong>$0.00</strong>
+            </li>
+          </div>
+
+          <div class="mb-1">
+            <li class="list-group-item d-flex justify-content-between">
+              <span>Descuento:</span>
+              <strong>$0.00</strong>
+            </li>
+          </div>
+
+          <div class="mb-1">
+            <li class="list-group-item d-flex justify-content-between">
+              <span>Descuento:</span>
+              <strong>$0.00</strong>
+            </li>
+          </div>
+
+          <div class="mb-4">
+            <li class="list-group-item d-flex justify-content-between">
+              <span>Descuento:</span>
+              <strong>$0.00</strong>
+            </li>
+          </div>
+        </div>
+      </div>
+
+      <!-- Observaciones -->
+      <div class="mt-4">
+        <label class="form-label fw-bold">Observaciones</label>
+        <textarea
+          class="form-control"
+          rows="3"
+          placeholder="Escriba aquí..."
+        ></textarea>
+      </div>
+    </div>
+  </div>
+  <!-- </div> -->
+  <!-- </main> -->
+  {% endblock %}
+</main>

@@ -160,6 +160,22 @@ M1 | Pago a cuenta
             document.getElementById("div_ban").hidden = true
             document.getElementById('banco_destino').removeAttribute("required")
         }
+
+        if (xForma == 8) { // Dolares en efectivo
+            document.getElementById("div_ref").hidden = true
+            document.getElementById("div_monto").hidden = true
+            document.getElementById("div_tasa").hidden = true
+            document.getElementById("div_monto_procesar").removeAttribute('hidden')
+            document.getElementById("div_ban").hidden = true
+            document.getElementById("monto_procesar").removeAttribute('readonly')
+            document.getElementById('monto_procesar').setAttribute("required", "")
+            document.getElementById('monto').removeAttribute("required")
+            document.getElementById("monto").value = ""
+            document.getElementById("id_referencia").value = ""
+            // document.getElementById('monto_procesar').value = ""
+            document.getElementById('banco_destino').removeAttribute("required")
+        }
+
     } // fin mostrar campos
 
 
