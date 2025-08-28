@@ -35,6 +35,7 @@ from django.urls import reverse_lazy
 # from weasyprint import HTML
 # Ventas
 import pandas as pd
+
 from django.core.files.storage import FileSystemStorage
 
 class CustomLoginView(LoginView):
