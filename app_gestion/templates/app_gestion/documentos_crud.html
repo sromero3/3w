@@ -37,6 +37,7 @@ M1 | Documentos crud
                             {% endfor %}
                         </select>
                     </div>
+                    <input type="hidden" name="aplicar_excedente" id="aplicar_excedente">
                     <div class="col-6">
                         <span class="titulos">Número</span>
                         {{form.numero}}
@@ -332,8 +333,6 @@ M1 | Documentos crud
         } // fin formatear entrada
 
         // selectize
-
-
         if (document.getElementById('opcion').value == "Eliminando") {
             EliminarButton.removeAttribute('hidden');
             GuardarButton.setAttribute('hidden', 'true');
@@ -351,7 +350,6 @@ M1 | Documentos crud
             });
             // Agregar manualmente una flecha al control de Selectize
             $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
-
         }
 
         setTimeout(() => {
@@ -366,22 +364,6 @@ M1 | Documentos crud
         // si validar
         if (form.checkValidity()) {
             e.preventDefault()
-            // Validar condicion
-
-            // validar fecha
-            // if (document.getElementById('credito')) {
-            //     if ((document.getElementById('credito').value) * 1 < 0){
-            //         document.getElementById('id_vencimiento').focus();
-            //         Swal.fire({
-            //             position: 'center',
-            //             icon: 'error',
-            //             title: 'Hay problemas con las fechas y no se puede calcular los dias' + ' Verifique...!',
-            //             showConfirmButton: true,
-            //             //timer: 2500
-            //         })
-            //         return
-            //     }
-            // }
 
             // validar fechas
             let f = document.getElementById('id_fecha').value
@@ -395,11 +377,11 @@ M1 | Documentos crud
                     icon: 'error',
                     title: 'la fecha vencimiento no pude ser menor que la fecha' + ' Verifique...!',
                     showConfirmButton: true,
-                    //timer: 2500
                 })
                 return
             } // fin validar fechas
 
+            // Validar condicion
             if (document.getElementById('credito')) {
                 if (document.getElementById('condicion').value == 2) {
                     if (parseInt(document.getElementById('credito').value) <= 8) {
@@ -427,7 +409,7 @@ M1 | Documentos crud
                         return
                     }
                 }
-            }
+            } // fin validar condicion
 
             // validar numero de docuemnto no exista
             let Var_rNum = document.getElementById('rNum').value
@@ -462,26 +444,64 @@ M1 | Documentos crud
                     })
                     return;
                 } //validar numero
-            } // fin validar numero de docuemnto 
-            // Condirmar
+            } // fin validar numero de docuemnto
+
+           
+            // Confirmar
             let c = document.getElementById('cliente').value
             let c_texto = cliente.options[cliente.selectedIndex].text
             let m = document.getElementById('id_monto').value
             let n = document.getElementById('id_numero').value
             Swal.fire({
-                title: '¿ Esta seguro de guardar ?',
-                html: `DOC: ${n}<br>DE: ${c_texto}<br><h1>${m}$</h1> `,
+                title: '¿Está seguro de guardar?',
+                html: `DOC: ${n}<br>DE: ${c_texto}<br><h1>${m}$</h1>`,
                 showDenyButton: true,
-                // showCancelButton: true,
                 confirmButtonText: "Guardar",
                 denyButtonText: `Descartar`
             }).then((result) => {
                 if (result.isConfirmed) {
-                    document.getElementById('documento_form').submit()
-                } else {
-                    return false
+                    // Consultar excedente de un cliente
+                    let cliente_id = $('#cliente').val();
+                    $.ajax({
+                        url: "{% url 'buscar_excedente' %}",
+                        type: 'POST',
+                        data: {
+                            csrfmiddlewaretoken: '{{ csrf_token }}',
+                            'cliente_id': cliente_id
+                        },
+                        success: function (data) {
+                            let aplicar_descuento = false; // por defecto
+                            if (data.tiene_excedente && data.monto_excedente > 0) {
+                              Swal.fire({
+                                    title: 'El cliente tiene un excedente',
+                                    html: `Monto excedente: <b><span style="color:red;">${darFormato(data.monto_excedente)}$</span></b><br>¿Desea aplicarlo a este documento?`,
+                                    showDenyButton: true,        
+                                    showCancelButton: true,      
+                                    confirmButtonText: 'Sí, Aplicar',
+                                    denyButtonText: 'Dejar para otro Documento',
+                                    cancelButtonText: 'Cancelar',
+                                  }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        // Aplicar descuento y continuar
+                                        $('#aplicar_excedente').val(true);
+                                        document.getElementById('documento_form').submit();
+                                    } else if (result.isDenied) {
+                                        // No aplicar descuento y continuar
+                                        $('#aplicar_excedente').val(false);
+                                        document.getElementById('documento_form').submit();
+                                    } else if (result.isDismissed) {
+                                        // Descartar: detener proceso
+                                        return;
+                                    }
+                                });
+                            } else {
+                                $('#aplicar_descuento').val(aplicar_descuento);
+                                document.getElementById('documento_form').submit();
+                            }
+                        }
+                    });
                 }
-            }) // fin Confirmar        
+            });  //fin Confirmar        
         } // fin de checkValidity()
     } // fin validar formulario
 
@@ -682,24 +702,6 @@ M1 | Documentos crud
             hoy.click();
         }
     });
-
-    // document.getElementById('searchInput').addEventListener('input', function() {
-    // var keyword = this.value.toLowerCase();
-    // var select = document.getElementById('cliente');
-    // var options = select.getElementsByTagName('option');
-
-    // for (var i = 0; i < options.length; i++) {
-    //     var option = options[i];
-    //     if (option.value.toLowerCase().includes(keyword) || option.text.toLowerCase().includes(keyword)) {
-    //         option.style.display = 'block';
-    //     } else {
-    //         option.style.display = 'none';
-    //     }
-    // }
-    // });
-
-
-    // wliminar
 
     function eliminar(e) {
         const form = document.getElementById('documento_form') // tomo el nombre del formulario

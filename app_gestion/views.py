@@ -34,7 +34,7 @@ from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 # from weasyprint import HTML
 # Ventas
-import pandas as pd
+# import pandas as pd
 
 from django.core.files.storage import FileSystemStorage
 
@@ -352,8 +352,9 @@ def add_documentoView(request):
         hoy = timezone.now()
         hoy2 = datetime.now()
         hoyStr = hoy2.strftime('%d/%m/%Y %H:%M')
-
+       
         if form.is_valid():
+            aplicar_excedente =  request.POST['aplicar_excedente'] 
             fecha_actual = datetime.now()
             documento = form.save(commit=False)
             documento.usuario_id = request.user.id
@@ -365,40 +366,42 @@ def add_documentoView(request):
             documento.seguimiento =  documento.seguimiento +  "&nbsp Creado" + "<br>"
             documento.save()
 
-            # Buscar en excedentes
-            xExcedente = Excedente.objects.filter(cli_id=request.POST.get('cliente'), saldo__gt=0).values('pago_id','doc_id__numero','saldo')
-            if xExcedente.exists(): # si el cliente tiene Excedente
-                xNumero = xExcedente[0]['doc_id__numero'] # busco el numero del documento
-                if xExcedente[0]['saldo'] > Decimal(request.POST.get('monto')):
-                    xE = request.POST.get('monto')
-                    xS = xExcedente[0]['saldo']
-                else:
-                    xE = xExcedente[0]['saldo']
-                    xS = xExcedente[0]['saldo']
-                xPago_excedente = Pago.objects.get(id=xExcedente[0]['pago_id'])
-                xF = xPago_excedente.forma_id
-                xT = xPago_excedente.tasa
-                xB = xPago_excedente.banco_destino_id
-                xU = xPago_excedente.usuario_id
-                if xF in [2, 3, 6]:  # si es efectivo, zelle o deposito en $
-                    xM = 0  # no se guarda el monto en bolivares
-                else:
-                    xM   = round(Decimal(xE) * Decimal(xT), 2)  # se guarda el monto en bolivares
-                # guardar pago de excedente
-                pago = Pago(fecha = request.POST.get('fecha'), cliente_id = request.POST.get('cliente'), referencia = "Abono excedente Doc: "+xNumero,
-                            monto = xM, monto_procesar = Decimal(xE), forma_id = xF, tasa = xT, banco_destino_id = xB, usuario_id = xU,
-                            tipo = 1, actualizado = hoy)
-                pago.save() 
-                xPago_id = pago.id     
-                # guardar detelle del pago
-                detalle = Pago_detalle(pago_id = xPago_id, documento_id =  documento.id, monto_procesar = xE)  
-                detalle.save()
-                # actualizo abonado en Documento
-                documento.abonado = xE
-                documento.save()
-                # actualizo el saldo en excedente
-                xS = xS - Decimal(xE)
-                xExcedente.update(saldo=xS)
+            # vamos aplicar excdente si el usuario lo decidio 
+            if aplicar_excedente == "true":
+                # Buscar en excedentes
+                xExcedente = Excedente.objects.filter(cli_id=request.POST.get('cliente'), saldo__gt=0).values('pago_id','doc_id__numero','saldo')
+                if xExcedente.exists(): # si el cliente tiene Excedente
+                    xNumero = xExcedente[0]['doc_id__numero'] # busco el numero del documento
+                    if xExcedente[0]['saldo'] > Decimal(request.POST.get('monto')):
+                        xE = request.POST.get('monto')
+                        xS = xExcedente[0]['saldo']
+                    else:
+                        xE = xExcedente[0]['saldo']
+                        xS = xExcedente[0]['saldo']
+                    xPago_excedente = Pago.objects.get(id=xExcedente[0]['pago_id'])
+                    xF = xPago_excedente.forma_id
+                    xT = xPago_excedente.tasa
+                    xB = xPago_excedente.banco_destino_id
+                    xU = xPago_excedente.usuario_id
+                    if xF in [2, 3, 6]:  # si es efectivo, zelle o deposito en $
+                        xM = 0  # no se guarda el monto en bolivares
+                    else:
+                        xM   = round(Decimal(xE) * Decimal(xT), 2)  # se guarda el monto en bolivares
+                    # guardar pago de excedente
+                    pago = Pago(fecha = request.POST.get('fecha'), cliente_id = request.POST.get('cliente'), referencia = "Abono excedente Doc: "+xNumero,
+                                monto = xM, monto_procesar = Decimal(xE), forma_id = xF, tasa = xT, banco_destino_id = xB, usuario_id = xU,
+                                tipo = 1, actualizado = hoy)
+                    pago.save() 
+                    xPago_id = pago.id     
+                    # guardar detelle del pago
+                    detalle = Pago_detalle(pago_id = xPago_id, documento_id =  documento.id, monto_procesar = xE)  
+                    detalle.save()
+                    # actualizo abonado en Documento
+                    documento.abonado = xE
+                    documento.save()
+                    # actualizo el saldo en excedente
+                    xS = xS - Decimal(xE)
+                    xExcedente.update(saldo=xS)
 
             # Limpiara formulario para otro gasto
             form = agregar_documentoForm()
@@ -951,7 +954,6 @@ def Validar_numeroView(request):
         data = {'status': False}
     
     return JsonResponse(data, safe=False)
-
 
 @login_required
 def Actualizar_fechasView(request):
@@ -2188,18 +2190,23 @@ def saldo_favorView(request):
 def dolares_no_recibidosView(request):
     xUsuario = request.user
 
-    xPagos = Pago.objects.filter(
-        recibido=False, forma_id=2
-    ).values(
-        'id',
-        'creado',
-        'cliente_id',
-        'cliente__nombre',  
-        'monto_procesar',
-        'cliente__vendedor__nombre', 
-        'observacion',
-      
-    ).order_by('-creado')
+    xPagos = (
+        Pago.objects.filter(
+            recibido=False,
+            forma_id=2
+        )
+        .exclude(referencia__startswith="Abono")   # 👈 Excluye los abonos por Excedentes
+        .values(
+            'id',
+            'creado',
+            'cliente_id',
+            'cliente__nombre',
+            'monto_procesar',
+            'cliente__vendedor__nombre',
+            'observacion',
+        )
+        .order_by('-creado')
+    )
 
     context = {
     'xUsuario': xUsuario,
@@ -2224,7 +2231,8 @@ def dolares_no_recibidos_modalView(request):
         'cliente__vendedor__nombre', 
         'observacion',
       
-    ).order_by('-creado')
+    ).exclude(referencia__startswith="Abono").order_by('-creado')
+    
 
     context = {
     'xUsuario': xUsuario,
@@ -2961,26 +2969,26 @@ def cargar_inventarioView(request):
         try:
             # Leer Excel (hoja por defecto o especificar nombre)
             # df = pd.read_excel(ruta_archivo, engine='openpyxl')  # para .xlsx
-            df = pd.read_excel(ruta_archivo, engine='xlrd', skiprows=11)
+            # df = pd.read_excel(ruta_archivo, engine='xlrd', skiprows=11)
             # print("Columnas detectadas:", df.columns.tolist())
 
         
             fila_inicio = 11  # Fila 12 en Excel → índice 11
 
             # Recorrer desde fila 12 hasta el final
-            for idx in range(fila_inicio, len(df)):
+            # for idx in range(fila_inicio, len(df)):
                 # Columna A → índice 0
-                codigo = df.iloc[idx, 0]
+                # codigo = df.iloc[idx, 0]
 
                 # Saltar si está vacío o es NaN
-                if pd.isna(codigo):
-                    continue
+                # if pd.isna(codigo):
+                    # continue
 
                 # Convertir todo a string y limpiar espacios
-                fila = [str(c).strip() if not pd.isna(c) else "" for c in df.iloc[idx].tolist()]
+                # fila = [str(c).strip() if not pd.isna(c) else "" for c in df.iloc[idx].tolist()]
 
                 # Mostrar fila completa
-                print(f"Fila {idx+1}: {fila}")
+                # print(f"Fila {idx+1}: {fila}")
 
 
 
@@ -3006,3 +3014,27 @@ def cargar_inventarioView(request):
         return redirect('cargar_inventario')
 
     return render(request, 'app_gestion/cargar_inventario.html')
+
+
+# validar mumero de documento
+def buscar_excedenteView(request):
+    # print('campo: ',request.POST.get('cliente_id'))
+    cliente_id = request.POST.get('cliente_id')
+    
+    # Validar que tenga excdente 
+    xExcedente = Excedente.objects.filter(cli_id=cliente_id, saldo__gt=0).first()
+
+    if xExcedente:
+        tiene_excedente = True
+        monto_excedente = xExcedente.saldo
+    else:
+        tiene_excedente = False
+        monto_excedente = 0
+
+    # Construir respuesta
+    data = {
+        'tiene_excedente': tiene_excedente,
+        'monto_excedente': monto_excedente
+    }
+
+    return JsonResponse(data)

@@ -88,6 +88,7 @@ urlpatterns = [
      path('obtener_pagos/', views.obtener_pagosView, name='obtener_pagos'),
      path('aplicar_descuento/', views.aplicar_descuentoView, name='aplicar_descuento'),
      path('marcar_recibido/', views.marcar_recibidoView, name='marcar_recibido'),
+     path('buscar_excedente/', views.buscar_excedenteView, name='buscar_excedente'), 
 
      # Ventas
      path('cargar-inventario/', views.cargar_inventarioView, name='cargar_inventario'),
