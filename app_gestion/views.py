@@ -1,6 +1,7 @@
 # Para hacer los response
 from pydoc import doc
-from django.shortcuts import redirect, render
+from urllib import request
+from django.shortcuts import get_object_or_404, redirect, render
 from django.http import HttpResponse
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
@@ -560,7 +561,7 @@ def cobranzaView(request, xCliente, xVendedor, xIva, xVencido):
 
     if xVendedor != 0:
         xVendedor_seleccionado = xVendedor
-        print("Mostrar clientes del vel vendor ", xVendedor_seleccionado)
+        # print("Mostrar clientes del vel vendor ", xVendedor_seleccionado)
         xClientes = Cliente.objects.filter(Q( status_id=1) | Q(status_id=2)).filter(vendedor_id=xVendedor)
     else:
         xVendedor_seleccionado  = 0
@@ -645,7 +646,7 @@ def cobranzaView(request, xCliente, xVendedor, xIva, xVencido):
     if xUsuario.groups.exists():
         grupo = xUsuario.groups.first().name
         if grupo == 'm2':
-            print("m2")
+            # print("m2")
             return render(request, 'app_gestion/cobranza_m2.html', context)
     else:
         return render(request, 'app_gestion/cobranza.html', context)
@@ -658,7 +659,8 @@ def Pago_cuentaView(request, id, cliente):
     xCliente = cliente
     xId = id
  
-    xFormas = PagoForma.objects.order_by('orden').exclude(id=5)
+    xFormas = PagoForma.objects.exclude(id__in=[5, 9]).order_by('orden')
+
     xBancosdestino = BancoDestino.objects.exclude(id=6)
   
     xTasas = Tasa.objects.all()
@@ -729,15 +731,15 @@ def Pago_cuentaView(request, id, cliente):
                 # actualizar el abonado del documento
                 xDocumento.save()
              
-                print("-------------Fac: " ,xDocumento.numero,"----------------")
-                print("xMonto_procesar: " ,xMonto_procesar)
-                print("Saldo: " ,xDocumento.saldo)
+                # print("-------------Fac: " ,xDocumento.numero,"----------------")
+                # print("xMonto_procesar: " ,xMonto_procesar)
+                # print("Saldo: " ,xDocumento.saldo)
                 xMonto_procesar = xMonto_procesar - xAbono # controlo lo que queda 
-                print("xAbono: " ,xAbono)
-                print("Monto restante",  xMonto_procesar )
+                # print("xAbono: " ,xAbono)
+                # print("Monto restante",  xMonto_procesar )
                
                 if xMonto_procesar == 0: 
-                   print("no hay mas monto_procesar")
+                #    print("no hay mas monto_procesar")
                    break
             
             # si hay excedente guardarlo
@@ -803,7 +805,8 @@ def Validar_referenciaView(request):
     # para campos repetidos
     xRegistros = Pago.objects.filter(referencia=request.POST.get('campo'))
     if xRegistros.exists():
-        print("Resgistros encontados: ", xRegistros.count())
+        pass
+        # print("Resgistros encontados: ", xRegistros.count())
     else:
         data = {'status': False}
     
@@ -844,7 +847,7 @@ def Estado_cuentaView(request, id, desde, fecha_ini, fecha_fin):
         xFecha_corte_ini = datetime.strptime(fecha_ini, '%Y-%m-%d') - timedelta(days=1)
         
     # Buscar saldo del corte
-    print("******* buscando todos desde el inicio los documentos con fecha menor o igaul ka fecha Hasta ******** ", xFecha_corte_ini)
+    # print("******* buscando todos desde el inicio los documentos con fecha menor o igaul ka fecha Hasta ******** ", xFecha_corte_ini)
     qD= Documento.objects.filter(cliente=id).filter(fecha__lte=xFecha_corte_ini).values('id','numero','fecha','monto','creado')
     qP = Pago.objects.filter(cliente=id).filter(fecha__lte=xFecha_corte_ini).values('id','referencia','fecha','monto_procesar', 'forma__forma','creado')
     # Prepara lista de datos    
@@ -880,10 +883,10 @@ def Estado_cuentaView(request, id, desde, fecha_ini, fecha_fin):
             balance = balance - key['monto_m']
         
         key['balance'] = balance
-        print(key['balance'])
+        # print(key['balance'])
  
     xSaldo_final = balance
-    print("Saldo final del corte es  ====================>", xSaldo_final)
+    # print("Saldo final del corte es  ====================>", xSaldo_final)
  
     # ahora si obtengo los documentos a mostrar
     qDocumentos = Documento.objects.filter(cliente=id).filter(fecha__range=(fecha_ini, fecha_fin)).values('id','numero','fecha','monto','creado','abonado')
@@ -949,7 +952,7 @@ def Validar_numeroView(request):
     data = {'status': True}
     try:
         xRegistro = Documento.objects.get(numero=request.POST.get('campo'))
-        print("Encontrado el Documento: ",xRegistro)
+        # print("Encontrado el Documento: ",xRegistro)
     except Documento.DoesNotExist:
         data = {'status': False}
     
@@ -1016,7 +1019,8 @@ def Validar_clienteView(request):
     # para campos repetidos
     xRegistros = Cliente.objects.filter(ced_rif=request.POST.get('campo'))
     if xRegistros.exists():
-        print("Resgistros encontados: ", xRegistros.count())
+        pass
+        # print("Resgistros encontados: ", xRegistros.count())
     else:
         data = {'status': False}
     
@@ -1048,7 +1052,7 @@ def agregar_vendedor_desde_agregar_clienteView(request):
     xCedula = "V" + request.POST.get('m_cedula')
     try:
         buscar_vendedor = Vendedor.objects.get(cedula=xCedula)
-        print("Encontrado el Vendedor: ", buscar_vendedor)
+        # print("Encontrado el Vendedor: ", buscar_vendedor)
     except Vendedor.DoesNotExist:
         # print("==========================",request.POST.get('m_ciudad'))
         xR = Vendedor(cedula = xCedula, nombre = request.POST.get('m_nombre'), ciudad_id = request.POST.get('m_ciudad'))
@@ -1279,9 +1283,9 @@ def Validar_vendedorView(request):
     data = {'status': True}
     try:
         xRegistro = Vendedor.objects.get(cedula=request.POST.get('campo'))
-        print("Encontrado el registro: ",xRegistro)
+        # print("Encontrado el registro: ",xRegistro)
     except Vendedor.DoesNotExist:
-        print("NO Encontrado el registro")
+        # print("NO Encontrado el registro")
         data = {'status': False}
     
     return JsonResponse(data, safe=False)
@@ -1402,7 +1406,16 @@ def historial_pagosView(request, xCliente, fecha_ini, fecha_fin):
         xFecha_ini = fecha_ini
         xFecha_fin = fecha_fin 
     
-    qPagos=Pago.objects.filter(fecha__range=(fecha_ini, fecha_fin)).values('id','cliente_id','referencia','fecha','monto','monto_procesar','forma__forma', 'tasa','cliente__nombre','observacion', 'seguimiento', 'forma_id','banco_destino__nombre','tipo','creado').order_by('-fecha', '-creado')
+    qPagos = Pago.objects.filter(
+    fecha__range=(fecha_ini, fecha_fin)
+    ).exclude(
+        forma_id=9
+    ).values(
+        'id','cliente_id','referencia','fecha','monto','monto_procesar',
+        'forma__forma','tasa','cliente__nombre','observacion',
+        'seguimiento','forma_id','banco_destino__nombre','tipo','creado'
+    ).order_by('-fecha', '-creado')
+
     
     if xCliente == 0 :
        xPagos=qPagos.all()
@@ -1427,7 +1440,7 @@ def Pago_documentosView(request, id, cliente):
     xCliente = cliente
     xId = id
  
-    xFormas = PagoForma.objects.order_by('orden').exclude(id=5)
+    xFormas = PagoForma.objects.exclude(id__in=[5, 9]).order_by('orden')
     xBancosdestino = BancoDestino.objects.exclude(id=6)
   
     xTasas = Tasa.objects.all()
@@ -1637,7 +1650,7 @@ def Editar_tasaView(request, id):
 def Pago_cuenta_corregirView(request, id, forma_id):
     xUsuario = request.user
  
-    xFormas = PagoForma.objects.order_by('orden').exclude(id=5)
+    xFormas = PagoForma.objects.exclude(id__in=[5, 9]).order_by('orden')
    
     if forma_id == 3:
         xBancosdestino = BancoDestino.objects.exclude(tipo='Nacional')
@@ -1797,15 +1810,15 @@ def Pago_cuenta_corregirView(request, id, forma_id):
                 # actualizar el abonado del documento
                 xDocumento.save()
              
-                print("-------------Fac: " ,xDocumento.numero,"----------------")
-                print("xMonto_procesar: " ,xMonto_procesar)
-                print("Saldo: " ,xDocumento.saldo)
+                # print("-------------Fac: " ,xDocumento.numero,"----------------")
+                # print("xMonto_procesar: " ,xMonto_procesar)
+                # print("Saldo: " ,xDocumento.saldo)
                 xMonto_procesar = xMonto_procesar - xAbono
-                print("xAbono: " ,xAbono)
-                print("Monto restante",  xMonto_procesar )
+                # print("xAbono: " ,xAbono)
+                # print("Monto restante",  xMonto_procesar )
                
                 if xMonto_procesar == 0: 
-                   print("no hay mas monto_procesar")
+                #    print("no hay mas monto_procesar")
                    break
             
             # si hay excedente 
@@ -1833,12 +1846,12 @@ def Pago_cuenta_corregirView(request, id, forma_id):
                         )
                 xE.save()
    
-                print("xMonto_procesar: " ,xMonto_procesar)
-                print("Saldo: " ,xDocumento.saldo)
+                # print("xMonto_procesar: " ,xMonto_procesar)
+                # print("Saldo: " ,xDocumento.saldo)
                 xMonto_procesar = xMonto_procesar - xAbono
-                print("xAbono: " ,xAbono)
-                print("Monto restante",  xMonto_procesar )
-                print("--------- Sobro monto_procesar ----------")
+                # print("xAbono: " ,xAbono)
+                # print("Monto restante",  xMonto_procesar )
+                # print("--------- Sobro monto_procesar ----------")
  
    
             return redirect('historial_pagos', 0, ' ', ' ')
@@ -1872,7 +1885,7 @@ def Pago_cuenta_corregirView(request, id, forma_id):
 def Pago_documentos_corregirView(request, id, forma_id):
     xUsuario = request.user
  
-    xFormas = PagoForma.objects.order_by('orden').exclude(id=5)
+    xFormas = PagoForma.objects.exclude(id__in=[5, 9]).order_by('orden')
    
     if forma_id == 3:
         xBancosdestino = BancoDestino.objects.exclude(tipo='Nacional')
@@ -1987,7 +2000,7 @@ def Pago_documentos_corregirView(request, id, forma_id):
             xPago_id = pago.id
 
             if request.POST.get('cambio') == "No":
-                print("mo cambio montos")
+                # print("mo cambio montos")
                 return redirect('historial_pagos', 0, ' ', ' ')  
 
             # Reversar los registos de este pago 
@@ -1997,7 +2010,7 @@ def Pago_documentos_corregirView(request, id, forma_id):
                  xDoc.abonado = xDoc.abonado - xPago_detalle.monto_procesar
                  xDoc.actualizado = hoy
                  xDoc.save()
-                 print("Saldo reverzado: ", xPago_detalle.monto_procesar)
+                #  print("Saldo reverzado: ", xPago_detalle.monto_procesar)
                  # borrar pago detalle
                  xPago_detalle.delete()
             
@@ -2182,7 +2195,7 @@ def saldo_favorView(request):
     'xUsuario': xUsuario,
     'xDocumentos': xDocumentos,
     }
-
+  
     return render(request, 'app_gestion/saldo_favor.html', context)
 
 
@@ -2864,8 +2877,9 @@ def ingreso_rangoView(request, xTipo, xCta, fecha_ini, fecha_fin):
     qPagos = Pago.objects.filter(
         fecha__range=(fecha_ini, fecha_fin),
     ).exclude(
+        forma_id__in=[6, 9]
+    ).exclude(
         referencia__icontains='Abono excedente'
-        ).exclude(forma_id=6
     ).values(
         'id',
         'cliente_id',
@@ -2931,7 +2945,7 @@ def ingreso_resumenView(request, fecha_ini, fecha_fin):
     ).exclude(
         referencia__icontains='Abono excedente'
     ).exclude(
-        forma_id__in=[5, 6]  # Excluir formas específicas si deseas
+        forma_id__in=[5, 6, 9]  # Excluir formas específicas si deseas
     ).values(
         'forma_id',
         'forma__forma'
@@ -3038,3 +3052,44 @@ def buscar_excedenteView(request):
     }
 
     return JsonResponse(data)
+
+
+def borrar_excedenteView(request, id):
+    
+    xUsuario = request.user
+    # Obtener el excedente por ID (NO el cliente)
+    xExcedente = get_object_or_404(Excedente, id=id)
+
+    # Validación de seguridad
+    if xExcedente.saldo <= 0:
+        messages.warning(request, "Este excedente ya no tiene saldo a favor.")
+        return redirect('saldo_favor')
+
+    ahora = timezone.now()
+    seguimiento = (
+        f"<b>-{request.user.username} a las {ahora.strftime('%d/%m/%Y %H:%M')}</b><br>"
+        f"&nbsp Procesó pago excedente por: {xExcedente.saldo}<br>"
+    )
+
+    # Crear pago negativo
+    Pago.objects.create(
+        cliente_id=xExcedente.cli_id,
+        monto=0,
+        monto_procesar=-xExcedente.saldo,
+        referencia=f"Ajuste por excedente #{xExcedente.id}",
+        fecha=ahora,
+        creado=ahora,
+        actualizado=ahora,
+        forma_id=9,
+        banco_destino_id=6,
+        tasa=0,
+        seguimiento=seguimiento,
+        tipo=1,
+        usuario=xUsuario
+    )
+    # Anular el saldo del excedente
+    xExcedente.saldo = 0
+    xExcedente.save(update_fields=['saldo'])
+
+    return redirect('saldo_favor')
+

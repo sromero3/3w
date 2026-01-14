@@ -34,6 +34,7 @@ urlpatterns = [
      path('guardar_tasa/', views.Guardar_tasaView, name='guardar_tasa'),
      path('cerrar/', views.cerrarView, name='cerrar'),
      path('pago_reversar/<int:id>/', views.Pago_reversarView, name='pago_reversar'),
+     path('borrar_excedente/<int:id>/', views.borrar_excedenteView, name='borrar_excedente'), 
 
 
      path('tasas/', views.tasasView, name='tasas'),
@@ -89,6 +90,7 @@ urlpatterns = [
      path('aplicar_descuento/', views.aplicar_descuentoView, name='aplicar_descuento'),
      path('marcar_recibido/', views.marcar_recibidoView, name='marcar_recibido'),
      path('buscar_excedente/', views.buscar_excedenteView, name='buscar_excedente'), 
+  
 
      # Ventas
      path('cargar-inventario/', views.cargar_inventarioView, name='cargar_inventario'),
