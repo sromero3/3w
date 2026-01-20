@@ -299,6 +299,7 @@ class Pago(models.Model):
     tasa = models.DecimalField(max_digits=5, decimal_places=2)
     tipo = models.IntegerField() # 1 = cuenta 2 = documento
     recibido = models.BooleanField(default=False)  # Este campo indica si ya se recibio en la ofina el pago.
+    comprobante = models.ImageField(upload_to='comprobantes/', null=True, blank=True)
 
   
     def __str__(self):

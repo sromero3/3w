@@ -37,6 +37,12 @@ from django.urls import reverse_lazy
 # Ventas
 # import pandas as pd
 
+# Para subir imagens
+import uuid
+from PIL import Image
+from django.core.files.base import ContentFile
+
+
 from django.core.files.storage import FileSystemStorage
 
 class CustomLoginView(LoginView):
@@ -693,6 +699,7 @@ def Pago_cuentaView(request, id, cliente):
         strMonto_procesar = darFormato(request.POST['monto_procesar'])
        
         if form.is_valid():
+   
             pago = form.save(commit=False)
             pago.cliente_id = id
             pago.usuario_id = request.user.id
@@ -702,6 +709,30 @@ def Pago_cuentaView(request, id, cliente):
             pago.seguimiento =  pago.seguimiento + "&nbsp Procesó pago por: " + strMonto_procesar +"<br>"
             pago.tipo = 1
             xForma =  request.POST['forma'] 
+
+           # Procesar archivo si se envió
+            comprobante_file = request.FILES.get('comprobante')
+            if comprobante_file:
+                # Abrir imagen
+                img = Image.open(comprobante_file)
+                # Convertir a RGB si tiene alpha
+                if img.mode in ("RGBA", "P"):
+                    img = img.convert("RGB")
+
+                # Guardar en buffer como WebP
+                buffer = BytesIO()
+                img.save(buffer, format='WEBP', quality=85)
+
+                # Generar nombre único
+                filename = f"{uuid.uuid4()}.webp"
+
+                # Guardar en el campo ImageField
+                pago.comprobante.save(
+                    filename,
+                    ContentFile(buffer.getvalue()),
+                    save=False
+                )
+
     
             # guardar el pago
             form.save()
@@ -891,7 +922,7 @@ def Estado_cuentaView(request, id, desde, fecha_ini, fecha_fin):
     # ahora si obtengo los documentos a mostrar
     qDocumentos = Documento.objects.filter(cliente=id).filter(fecha__range=(fecha_ini, fecha_fin)).values('id','numero','fecha','monto','creado','abonado')
     # obtengo los pagos
-    qPagos = Pago.objects.filter(cliente=id).filter(fecha__range=(fecha_ini, fecha_fin)).values('id','fecha','monto_procesar', 'forma__forma','referencia','creado', 'banco_destino__nombre')
+    qPagos = Pago.objects.filter(cliente=id).filter(fecha__range=(fecha_ini, fecha_fin)).values('id','fecha','monto_procesar', 'forma__forma','referencia','creado', 'banco_destino__nombre', 'comprobante')
   
     balance = round(xSaldo_final, 2)
     data_lista = []
@@ -912,6 +943,7 @@ def Estado_cuentaView(request, id, desde, fecha_ini, fecha_fin):
         xAsiento["dc"] = "-"
         xAsiento["monto_m"] = xAsiento['monto_procesar']
         xAsiento["hora"] = xAsiento['creado'].time()
+        xAsiento["comprobante"] = xAsiento['comprobante']
         # print(xAsiento["documento"][0:20])
         if xAsiento["documento"][0:20] != "Abono excedente Doc:": # si la referencia del abono no es excedente
             data_lista.append(xAsiento) # Se agrega cada registro a la lista
@@ -1413,7 +1445,7 @@ def historial_pagosView(request, xCliente, fecha_ini, fecha_fin):
     ).values(
         'id','cliente_id','referencia','fecha','monto','monto_procesar',
         'forma__forma','tasa','cliente__nombre','observacion',
-        'seguimiento','forma_id','banco_destino__nombre','tipo','creado'
+        'seguimiento','forma_id','banco_destino__nombre','tipo','creado','comprobante'
     ).order_by('-fecha', '-creado')
 
     
@@ -1494,7 +1526,30 @@ def Pago_documentosView(request, id, cliente):
                         pago.seguimiento=  "<b>-" + request.user.username + " a las " + hoyStr + "</b>" + "<br>"
                         pago.seguimiento=  pago.seguimiento + "&nbsp Procesó pago por: " + strMonto_procesar +"<br>"
                         pago.tipo = 2 # documento
-                       
+
+                        # Procesar archivo si se envió
+                        comprobante_file = request.FILES.get('comprobante')
+                        if comprobante_file:
+                            # Abrir imagen
+                            img = Image.open(comprobante_file)
+                            # Convertir a RGB si tiene alpha
+                            if img.mode in ("RGBA", "P"):
+                                img = img.convert("RGB")
+
+                            # Guardar en buffer como WebP
+                            buffer = BytesIO()
+                            img.save(buffer, format='WEBP', quality=85)
+
+                            # Generar nombre único
+                            filename = f"{uuid.uuid4()}.webp"
+
+                            # Guardar en el campo ImageField
+                            pago.comprobante.save(
+                                filename,
+                                ContentFile(buffer.getvalue()),
+                                save=False
+                            )
+
                         form.save() 
                         # asignar el id del pago guardado
                         xPago_id = pago.id
@@ -3093,3 +3148,54 @@ def borrar_excedenteView(request, id):
 
     return redirect('saldo_favor')
 
+
+@login_required
+def SubirComprobanteView(request, pago_id):
+    if request.method == 'POST':
+        try:
+            # Obtener el pago
+            pago = Pago.objects.get(id=pago_id)
+            
+            # Obtener el archivo
+            comprobante_file = request.FILES.get('comprobante')
+            
+            if comprobante_file:
+                # Abrir imagen
+                img = Image.open(comprobante_file)
+                
+                # Convertir a RGB si tiene alpha
+                if img.mode in ("RGBA", "P"):
+                    img = img.convert("RGB")
+                
+                # Guardar en buffer como WebP
+                buffer = BytesIO()
+                img.save(buffer, format='WEBP', quality=85)
+                
+                # Generar nombre único
+                filename = f"{uuid.uuid4()}.webp"
+                
+                # Guardar en el campo ImageField
+                pago.comprobante.save(
+                    filename,
+                    ContentFile(buffer.getvalue()),
+                    save=True
+                )
+                
+                # Actualizar seguimiento
+                hoy = timezone.now()
+                hoyStr = hoy.strftime('%d/%m/%Y %H:%M')
+                pago.seguimiento += f"<br><b>-{request.user.username} a las {hoyStr}</b><br>"
+                pago.seguimiento += "&nbsp Subió comprobante de pago<br>"
+                pago.save()
+                
+                
+            else:
+                messages.error(request, "No se seleccionó ningún archivo")
+                
+        except Pago.DoesNotExist:
+            messages.error(request, "El pago no existe")
+        except Exception as e:
+            messages.error(request, f"Error al subir el comprobante: {str(e)}")
+    
+    # Redirigir de vuelta al historial (ajusta la URL según tu configuración)
+    return redirect('historial_pagos', 0, ' ', ' ')  

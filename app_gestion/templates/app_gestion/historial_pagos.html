@@ -126,6 +126,16 @@ M1 | Historial de pagos
                                 <a href="{% url 'pago_reversar' xPago.id %}" title="Reversar pago">
                                     <i class="bi bi-arrow-counterclockwise"></i>
                                 </a>
+                               {% if xPago.comprobante %}
+                                    <a href="javascript:void(0);" data-comprobante-url="/media/{{ xPago.comprobante }}" onclick="abrir_comprobante_modal(this)">
+                                        <i class="bi bi-file-image" title="Ver comprobante"></i>
+                                    </a>
+                                {% else %}
+                                    <a href="javascript:abrir_subir_comprobante('{{ xPago.id }}')">
+                                        <i class="bi bi-upload" title="Subir comprobante"></i>
+                                    </a>
+                                {% endif %}
+
                             </td>
                         </tr>
                         {% endfor %}
@@ -154,6 +164,45 @@ M1 | Historial de pagos
         </div>
     </div>
 </div><!-- End Modal -->
+
+<!-- Modal para ver comprobante -->
+<div class="modal fade" id="modalVerComprobante" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" style="color:#012970">Comprobante de Pago</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="imgComprobante" src="" style="max-width: 100%; max-height: 80vh;" />
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Modal Subir Comprobante -->
+<div class="modal fade" id="modalSubirComprobante" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="formSubirComprobante" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Subir Comprobante</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="file" name="comprobante" id="comprobante_subir" class="form-control" accept="image/*" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 {% endblock content %}
 
 {% block Scripts_Adicionales %}
@@ -217,5 +266,20 @@ M1 | Historial de pagos
         document.getElementById('t').innerHTML = seguimiento;
         boton_modal.click();
     }
+    
+    function abrir_comprobante_modal(elemento) {
+        const url = elemento.dataset.comprobanteUrl;
+        const imgElement = document.getElementById('imgComprobante');
+        imgElement.src = url;
+        new bootstrap.Modal(document.getElementById('modalVerComprobante')).show();
+    }
+
+    function abrir_subir_comprobante(pago_id) {
+        // Puedes usar hidden input para enviar ID del pago si es AJAX
+        const form = document.getElementById('formSubirComprobante');
+        form.action = `/subir_comprobante/${pago_id}/`; // Ruta que crearás en Django
+        new bootstrap.Modal(document.getElementById('modalSubirComprobante')).show();
+    }
+
 </script>
 {% endblock Scripts_Adicionales %}

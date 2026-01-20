@@ -16,7 +16,7 @@ M1 | Pago a cuenta
                         <i class="bi bi-arrow-return-left" title='Regresar'></i>
                     </a>
                 </h5>
-                <form id="pago_cuenta" action="" method="post" class="row g-3">
+                <form id="pago_cuenta" action="" method="post" class="row g-3" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="col-6">
                         <span class="titulos">Cliente</span>
@@ -74,7 +74,7 @@ M1 | Pago a cuenta
                                required
                                maxlength="6">
                     </div>
-                    <div id="div_ban" class="col-md-6" style="margin-bottom: 15px" hidden>
+                    <div id="div_ban" class="col-md-6"  hidden>
                         <span class="titulos">{{ form.banco_destino.label }}</span>
                         <select name="banco_destino"
                                 id="banco_destino"
@@ -91,12 +91,30 @@ M1 | Pago a cuenta
                         <span class="titulos">{{ form.monto_procesar.label }}</span>
                         <input id="monto_procesar"
                                name="monto_procesar"
-                               class="form-control input-numero alto"
+                               class="form-control input-numero alto "
                                readonly
                                maxlength="10"
                                onblur="FormatearNumerosInputs(this)">
                     </input>
                 </div>
+
+                <div class="col-6" id="div_comprobante" hidden>
+                    <span class="titulos">Comprobante (opcional)</span>
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <input type="file" 
+                            name="comprobante" 
+                            id="comprobante" 
+                            class="form-control alto" 
+                            accept="image/*">
+                        <button type="button" 
+                                id="ver_comprobante" 
+                                class="btn btn-primary"
+                                style="display:none;">
+                       Ver
+                        </button>
+                    </div>
+                </div>
+
                 <!-- fin Campos variables -->
                 <div class="col-12 pb-4">
                     <span class="titulos">{{ form.observacion.label }}</span>
@@ -115,6 +133,20 @@ M1 | Pago a cuenta
         </div>
     </div>
 </div>
+<div class="modal fade" id="modalComprobante" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Comprobante</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="modal_img_comprobante" src="#" alt="Comprobante" style="width:100%; height:auto;">
+      </div>
+    </div>
+  </div>
+</div>
+
 </main>
 <!-- End #main -->
 {% endblock content %}
@@ -122,6 +154,14 @@ M1 | Pago a cuenta
     <script>
     // mostrar campos
     function mostrar_campos() {
+
+        // Mostrar solo si hay un valor seleccionado
+        const divComprobante = document.getElementById('div_comprobante');
+        if (document.getElementById('forma').value) {
+            divComprobante.hidden = false;
+        } else {
+            divComprobante.hidden = true;
+        }
 
         if (document.getElementById('forma').value == 1) { // Transferencia Bancos Nacionales
             document.getElementById("div_ref").removeAttribute('hidden')
@@ -423,6 +463,29 @@ M1 | Pago a cuenta
             hoy.click();
         }
     });
+
+    // Preview de comprobante
+    const input = document.getElementById('comprobante');
+    const verBtn = document.getElementById('ver_comprobante');
+    const modalImg = document.getElementById('modal_img_comprobante');
+
+    input.onchange = function(evt) {
+        const [file] = this.files;
+        if (file) {
+            modalImg.src = URL.createObjectURL(file);
+            verBtn.style.display = 'inline-block'; // mostrar botón
+        } else {
+            verBtn.style.display = 'none'; // ocultar si se borra selección
+        }
+    };
+
+    verBtn.onclick = function() {
+        const modal = new bootstrap.Modal(document.getElementById('modalComprobante'));
+        modal.show();
+    };
+
+
+
 
     </script>
 {% endblock Scripts_Adicionales %}

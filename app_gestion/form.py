@@ -20,34 +20,28 @@ class LoginForm(AuthenticationForm):
 
 # asentar_pago - Asentar un pago -
 class asentar_pagoForm(ModelForm):
+    comprobante = forms.ImageField(
+        required=False, 
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control alto'})
+    )
+
     def __init__(self, *args, **kwargs):
         super(asentar_pagoForm, self).__init__(*args, **kwargs)
         for visible in self.visible_fields():
             visible.field.widget.attrs['class'] = 'form-control alto'
 
-        # self.fields['monto'].widget.input_type = 'text' #Pasa el campo numerico a texto          
-        # self.fields['monto'].widget.attrs.update(
-        #     {'required': True, 
-        #      'class': 'form-control input-numero', 'onchange': "Calcular()"})
-              
-        # self.fields['monto_procesar'].widget.input_type = 'text' #Pasa el campo numerico a texto          
-        # self.fields['monto_procesar'].widget.attrs.update(
-        #     {'readonly': True,
-        #      'class': 'form-control input-numero'})
-       
         self.fields['observacion'].widget.attrs.update({'class': 'form-control'})
         self.fields['observacion'].widget.attrs['rows'] = 3
        
     class Meta:
         model = Pago
         fields = ('fecha', 'referencia', 'forma', 'monto','tasa',
-                  'monto_procesar', 'banco_destino', 'observacion')
+                  'monto_procesar', 'banco_destino', 'observacion', 'comprobante')
         widgets = {
             'fecha': DateInput(format=('%Y-%m-%d'))
         }
 
-    # fecha = forms.DateField(widget=DateInput)
-    
+   
 
     # 
 class agregar_documentoForm(ModelForm):

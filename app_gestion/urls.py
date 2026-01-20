@@ -2,6 +2,9 @@ from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
 from app_gestion.form import LoginForm
+# Imagenes media
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
      # Accesos
@@ -43,9 +46,8 @@ urlpatterns = [
     #  path('elimina_tasa/<int:id>/', views.Eliminar_tasaView, name='eliminar_tasa'),
 
     # Variables
-    path('editar_variables/', views.editar_variablesView, name='editar_variables'),
+     path('editar_variables/', views.editar_variablesView, name='editar_variables'),
      
-
      # Consultas
      path('estado_cuentas/<int:id>/<desde>/<fecha_ini>/<fecha_fin>/', views.Estado_cuentaView, name='estado_cuenta'),
      path('estado_cuentas_detalle_doc/<int:id>/<xDoc>/<xMonto>/', views.estado_cuentas_detalle_docView, name='estado_cuentas_detalle_doc'),
@@ -69,7 +71,6 @@ urlpatterns = [
      path('validar_comision/', views.validar_comisionView, name='validar_comision'),
      path('cerrar_comision/', views.cerrar_comisionView, name='cerrar_comision'),
      path('comisiones_generales/<int:xPeriodo>/', views.comisiones_generalesView, name='comisiones_generales'),
-
 
      # ajax
      path('validar_numero/', views.Validar_numeroView, name='validar_numero'), 
@@ -96,8 +97,13 @@ urlpatterns = [
      path('cargar-inventario/', views.cargar_inventarioView, name='cargar_inventario'),
      path('pedidos_tomar/', views.pedidos_tomarView, name='pedidos_tomar'),
 
-
-
-     # Migrar
-    #  path('e/', views.MigrarView, name='migrar'), 
+     #imagenes
+     path('subir_comprobante/<int:pago_id>/', views.SubirComprobanteView, name='subir_comprobante'),
 ]
+
+# Imagenes media
+if settings.DEBUG:
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT
+    )
