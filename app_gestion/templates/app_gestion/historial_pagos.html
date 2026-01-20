@@ -94,8 +94,7 @@ M1 | Historial de pagos
                                 <td>
                                     {{ xPago.forma__forma }}
                                     <a href="#">
-                                        <i class="bi bi-search" style="font-size: small;" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true" data-bs-title="<b>Bs. {{xPago.monto}}</b> <br> (Tasa {{xPago.tasa}})"></i>
-                                    </a>
+                                <i class="bi bi-search" style="font-size: small;" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true" data-bs-title="<b>Bs. {{ xPago.monto|darFormato }}</b> <br> (Tasa {{ xPago.tasa|darFormato }})"></i>                                    </a>
                                 </td>
                             {% else %}
                                 <td>{{ xPago.forma__forma }}</td>
@@ -167,14 +166,16 @@ M1 | Historial de pagos
 
 <!-- Modal para ver comprobante -->
 <div class="modal fade" id="modalVerComprobante" tabindex="-1">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: fit-content;">
+        <div class="modal-content" style="width: auto;">
             <div class="modal-header">
                 <h5 class="modal-title" style="color:#012970">Comprobante de Pago</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body text-center">
-                <img id="imgComprobante" src="" style="max-width: 100%; max-height: 80vh;" />
+            <div class="modal-body text-center" style="padding: 20px; overflow: auto; max-height: 85vh;">
+                <img id="imgComprobante" src="" 
+                     style="max-width: 90vw; max-height: 80vh; width: auto; height: auto; cursor: zoom-in; transition: all 0.3s ease;" 
+                     onclick="toggleZoom(this)" />
             </div>
         </div>
     </div>
@@ -272,6 +273,24 @@ M1 | Historial de pagos
         const imgElement = document.getElementById('imgComprobante');
         imgElement.src = url;
         new bootstrap.Modal(document.getElementById('modalVerComprobante')).show();
+    }
+
+    function toggleZoom(img) {
+        if (img.style.maxWidth === 'none') {
+            // Volver al tamaño ajustado
+            img.style.maxWidth = '90vw';
+            img.style.maxHeight = '80vh';
+            img.style.cursor = 'zoom-in';
+            img.style.width = 'auto';
+            img.style.height = 'auto';
+        } else {
+            // Zoom al tamaño real
+            img.style.maxWidth = 'none';
+            img.style.maxHeight = 'none';
+            img.style.cursor = 'zoom-out';
+            img.style.width = 'auto';
+            img.style.height = 'auto';
+        }
     }
 
     function abrir_subir_comprobante(pago_id) {

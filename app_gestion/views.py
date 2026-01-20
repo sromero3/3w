@@ -1429,7 +1429,7 @@ def historial_pagosView(request, xCliente, fecha_ini, fecha_fin):
     
     if request.method == 'GET':
         # print("--------- Parametros recibidos GET ----------") 
-        fecha_ini  = date.today() - timedelta(days=90)
+        fecha_ini  = date.today() - timedelta(days=30)
         fecha_fin  = date.today() 
         xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
         xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
