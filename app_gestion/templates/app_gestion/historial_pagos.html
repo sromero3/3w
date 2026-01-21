@@ -56,6 +56,7 @@ M1 | Historial de pagos
                             <th>Monto $</th>
                             <th>Doc</th>
                             <th>Opcion</th>
+                            <th>Imagen</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -113,6 +114,7 @@ M1 | Historial de pagos
                                 </a>
                             </td>
                             <td class="text-center" style="width:50px">
+
                                 {% if xPago.tipo == 1 %}
                                     <a href="{% url 'pago_cuenta_corregir' xPago.id xPago.forma_id %}">
                                         <i class="bi bi-pencil" style="font-size: small;"></i>
@@ -125,17 +127,29 @@ M1 | Historial de pagos
                                 <a href="{% url 'pago_reversar' xPago.id %}" title="Reversar pago">
                                     <i class="bi bi-arrow-counterclockwise"></i>
                                 </a>
-                               {% if xPago.comprobante %}
-                                    <a href="javascript:void(0);" data-comprobante-url="/media/{{ xPago.comprobante }}" onclick="abrir_comprobante_modal(this)">
+                            </td>
+
+                            <td class="text-center" style="width:50px">
+                                {% if xPago.comprobante %}
+                                    <!-- Ver comprobante -->
+                                    <a href="javascript:void(0);" 
+                                    data-comprobante-url="/media/{{ xPago.comprobante }}" 
+                                    onclick="abrir_comprobante_modal(this)">
                                         <i class="bi bi-file-image" title="Ver comprobante"></i>
                                     </a>
+
+                                    <!-- Reemplazar comprobante -->
+                                    <a href="javascript:abrir_subir_comprobante('{{ xPago.id }}')" 
+                                    title="Reemplazar comprobante">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    </a>
                                 {% else %}
+                                    <!-- Subir comprobante -->
                                     <a href="javascript:abrir_subir_comprobante('{{ xPago.id }}')">
                                         <i class="bi bi-upload" title="Subir comprobante"></i>
                                     </a>
                                 {% endif %}
-
-                            </td>
+                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
