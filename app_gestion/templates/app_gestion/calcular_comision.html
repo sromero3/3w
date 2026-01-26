@@ -453,12 +453,13 @@ M1 | Calcular comisiones
                 $.each(data2, function (key, item) {
 
 
-                    let dias = item.dias_v * 1
-                    if (dias < - 15) {
-                        xPorcentaje = 4 / 2
-                    } else {
-                        xPorcentaje = 4
-                    }
+                   // let dias = item.dias_v * 1
+                   // if (dias < - 15) {
+                   //     xPorcentaje = 4 / 2
+                   // } else {
+                   //     xPorcentaje = 4
+                   // }
+                    xPorcentaje = 4
 
                     let comision_predeterminada = item.base * xPorcentaje / 100;
                     xPorcentaje = darFormato(xPorcentaje)

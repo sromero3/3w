@@ -2620,7 +2620,7 @@ def comisiones_calculadasView(request, xPeriodo, xStatus, xVendedor):
     xVendedor_seleccionado = xVendedor
 
     xVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
-    xPeriodos = Periodo.objects.all().order_by('-numero_semana')
+    xPeriodos = Periodo.objects.all().order_by('-hasta')
 
     if request.method == 'POST':
         # print("--------- Parametros recibidos POST ----------")
@@ -2657,22 +2657,78 @@ def comisiones_calculadasView(request, xPeriodo, xStatus, xVendedor):
     return render(request, 'app_gestion/comisiones_calculadas.html', context)
     
 
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from datetime import date
+from .models import ComisionCabecera, ComisionDetalle, Documento, Pago_detalle
+
 @login_required
 def ver_comisionView(request, xComi):
     xUsuario = request.user
-    xComisionCabecera = ComisionCabecera.objects.values('id','periodo_id','creado','periodo__numero_semana','periodo__desde','periodo__hasta','vendedor_id','vendedor__nombre','total_comi_bs','total_comi_usd').get(id=xComi)
-    
-   # Detalles en bolívares (tasa > 0)
-    xComisiones_bs = ComisionDetalle.objects.filter(
-        comision_id=xComi,
-        tasa__gt=0
+    # Cabecera de la comisión
+    xComisionCabecera = get_object_or_404(
+        ComisionCabecera.objects.values(
+            'id','periodo_id','creado','periodo__numero_semana',
+            'periodo__desde','periodo__hasta','vendedor_id',
+            'vendedor__nombre','total_comi_bs','total_comi_usd'
+        ),
+        id=xComi
     )
 
+    # Detalles en bolívares (tasa > 0)
+    detalles_bs = ComisionDetalle.objects.filter(comision_id=xComi, tasa__gt=0)
+    xComisiones_bs = []
+
+    for detalle in detalles_bs:
+        # Tomamos documento
+        try:
+            doc = Documento.objects.get(numero=detalle.documento)
+            detalle.vencimiento = doc.vencimiento
+            detalle.documento_id_real = doc.id
+        except Documento.DoesNotExist:
+            detalle.vencimiento = None
+            detalle.documento_id_real = None
+
+        # Último pago en Pago_detalle
+        ultimo_pago_detalle = Pago_detalle.objects.filter(documento_id=detalle.documento_id_real).order_by('-id').first()
+        if ultimo_pago_detalle:
+            detalle.fecha_ultimo_pago = ultimo_pago_detalle.pago.fecha
+            if detalle.vencimiento:
+                detalle.dias_vencidos = (detalle.vencimiento - ultimo_pago_detalle.pago.fecha).days
+            else:
+                detalle.dias_vencidos = None
+        else:
+            detalle.fecha_ultimo_pago = None
+            detalle.dias_vencidos = None
+
+        xComisiones_bs.append(detalle)
+
     # Detalles en dólares (tasa == 0)
-    xComisiones_usd = ComisionDetalle.objects.filter(
-        comision_id=xComi,
-        tasa=0
-    )
+    detalles_usd = ComisionDetalle.objects.filter(comision_id=xComi, tasa=0)
+    xComisiones_usd = []
+
+    for detalle in detalles_usd:
+        try:
+            doc = Documento.objects.get(numero=detalle.documento)
+            detalle.vencimiento = doc.vencimiento
+            detalle.documento_id_real = doc.id
+        except Documento.DoesNotExist:
+            detalle.vencimiento = None
+            detalle.documento_id_real = None
+
+        ultimo_pago_detalle = Pago_detalle.objects.filter(documento_id=detalle.documento_id_real).order_by('-id').first()
+        if ultimo_pago_detalle:
+            detalle.fecha_ultimo_pago = ultimo_pago_detalle.pago.fecha
+            if detalle.vencimiento:
+                detalle.dias_vencidos = (detalle.vencimiento - ultimo_pago_detalle.pago.fecha).days
+            else:
+                detalle.dias_vencidos = None
+        else:
+            detalle.fecha_ultimo = None
+            detalle.dias_vencidos = None
+
+        xComisiones_usd.append(detalle)
+
     context = {
         'xUsuario': xUsuario,
         'xComisionCabecera': xComisionCabecera,
@@ -2680,6 +2736,8 @@ def ver_comisionView(request, xComi):
         'xComisiones_usd': xComisiones_usd,
     }
     return render(request, 'app_gestion/ver_comision.html', context)
+
+
 
 @login_required
 def rev_comisionView(request, xComi):
