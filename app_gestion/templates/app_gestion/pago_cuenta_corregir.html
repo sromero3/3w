@@ -132,7 +132,7 @@ M1 | Pago a cuenta
             document.getElementById('banco_destino').removeAttribute("required")
         }
 
-        if (xForma == 3) {// Transferencia zelle
+        if (document.getElementById('forma').value == 3 || document.getElementById('forma').value == 10) { // Zelle o Binance
             document.getElementById("div_ref").removeAttribute('hidden')
             document.getElementById("div_ban").removeAttribute('hidden')
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
