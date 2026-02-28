@@ -635,7 +635,7 @@ def cobranzaView(request, xCliente, xVendedor, xIva, xVencido):
          xDocumentos=qDocumentos.filter(cliente_id__vendedor_id=xVendedor_seleccionado, iva_id=xIva_seleccionado, cliente_id=xCliente_seleccionado)
     
     xDoc_encontrados = xDocumentos.count()
- 
+    
     context = {
         'xUsuario': xUsuario,
         'xDocumentos': xDocumentos,
@@ -993,32 +993,52 @@ def Validar_numeroView(request):
 @login_required
 def Actualizar_fechasView(request):
     # parametros
-    id =  request.POST.get('campo')
-    data = {'status': True}
+    id = request.POST.get('campo')
     f = request.POST.get('f')
     v = request.POST.get('v')
+    m = request.POST.get('m')
+    
+    # ✅ DEBUG
+    print("=== DATOS RECIBIDOS EN BACKEND ===")
+    print(f"ID: {id}")
+    print(f"Fecha: {f}")
+    print(f"Vencimiento: {v}")
+    print(f"Monto recibido: {m} (tipo: {type(m)})")
+    
+    data = {'status': True}
     fecha_actual = datetime.now()
-    # Obtengo el registro a editar
+    
     try:
         documento = Documento.objects.get(id=id)
-        # print("Encontrado el Documento: ",documento.id)
-    except documento.DoesNotExist:
+        print(f"Documento encontrado - Monto actual: {documento.monto}")
+    except Documento.DoesNotExist:
         data = {'status': False}
+        return JsonResponse(data, safe=False)
+
+    if m:
+        try:
+            monto_num = quitarFormato(m)
+            print(f"Monto después de quitarFormato: {monto_num} (tipo: {type(monto_num)})")
+            documento.monto = monto_num
+        except Exception as e:
+            print(f"ERROR al convertir monto: {e}")
     
     # actualizo las fechas
     documento.fecha = f
     documento.vencimiento = v
+  
     # Convierto la fecha str a objeto de fecha
     fecha_v = datetime.strptime(v, '%Y-%m-%d')
-    # Resto la fecha de veneciemto de la fecha actual
+    # Resto la fecha de vencimiento de la fecha actual
     diferencia = fecha_v - fecha_actual 
-    documento.dias_v = diferencia.days  + 1
+    documento.dias_v = diferencia.days + 1
     # Actualizo dias de credito
     fecha_f = datetime.strptime(f, '%Y-%m-%d')
-    dias_creito  =  fecha_v - fecha_f
-    documento.credito = dias_creito.days 
+    dias_credito = fecha_v - fecha_f
+    documento.credito = dias_credito.days 
           
     documento.save()
+    print(f"Documento guardado - Nuevo monto: {documento.monto}")
     
     return JsonResponse(data, safe=False)
 

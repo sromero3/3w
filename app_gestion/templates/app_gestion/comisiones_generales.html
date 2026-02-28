@@ -1,46 +1,69 @@
 {% extends "app_gestion/base_m1.html" %}
 {% load static %}
-{% load filtros %}
-
-{% block title %}
-M1 | Comisiones Generales
+{% load filtros %} 
+{%block title %} M1 | Comisiones Generales
 {% endblock %}
-
-{% block styles %}
+{% block styles %} 
 {% endblock styles %}
-
 {% block content %}
 <main id="main" class="main" style="margin-top: 40px">
   <div class="col-lg-12">
-    <div class="card" id="data-section" style="opacity: 0;">
+    <div class="card" id="data-section" style="opacity: 0">
       <div class="card-body">
         <h5 class="card-title">
           Comisiones Generales
           <a href="{% url 'inicio'%}" class="float-end">
-            <i class="bi bi-house-door" title='Cerrar'></i>
+            <i class="bi bi-house-door" title="Cerrar"></i>
           </a>
         </h5>
 
-        <form id="filtros" action="" method="post" class="mb-4" style="width:90%;margin-bottom: 8px !important;">
+        <form
+          id="filtros"
+          action=""
+          method="post"
+          class="mb-4"
+          style="width: 90%; margin-bottom: 8px !important"
+        >
           {% csrf_token %}
           <div class="col-md-6">
             <label class="titulos d-flex ms-2 me-2 mt-1">Semana</label>
-            <select name="periodo" id="periodo" class="form-control custom-select d-flex alto" required onChange="obtener_comisiones()">
+            <select
+              name="periodo"
+              id="periodo"
+              class="form-control custom-select d-flex alto"
+              required
+              onChange="obtener_comisiones()"
+            >
               <option value="0" selected></option>
               {% for xPeriodo in xPeriodos %}
-              <option value="{{ xPeriodo.id }}" 
-                      data-desde="{{ xPeriodo.desde|date:'Y-m-d' }}"
-                      data-semana="{{ xPeriodo.numero_semana}}"
-                      data-hasta="{{ xPeriodo.hasta|date:'Y-m-d' }}" 
-                      {% if xPeriodo.id == xPeriodo_seleccionado %} selected {% endif %}>
-                {{ xPeriodo.numero_semana }} - {{ xPeriodo.desde|date:"d/m/y" }} - {{xPeriodo.hasta|date:"d/m/y" }}
+              <option
+                value="{{ xPeriodo.id }}"
+                data-desde="{{ xPeriodo.desde|date:'Y-m-d' }}"
+                data-semana="{{ xPeriodo.numero_semana}}"
+                data-hasta="{{ xPeriodo.hasta|date:'Y-m-d' }}"
+                {%
+                if
+                xPeriodo.id=""
+                ="xPeriodo_seleccionado"
+                %}
+                selected
+                {%
+                endif
+                %}
+              >
+                {{ xPeriodo.numero_semana }} - {{ xPeriodo.desde|date:"d/m/y" }}
+                - {{xPeriodo.hasta|date:"d/m/y" }}
               </option>
               {% endfor %}
             </select>
           </div>
         </form>
 
-        <table id="comisiones_generales" class="table table-hover table-bordered mt-2" style="width:100%">
+        <table
+          id="comisiones_generales"
+          class="table table-hover table-bordered mt-2"
+          style="width: 100%"
+        >
           <thead>
             <tr>
               <th>Nro. Comision</th>
@@ -77,7 +100,12 @@ M1 | Comisiones Generales
 
         <div class="row justify-content-end">
           <div class="col-auto pt-2">
-            <button id="boton" class="btn btn-primary" style="opacity: 1; width: auto;" onclick="generarPDF()">
+            <button
+              id="boton"
+              class="btn btn-primary"
+              style="opacity: 1; width: auto"
+              onclick="generarPDF()"
+            >
               Generar PDF
             </button>
           </div>
@@ -86,9 +114,7 @@ M1 | Comisiones Generales
     </div>
   </div>
 </main>
-{% endblock content %}
-
-{% block Scripts_Adicionales %}
+{% endblock content %} {% block Scripts_Adicionales %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 
 <script>
@@ -98,99 +124,129 @@ M1 | Comisiones Generales
         footerCallback: function (row, data, start, end) {
           const api = this.api();
 
-          const toNumber = s =>
-            typeof s === 'string'
-              ? parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0
-              : typeof s === 'number'
+          const toNumber = (s) =>
+            typeof s === "string"
+              ? parseFloat(s.replace(/\./g, "").replace(",", ".")) || 0
+              : typeof s === "number"
                 ? s
                 : 0;
 
           /* -------- Col 2 -------- */
-          const col2 = api.column(2).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
-          const TotalCol2 = api.column(2, { page: 'current' })
+          const col2 = api
+            .column(2)
+            .data()
+            .reduce((a, b) => toNumber(a) + toNumber(b), 0);
+          const TotalCol2 = api
+            .column(2, { page: "current" })
             .data()
             .reduce((a, b) => toNumber(a) + toNumber(b), 0);
 
           /* -------- Col 3 -------- */
-          const col3 = api.column(3).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
-          const TotalCol3 = api.column(3, { page: 'current' })
+          const col3 = api
+            .column(3)
+            .data()
+            .reduce((a, b) => toNumber(a) + toNumber(b), 0);
+          const TotalCol3 = api
+            .column(3, { page: "current" })
             .data()
             .reduce((a, b) => toNumber(a) + toNumber(b), 0);
 
           /* -------- Col 4 -------- */
-          const col4 = api.column(4).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
-          const TotalCol4 = api.column(4, { page: 'current' })
+          const col4 = api
+            .column(4)
+            .data()
+            .reduce((a, b) => toNumber(a) + toNumber(b), 0);
+          const TotalCol4 = api
+            .column(4, { page: "current" })
             .data()
             .reduce((a, b) => toNumber(a) + toNumber(b), 0);
 
           /* -------- Col 5 -------- */
-          const col5 = api.column(5).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
-          const TotalCol5 = api.column(5, { page: 'current' })
+          const col5 = api
+            .column(5)
+            .data()
+            .reduce((a, b) => toNumber(a) + toNumber(b), 0);
+          const TotalCol5 = api
+            .column(5, { page: "current" })
             .data()
             .reduce((a, b) => toNumber(a) + toNumber(b), 0);
 
-          const f = n => darFormato(n);
-          $('#col2').html(`<span style="font-size:15px"> ${f(col2)}</span>`);
-          $('#TotalCol2').html(`<span style="font-size:15px"> ${f(TotalCol2)}</span>`);
-          $('#col3').html(`<span style="font-size:15px"> ${f(col3)}</span>`);
-          $('#TotalCol3').html(`<span style="font-size:15px"> ${f(TotalCol3)}</span>`);
-          $('#col4').html(`<span style="font-size:15px"> ${f(col4)}</span>`);
-          $('#TotalCol4').html(`<span style="font-size:15px"> ${f(TotalCol4)}</span>`);
-          $('#col5').html(`<span style="font-size:15px"> ${f(col5)}</span>`);
-          $('#TotalCol5').html(`<span style="font-size:15px"> ${f(TotalCol5)}</span>`);
+          const f = (n) => darFormato(n);
+          $("#col2").html(`<span style="font-size:15px"> ${f(col2)}</span>`);
+          $("#TotalCol2").html(
+            `<span style="font-size:15px"> ${f(TotalCol2)}</span>`,
+          );
+          $("#col3").html(`<span style="font-size:15px"> ${f(col3)}</span>`);
+          $("#TotalCol3").html(
+            `<span style="font-size:15px"> ${f(TotalCol3)}</span>`,
+          );
+          $("#col4").html(`<span style="font-size:15px"> ${f(col4)}</span>`);
+          $("#TotalCol4").html(
+            `<span style="font-size:15px"> ${f(TotalCol4)}</span>`,
+          );
+          $("#col5").html(`<span style="font-size:15px"> ${f(col5)}</span>`);
+          $("#TotalCol5").html(
+            `<span style="font-size:15px"> ${f(TotalCol5)}</span>`,
+          );
         },
 
         language: {
-          "sProcessing": "Procesando...",
-          "sLengthMenu": "Mostrar _MENU_ registros",
-          "sZeroRecords": "No se encontraron resultados",
-          "sEmptyTable": "*** No se encontró información ***",
-          "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-          "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-          "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-          "sInfoPostFix": "",
-          "sSearch": "Buscar:",
-          "sUrl": "",
-          "sInfoThousands": ",",
-          "sLoadingRecords": "Cargando...",
-          "oPaginate": {
-            "sFirst": "Primero",
-            "sLast": "Último",
-            "sNext": "Siguiente",
-            "sPrevious": "Anterior"
+          sProcessing: "Procesando...",
+          sLengthMenu: "Mostrar _MENU_ registros",
+          sZeroRecords: "No se encontraron resultados",
+          sEmptyTable: "*** No se encontró información ***",
+          sInfo:
+            "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+          sInfoEmpty:
+            "Mostrando registros del 0 al 0 de un total de 0 registros",
+          sInfoFiltered: "(filtrado de un total de _MAX_ registros)",
+          sInfoPostFix: "",
+          sSearch: "Buscar:",
+          sUrl: "",
+          sInfoThousands: ",",
+          sLoadingRecords: "Cargando...",
+          oPaginate: {
+            sFirst: "Primero",
+            sLast: "Último",
+            sNext: "Siguiente",
+            sPrevious: "Anterior",
           },
-          "oAria": {
-            "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-            "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+          oAria: {
+            sSortAscending:
+              ": Activar para ordenar la columna de manera ascendente",
+            sSortDescending:
+              ": Activar para ordenar la columna de manera descendente",
           },
-          "buttons": {
-            "copy": "Copiar",
-            "colvis": "Visibilidad"
-          }
+          buttons: {
+            copy: "Copiar",
+            colvis: "Visibilidad",
+          },
         },
-        "ordering": true,
-        "responsive": true,
-        "lengthChange": true,
-        "autoWidth": true,
-        "pageLength": 50,
-        "scrollX": true,
-        "order": [[1, "asc"]],
-        "columnDefs": [{
-          "targets": [],
-          "orderable": false
-        }]
+        ordering: true,
+        responsive: true,
+        lengthChange: true,
+        autoWidth: true,
+        pageLength: 50,
+        scrollX: true,
+        order: [[1, "asc"]],
+        columnDefs: [
+          {
+            targets: [],
+            orderable: false,
+          },
+        ],
       });
     });
 
     // Mostrar con transición
     setTimeout(() => {
-      document.getElementById('data-section').style.opacity = 1;
+      document.getElementById("data-section").style.opacity = 1;
     }, 200);
   });
 
   function obtener_comisiones() {
-    const periodo = document.getElementById('periodo');
-    if (periodo && periodo.value !== '') {
+    const periodo = document.getElementById("periodo");
+    if (periodo && periodo.value !== "") {
       filtros.action = `/comisiones_generales/${periodo.value}/`;
       filtros.submit();
     }
@@ -198,8 +254,10 @@ M1 | Comisiones Generales
 
   function agregarPieDePagina(data) {
     const doc = data.doc;
-    const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
-    const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
+    const pageHeight =
+      doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
+    const pageWidth =
+      doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
     const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
     const totalPages = doc.internal.getNumberOfPages();
 
@@ -214,7 +272,7 @@ M1 | Comisiones Generales
     doc.setTextColor(120);
 
     doc.text(titulo, tituloX, pageHeight - 5);
-    doc.text(paginaTexto, paginaX, pageHeight - 5, { align: 'right' });
+    doc.text(paginaTexto, paginaX, pageHeight - 5, { align: "right" });
   }
 
   async function generarPDF(btn) {
@@ -238,36 +296,47 @@ M1 | Comisiones Generales
 
     // Fechas
     doc.setFontSize(10);
-    doc.text(`Desde: ${new Date(desde).toLocaleDateString('es-VE', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    })}`, 14, y);
+    doc.text(
+      `Desde: ${new Date(desde).toLocaleDateString("es-VE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })}`,
+      14,
+      y,
+    );
     y += 6;
 
-    doc.text(`Hasta: ${new Date(hasta).toLocaleDateString('es-VE', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    })}`, 14, y);
+    doc.text(
+      `Hasta: ${new Date(hasta).toLocaleDateString("es-VE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })}`,
+      14,
+      y,
+    );
 
     // Tabla de comisiones
     doc.autoTable({
-      html: '#comisiones_generales',
+      html: "#comisiones_generales",
       startY: y + 4,
-      theme: 'grid',
+      theme: "grid",
       headStyles: { fillColor: [1, 31, 58] },
-      footStyles: { fillColor: [16, 100, 173] },
+      footStyles: {
+        fillColor: false,
+        textColor: 0
+      },
       styles: {
         fontSize: 9,
-        overflow: 'linebreak',
-        halign: 'right',
+        overflow: "linebreak",
+        halign: "right",
       },
       columnStyles: {
-        0: { halign: 'center' },
-        1: { halign: 'left' },
+        0: { halign: "center" },
+        1: { halign: "left" },
       },
-      didDrawPage: agregarPieDePagina
+      didDrawPage: agregarPieDePagina,
     });
 
     // Firmas
@@ -286,7 +355,7 @@ M1 | Comisiones Generales
     doc.line(35, finalY, 95, finalY);
     doc.line(120, finalY, 180, finalY);
 
-    if (typeof doc.putTotalPages === 'function') {
+    if (typeof doc.putTotalPages === "function") {
       doc.putTotalPages(totalPagesExp);
     }
 

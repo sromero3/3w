@@ -449,6 +449,7 @@ function generarPDF_oficina() {
   const totalPagesExp = "{total_pages_count_string}";
   let y = 10;
 
+  // Encabezado
   doc.setFontSize(14);
   doc.text("Comisiones Semana: ", 14, y);
   const semana = "{{ xComisionCabecera.periodo__numero_semana }}";
@@ -466,6 +467,7 @@ function generarPDF_oficina() {
   doc.text(`Vendedor: ${vendedor}`, 14, y);
   y += 6;
 
+  // Título Comisiones BS
   const tituloBs = "COMISIONES EN BOLÍVARES";
   const widthTituloBs = doc.getTextWidth(tituloBs);
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -473,9 +475,10 @@ function generarPDF_oficina() {
   doc.text(tituloBs, xTituloBs, y);
   y += 4;
 
+  // Tabla BS (solo hasta Base Imp.)
   doc.autoTable({
     startY: y,
-    head: [["Fecha Doc.", "Nro. Doc.", "DV.", "Cliente", "Tasa", "Base Imp.", "%", "Comisión BS"]],
+    head: [["Fecha Doc.", "Nro. Doc.", "DV.", "Cliente", "Tasa", "Base Imp."]],
     body: [
       {% for x in xComisiones_bs %}
       [
@@ -485,8 +488,6 @@ function generarPDF_oficina() {
         { content: "{{ x.cliente_nombre }}", styles: { width: '400px' } },
         { content: "{{ x.tasa|darFormato }}", styles: { halign: 'right' } },
         { content: "{{ x.base_impo|darFormato }}", styles: { halign: 'right' } },
-        { content: "{{ x.porcentaje|darFormato }}", styles: { halign: 'right' } },
-        { content: "{{ x.comision_calculada|darFormato }}", styles: { halign: 'right' } }
       ],
       {% endfor %}
     ],
@@ -496,42 +497,23 @@ function generarPDF_oficina() {
     didDrawPage: agregarPieDePagina
   });
 
-  // Totales BS
+  // Totales BS en última columna
   const tablaActual = doc.lastAutoTable;
   y = tablaActual.finalY + 5;
-
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
-
   doc.text("TOTALES:", tablaActual.settings.margin.left, y);
 
-  // ✅ Calcular posición x dinámica para "Base Imp." BS
   const columns = tablaActual.columns;
   const marginLeft = tablaActual.settings.margin.left;
-  let xBaseImpBs = marginLeft;
-  for (let i = 0; i < 5; i++) {
-    xBaseImpBs += columns[i].width;
+  let xTotalBs = marginLeft;
+  for (let i = 0; i < columns.length; i++) {
+    xTotalBs += columns[i].width;
   }
-  xBaseImpBs += columns[5].width - 2;
-
-  // Imprimir totalBaseBs
-  doc.text(
-    totalBaseBs,
-    xBaseImpBs,
-    y,
-    { align: "right" }
-  );
-
-  // Calcular posición para "Comisión BS" (columna 7)
-  let xComisionBs = marginLeft;
-  for (let i = 0; i < 7; i++) {
-    xComisionBs += columns[i].width;
-  }
-  xComisionBs += columns[7].width - 2;
 
   doc.text(
     "{{ xComisionCabecera.total_comi_bs|darFormato }}",
-    xComisionBs,
+    xTotalBs,
     y,
     { align: "right" }
   );
@@ -539,7 +521,7 @@ function generarPDF_oficina() {
   doc.setFont("helvetica", "normal");
   y += 10;
 
-  // Bloque dólares
+  // Título Comisiones USD
   const tituloUsd = "COMISIONES EN DOLARES";
   const widthTituloUsd = doc.getTextWidth(tituloUsd);
   const xTituloUsd = (pageWidth - widthTituloUsd) / 2;
@@ -547,9 +529,10 @@ function generarPDF_oficina() {
   doc.text(tituloUsd, xTituloUsd, y);
   y += 4;
 
+  // Tabla USD (solo hasta Base Imp.)
   doc.autoTable({
     startY: y,
-    head: [["Fecha Doc.", "Nro. Doc.", "DV.", "Cliente", "Tasa", "Base Imp.", "%", "Comisión USD"]],
+    head: [["Fecha Doc.", "Nro. Doc.", "DV.", "Cliente", "Tasa", "Base Imp."]],
     body: [
       {% for x in xComisiones_usd %}
       [
@@ -559,8 +542,6 @@ function generarPDF_oficina() {
         { content: "{{ x.cliente_nombre }}", styles: { width: '400px' } },
         { content: "-", styles: { halign: 'center' } },
         { content: "{{ x.base_impo|darFormato }}", styles: { halign: 'right' } },
-        { content: "{{ x.porcentaje|darFormato }}", styles: { halign: 'right' } },
-        { content: "{{ x.comision_calculada|darFormato }}", styles: { halign: 'right' } }
       ],
       {% endfor %}
     ],
@@ -570,53 +551,34 @@ function generarPDF_oficina() {
     didDrawPage: agregarPieDePagina
   });
 
-  // Totales USD
+  // Totales USD en última columna
   y = doc.lastAutoTable.finalY + 5;
-
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
+  doc.text("TOTALES:", doc.lastAutoTable.settings.margin.left, y);
 
-  doc.text("TOTALES:", tablaActual.settings.margin.left, y);
-
-  // ✅ Calcular posición x dinámica para "Base Imp." USD
   const columnsUsd = doc.lastAutoTable.columns;
   const marginLeftUsd = doc.lastAutoTable.settings.margin.left;
-  let xBaseImpUsd = marginLeftUsd;
-  for (let i = 0; i < 5; i++) {
-    xBaseImpUsd += columnsUsd[i].width;
+  let xTotalUsd = marginLeftUsd;
+  for (let i = 0; i < columnsUsd.length; i++) {
+    xTotalUsd += columnsUsd[i].width;
   }
-  xBaseImpUsd += columnsUsd[5].width - 2;
-
-  // Imprimir totalBaseUsd
-  doc.text(
-    totalBaseUsd,
-    xBaseImpUsd,
-    y,
-    { align: "right" }
-  );
-
-  // Calcular posición para "Comisión USD" (columna 7)
-  let xComisionUsd = marginLeftUsd;
-  for (let i = 0; i < 7; i++) {
-    xComisionUsd += columnsUsd[i].width;
-  }
-  xComisionUsd += columnsUsd[7].width - 2;
 
   doc.text(
     "{{ xComisionCabecera.total_comi_usd|darFormato }}",
-    xComisionUsd,
+    xTotalUsd,
     y,
     { align: "right" }
   );
 
   y += 20;
 
+  // Firmas
   doc.setFontSize(10);
   doc.text("Procesado por:", 52, y);
   doc.text("Aprobado por:", 137, y);
   y += 15;
 
-  doc.setFontSize(10);
   doc.text("Hibelis Palmar", 65, y - 5, { align: "center" });
   doc.text("Maria Alejandra Mendez", 150, y - 5, { align: "center" });
   doc.line(35, y, 95, y);
