@@ -125,6 +125,13 @@ M1 | Estado de cuenta
                         </tr> -->
                     </tfoot>
                 </table>
+                <div class="row justify-content-end">
+                <div class="col-auto pt-2">
+                    <button class="btn btn-primary" style="width: auto" onclick="generarPDF()">
+                        Generar PDF
+                    </button>
+                </div>
+            </div>
             </div>
         </div>
     </div>
@@ -147,6 +154,7 @@ M1 | Estado de cuenta
 </div>
 {% endblock content %}
 {% block Scripts_Adicionales %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
     $(document).ready(function () {
         $(function () {
@@ -250,6 +258,91 @@ M1 | Estado de cuenta
             img.style.height = 'auto';
         }
     }
+
+    function agregarPieDePagina(data) {
+    const doc = data.doc;
+    const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
+    const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
+    const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
+    const totalPages = doc.internal.getNumberOfPages();
+
+    const titulo = "SISTEMA DE GESTIÓN EMPRESARIAL";
+    const tituloWidth = doc.getTextWidth(titulo);
+    const tituloX = (pageWidth - tituloWidth) / 2;
+
+    const paginaTexto = `Página ${pageNumber} de ${totalPages}`;
+
+    doc.setFontSize(8);
+    doc.setTextColor(120);
+    doc.text(titulo, tituloX, pageHeight - 5);
+    doc.text(paginaTexto, pageWidth - 14, pageHeight - 5, { align: "right" });
+}
+
+function generarPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const totalPagesExp = "{total_pages_count_string}";
+    let y = 10;
+
+    // Datos del encabezado
+    const clienteEl = document.getElementById("cliente");
+    const clienteNombre = clienteEl.tagName === 'SELECT'
+    ? clienteEl.options[clienteEl.selectedIndex].text
+    : clienteEl.value || "Todos";;
+    const fechaIni = document.getElementById("fecha_ini").value;
+    const fechaFin = document.getElementById("fecha_fin").value;
+    
+    const fechaHoy = new Date().toLocaleString("es-VE");
+
+    const formatFecha = (f) => {
+        if (!f) return '-';
+        const d = new Date(f);
+        return d.toLocaleDateString("es-VE", { day: "2-digit", month: "2-digit", year: "numeric" });
+    }
+
+    // Título
+    doc.setFontSize(14);
+    doc.text("Estado de Cuenta", 14, y);
+    y += 8;
+
+    // Datos del encabezado
+    doc.setFontSize(10);
+    doc.text(`Cliente: ${clienteNombre}`, 14, y);
+    y += 6;
+    doc.text(`Desde: ${formatFecha(fechaIni)}`, 14, y);
+    y += 6;
+    doc.text(`Hasta: ${formatFecha(fechaFin)}`, 14, y);
+    y += 6;
+  
+    doc.text(`Generado: ${fechaHoy}`, 14, y);
+
+    // Tabla
+    doc.autoTable({
+        html: "#asientos",
+        startY: y + 4,
+        theme: "grid",
+        headStyles: { fillColor: [1, 31, 58] },
+        styles: {
+            fontSize: 9,
+            overflow: "linebreak",
+            halign: "right",
+        },
+        columnStyles: {
+            0: { halign: "center" },  // Fecha
+            1: { halign: "left" },    // Referencia
+            2: { halign: "center" },  // Forma de pago
+            3: { halign: "center" },  // Cta. destino
+            4: { halign: "center" },  // d/c
+        },
+        didDrawPage: agregarPieDePagina,
+    });
+
+    if (typeof doc.putTotalPages === "function") {
+        doc.putTotalPages(totalPagesExp);
+    }
+
+    doc.save(`Estado de Cuenta - ${clienteNombre}.pdf`);
+}
 
 </script>
 {% endblock Scripts_Adicionales %}

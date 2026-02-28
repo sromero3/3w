@@ -993,53 +993,63 @@ def Validar_numeroView(request):
 @login_required
 def Actualizar_fechasView(request):
     # parametros
-    id = request.POST.get('campo')
+    id =  request.POST.get('campo')
+    data = {'status': True}
     f = request.POST.get('f')
     v = request.POST.get('v')
-    m = request.POST.get('m')
-    
-    # ✅ DEBUG
-    print("=== DATOS RECIBIDOS EN BACKEND ===")
-    print(f"ID: {id}")
-    print(f"Fecha: {f}")
-    print(f"Vencimiento: {v}")
-    print(f"Monto recibido: {m} (tipo: {type(m)})")
-    
-    data = {'status': True}
     fecha_actual = datetime.now()
-    
+    # Obtengo el registro a editar
     try:
         documento = Documento.objects.get(id=id)
-        print(f"Documento encontrado - Monto actual: {documento.monto}")
-    except Documento.DoesNotExist:
+        # print("Encontrado el Documento: ",documento.id)
+    except documento.DoesNotExist:
         data = {'status': False}
-        return JsonResponse(data, safe=False)
-
-    if m:
-        try:
-            monto_num = quitarFormato(m)
-            print(f"Monto después de quitarFormato: {monto_num} (tipo: {type(monto_num)})")
-            documento.monto = monto_num
-        except Exception as e:
-            print(f"ERROR al convertir monto: {e}")
     
     # actualizo las fechas
     documento.fecha = f
     documento.vencimiento = v
-  
     # Convierto la fecha str a objeto de fecha
     fecha_v = datetime.strptime(v, '%Y-%m-%d')
-    # Resto la fecha de vencimiento de la fecha actual
+    # Resto la fecha de veneciemto de la fecha actual
     diferencia = fecha_v - fecha_actual 
-    documento.dias_v = diferencia.days + 1
+    documento.dias_v = diferencia.days  + 1
     # Actualizo dias de credito
     fecha_f = datetime.strptime(f, '%Y-%m-%d')
-    dias_credito = fecha_v - fecha_f
-    documento.credito = dias_credito.days 
+    dias_creito  =  fecha_v - fecha_f
+    documento.credito = dias_creito.days 
           
     documento.save()
-    print(f"Documento guardado - Nuevo monto: {documento.monto}")
     
+    return JsonResponse(data, safe=False)
+
+@login_required
+def Actualizar_montoView(request):
+    # parametros
+    id = request.POST.get('reg_id')
+    monto = request.POST.get('monto')
+    data = {'status': True}
+
+    # Obtengo el registro a editar
+    try:
+        documento = Documento.objects.get(id=id)
+    except Documento.DoesNotExist:
+        data = {'status': False}
+        return JsonResponse(data, safe=False)
+
+    # Trazabilidad
+    hoy = datetime.now()
+    hoyStr = hoy.strftime('%d/%m/%Y %H:%M')
+    monto_anterior = darFormato(documento.monto)
+    monto_nuevo = darFormato(Decimal(monto))
+
+    documento.seguimiento = documento.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" + "</b>"
+    documento.seguimiento = documento.seguimiento + "&nbsp Corrigió monto de: " + monto_anterior + " a " + monto_nuevo + "<br>"
+
+    # Actualizo el monto
+    documento.monto = monto
+    documento.actualizado = hoy
+    documento.save()
+
     return JsonResponse(data, safe=False)
 
 
@@ -3276,4 +3286,5 @@ def SubirComprobanteView(request, pago_id):
             messages.error(request, f"Error al subir el comprobante: {str(e)}")
     
     # Redirigir de vuelta al historial (ajusta la URL según tu configuración)
-    return redirect('historial_pagos', 0, ' ', ' ')  
+    return redirect('historial_pagos', 0, ' ', ' ') 
+

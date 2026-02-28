@@ -91,8 +91,8 @@ urlpatterns = [
      path('aplicar_descuento/', views.aplicar_descuentoView, name='aplicar_descuento'),
      path('marcar_recibido/', views.marcar_recibidoView, name='marcar_recibido'),
      path('buscar_excedente/', views.buscar_excedenteView, name='buscar_excedente'), 
+     path('actualizar_monto/', views.Actualizar_montoView, name='actualizar_monto'),
   
-
      # Ventas
      path('cargar-inventario/', views.cargar_inventarioView, name='cargar_inventario'),
      path('pedidos_tomar/', views.pedidos_tomarView, name='pedidos_tomar'),

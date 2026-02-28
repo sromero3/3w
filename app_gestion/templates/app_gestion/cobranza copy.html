@@ -91,6 +91,7 @@ M1 | Cobranza
                             <th>Monto</th>
                             <th>Abonado</th>
                             <th>Pendiente</th>
+                            <!-- <th>Ciudad</th> -->
                             <th style="width:150px">Vendedor</th>
                             <th style="width:100px">Iva</th>
                             <th style="width:90px">Condición</th>
@@ -121,11 +122,11 @@ M1 | Cobranza
                             <td>{{xDocumento.cliente__nombre}}</td>
                             <td align="right">
                                 {{xDocumento.monto|darFormato}}
-                                <a href="javascript:abrir_modalMonto(
-                                    '{{xDocumento.monto}}',
-                                    '{{xDocumento.abonado}}',
-                                    '{{xDocumento.id}}'
-                                )">
+                            <a href="javascript:abrir_modalMonto(
+                                '{{xDocumento.monto}}',
+                                '{{xDocumento.abonado}}',
+                                '{{xDocumento.id}}'
+                            )">
                                     <i class="bi bi-pencil" style="font-size: small;"></i>
                                 </a>
                             </td>
@@ -254,6 +255,7 @@ M1 | Cobranza
     </div> <!-- fin modal-dialog -->
 </div><!-- fin modal-->
 
+
 <!-------------------------------------- Modal monto  ----------------------------------------->
 <button type="button" id="modal_monto" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#smallModalMonto" hidden>
     Small Modal Monto
@@ -271,10 +273,10 @@ M1 | Cobranza
                     <input type="text" id="modal_m_actual_monto" class="form-control alto input-numero" readonly />
 
                     <span class="titulos mt-2">Nuevo Monto</span>
-                    <input type="text" id="modal_m_nuevo_monto"
-                        class="form-control alto input-numero"
-                        placeholder="0,00"
-                        required />
+                    <input type="text" id="modal_m_nuevo_monto" 
+                    class="form-control alto input-numero" 
+                    placeholder="0,00" 
+                    required />
 
                     <input type="hidden" id="modal_i_monto">
                     <input type="hidden" id="modal_total_hidden_monto">
@@ -315,7 +317,7 @@ M1 | Cobranza
                         .column(7)
                         .data()
                         .reduce(function (a, b) {
-                            b = b.replace(".", "") // Eliminado el punto en la unidad de mil
+                            b = b.replace(".", "") // Eliminado el punto en la undad de mil
                             //  console.log('Monto: ', intVal(b),' Acumulador: ', intVal(a))
                             return intVal(a) + intVal(b)
                         }, 0)
@@ -324,7 +326,7 @@ M1 | Cobranza
                         .column(7, { page: 'current' })
                         .data()
                         .reduce(function (a, b) {
-                            b = b.replace(".", "") // Eliminado el punto en la unidad de mil
+                            b = b.replace(".", "") // Eliminado el punto en la undad de mil
                             return intVal(a) + intVal(b)
                         }, 0)
                     // Update footer
@@ -334,6 +336,7 @@ M1 | Cobranza
 
                     $('#pt').html('<span style="font-size: 15px">$' + pt + '</span>')
                     $('#t').html('<span style="font-size: 15px">$' + t + '</span>')
+
                 },
                 language: {
                     "sProcessing": "Procesando...",
@@ -363,6 +366,7 @@ M1 | Cobranza
                         "colvis": "Visibilidad"
                     }
                 },
+
                 "ordering": false,
                 "responsive": true,
                 "lengthChange": true,
@@ -400,32 +404,31 @@ M1 | Cobranza
     });
 
 
-    // obtener documentos
+    // obtener docuemntos
     function obtener_documentos() {
         // console.log(document.getElementById('cliente').value)
+        let ven
         const checkBox = document.getElementById("vencido")
-        const ven = checkBox.checked ? "1" : "0"
+        if (checkBox.checked == true) {
+            ven = "1"
+        } else {
+            ven = "0"
+        }
 
         filtros.action = `/cobranza/${cliente.value}/${vendedor.value}/${iva.value}/${ven}/`
         if (document.getElementById('cliente').value != '') {
             filtros.submit()
         }
-    } // fin obtener documentos
+
+    } // fin obtener docuemntos
 
     // tool tip
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
-    // document load
+    // documente load
     document.addEventListener('DOMContentLoaded', function () {
 
-        checkPattern("modal_m_nuevo_monto")
-
-        // Declaracion unica de cliente_select e id_cliente para todo el bloque
-        const cliente_select = document.getElementById("cliente")
-        const id_cliente = cliente_select.options[cliente_select.selectedIndex].value
-
-        // Listener para ocultar alerta al hacer focus en el input de nuevo monto
         const inputMonto = document.getElementById('modal_m_nuevo_monto');
         if (inputMonto) {
             inputMonto.addEventListener('focus', function () {
@@ -433,31 +436,38 @@ M1 | Cobranza
                 if (alerta) alerta.style.display = 'none';
             });
         }
+        
 
-        // Construir URLs de pago si hay documentos y hay un cliente seleccionado
-        if (Number(document.getElementById("xDoc_encontrados").value) > 0 && id_cliente != "0") {
-            const texto_cliente = cliente_select.options[cliente_select.selectedIndex].text
+        if (Number(document.getElementById("xDoc_encontrados").value) > 0 && (document.getElementById("cliente").value) != 0) {
+            let cliente_select = document.getElementById("cliente")
+            let id_cliente = cliente_select.options[cliente_select.selectedIndex].value
+            let texto_cliente = cliente_select.options[cliente_select.selectedIndex].text
             // construir el url para pago a cuenta
-            document.getElementById('url_pago_cuenta').href = `/pago_cuenta/${id_cliente}/${texto_cliente}`
+            let anchor = document.getElementById('url_pago_cuenta')
+            anchor.href = `/pago_cuenta/${id_cliente}/${texto_cliente}`
             // construir el url para pago a documentos
-            document.getElementById('url_pago_documentos').href = `/pago_documentos/${id_cliente}/${texto_cliente}`
-            // mostrar enlaces
+            let anchor2 = document.getElementById('url_pago_documentos')
+            anchor2.href = `/pago_documentos/${id_cliente}/${texto_cliente}`
+            // mostrar enelaces
             document.getElementById('enlaces').removeAttribute('hidden')
         } else {
             // ocultar
             document.getElementById('enlaces').hidden = true
         }
 
-        // construir el url para estado de cuenta
+        // // construir el url para estado de cuenta
+        let cliente_select = document.getElementById("cliente")
+        let id_cliente = cliente_select.options[cliente_select.selectedIndex].value
         if (id_cliente != "0") {
+            
             let anchor3 = document.getElementById('url_estado')
             anchor3.href = `/estado_cuentas/${id_cliente}/cobranza/' '/' '/`
             document.getElementById('enlaces2').removeAttribute('hidden')
         }
 
-    }) // fin document load
+    }) // documente load
 
-
+  
     function abrir_modalIva(ivaId, i) {
         document.getElementById('modal_iv').value = Number(ivaId)
         document.getElementById('modal_i_iva').value = i
@@ -489,16 +499,20 @@ M1 | Cobranza
             success: function (data) {
                 // console.log('RESULTADO', data.status, typeof data.status);
                 op_exitosa = data.status;
-                cerrar_iva.click();
-                const checkBox = document.getElementById("vencido");
-                const ven = checkBox.checked ? "1" : "0";
-                filtros.action = `/cobranza/${cliente.value}/${vendedor.value}/${iva.value}/${ven}/`;
-                filtros.submit();
+                    cerrar_iva.click();
+
+        const checkBox = document.getElementById("vencido");
+        const ven = checkBox.checked ? "1" : "0";
+
+        filtros.action = `/cobranza/${cliente.value}/${vendedor.value}/${iva.value}/${ven}/`;
+        filtros.submit();
             },
             error: function (xhr, status, error) {
                 console.error('Error en AJAX:', error);
             }
         });
+
+    
     }
 
     function abrir_modal(f, v, i) {
@@ -508,119 +522,126 @@ M1 | Cobranza
         modal_fechas.click();
     }
 
+
     // guardar fechas
-    function guardar_fechas(e) {
+  function guardar_fechas(e) {
 
-        const form = document.getElementById('modal-form');
-        if (!form.checkValidity()) return false;
+    const form = document.getElementById('modal-form');
+    if (!form.checkValidity()) return false;
 
-        e.preventDefault();
+    e.preventDefault();
 
-        let f = document.getElementById('modal_f').value;
-        let v = document.getElementById('modal_v').value;
-        let campo = document.getElementById('modal_i_fechas').value;
+    let f = document.getElementById('modal_f').value;
+    let v = document.getElementById('modal_v').value;
+    let campo = document.getElementById('modal_i_fechas').value;
 
-        // validar fechas
-        if (new Date(f) > new Date(v)) {
-            document.getElementById('modal_v').focus();
+    // Validar fechas
+    if (new Date(f) > new Date(v)) {
+        document.getElementById('modal_v').focus();
+        Swal.fire({
+            position: 'center',
+            icon: 'error',
+            title: 'La fecha de vencimiento no puede ser menor que la fecha. Verifique...!',
+            showConfirmButton: true,
+        });
+        return;
+    }
+
+    $.ajax({
+        url: "{% url 'actualizar_fechas' %}",
+        type: 'POST',
+        data: {
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+            'campo': campo,
+            'f': f,
+            'v': v,
+        },
+        datatype: 'json',
+        success: function (data) {
+            cerrar.click();
+            const checkBox = document.getElementById("vencido");
+            const ven = checkBox.checked ? "1" : "0";
+            filtros.action = `/cobranza/${cliente.value}/${vendedor.value}/${iva.value}/${ven}/`;
+            filtros.submit();
+        },
+        error: function (xhr, status, error) {
+            console.error('Error al guardar fechas:', error);
             Swal.fire({
                 position: 'center',
                 icon: 'error',
-                title: 'La fecha de vencimiento no puede ser menor que la fecha. Verifique...!',
+                title: 'Ocurrió un error al guardar. Intente nuevamente.',
                 showConfirmButton: true,
-                //timer: 2500
             });
-            return;
-        } // fin validar fechas
-
-        $.ajax({
-            url: "{% url 'actualizar_fechas' %}",
-            type: 'POST',
-            data: {
-                csrfmiddlewaretoken: '{{ csrf_token }}',
-                'campo': campo,
-                'f': f,
-                'v': v,
-            },
-            datatype: 'json',
-            success: function (data) {
-                // console.log('RESULTADO', data.status, typeof data.status)
-                cerrar.click();
-                const checkBox = document.getElementById("vencido");
-                const ven = checkBox.checked ? "1" : "0";
-                filtros.action = `/cobranza/${cliente.value}/${vendedor.value}/${iva.value}/${ven}/`;
-                filtros.submit();
-            },
-            error: function (xhr, status, error) {
-                console.error('Error al guardar fechas:', error);
-                Swal.fire({
-                    position: 'center',
-                    icon: 'error',
-                    title: 'Ocurrió un error al guardar. Intente nuevamente.',
-                    showConfirmButton: true,
-                });
-            }
-        });
-    } // fin guardar fechas
-
-
-    // Abrir modal con datos del documento
-    function abrir_modalMonto(montoDocumento, abonado, id) {
-        const actualInput = document.getElementById('modal_m_actual_monto');
-        const nuevoInput = document.getElementById('modal_m_nuevo_monto');
-
-        if (!actualInput || !nuevoInput) {
-            console.error('No se encontró el input del modal');
-            return;
         }
+    });
 
-        // Mostrar monto actual
-        actualInput.value = montoDocumento;
+} // fin guardar_fechas
 
-        // Nuevo monto inicia vacío con placeholder
-        nuevoInput.value = '';
-        nuevoInput.placeholder = '0,00';
 
-        document.getElementById('modal_total_hidden_monto').value = montoDocumento;
-        document.getElementById('modal_abonado_hidden_monto').value = abonado;
-        document.getElementById('modal_i_monto').value = id;
+// Abrir modal con datos del documento
+function abrir_modalMonto(montoDocumento, abonado, id){
+    const actualInput = document.getElementById('modal_m_actual_monto');
+    const nuevoInput = document.getElementById('modal_m_nuevo_monto');
 
-        // Ocultar alerta al abrir
-        document.getElementById('alerta_validacion').style.display = 'none';
+    if (!actualInput || !nuevoInput) {
+        console.error('No se encontró el input del modal');
+        return;
+    }
+    
+    // Mostrar monto actual
+    actualInput.value = montoDocumento;
 
-        // Abrir modal
-        document.getElementById('modal_monto').click();
+    // Nuevo monto inicia vacío con placeholder
+    nuevoInput.value = '';
+    nuevoInput.placeholder = '0,00';
+
+    document.getElementById('modal_total_hidden_monto').value = montoDocumento;
+    document.getElementById('modal_abonado_hidden_monto').value = abonado;
+    document.getElementById('modal_i_monto').value = id;
+
+    // Ocultar alerta al abrir
+    document.getElementById('alerta_validacion').style.display = 'none';
+
+    // Abrir modal
+    document.getElementById('modal_monto').click();
+}
+
+
+// Validación lógica del monto
+function validarMontoModal(nuevoMonto) {
+
+    const totalDoc = quitarFormato(document.getElementById('modal_total_hidden_monto').value || "0") * 1;
+    const abonado = quitarFormato(document.getElementById('modal_abonado_hidden_monto').value || "0") * 1;
+
+    const alerta = document.getElementById('alerta_validacion');
+    const mensaje = document.getElementById('mensaje_validacion');
+
+    console.log("🚀 nuevoMonto:", nuevoMonto);
+    console.log("🚀 abonado:", abonado);
+    console.log("🚀 totalDoc:", totalDoc);
+
+    if (isNaN(nuevoMonto)) {
+        alerta.style.display = 'block';
+        mensaje.innerText = 'Monto inválido';
+        return false;
     }
 
+    if (nuevoMonto < abonado) {
+        alerta.style.display = 'block';
+        mensaje.innerText = `El Nuevo Monto no puede ser menor que lo ya abonado: $${darFormato(abonado)}`;
+        return false;
 
-    // Validación lógica del monto
-    function validarMontoModal(nuevoMonto) {
+    } else if (nuevoMonto > totalDoc) {
+        alerta.style.display = 'block';
+        mensaje.innerText = `El Nuevo Monto no puede superar el total del documento: $${darFormato(totalDoc)}`;
+        return false;
 
-        const totalDoc = quitarFormato(document.getElementById('modal_total_hidden_monto').value || "0") * 1;
-        const abonado = quitarFormato(document.getElementById('modal_abonado_hidden_monto').value || "0") * 1;
-
-        const alerta = document.getElementById('alerta_validacion');
-        const mensaje = document.getElementById('mensaje_validacion');
-
-        if (isNaN(nuevoMonto)) {
-            alerta.style.display = 'block';
-            mensaje.innerText = 'Monto inválido';
-            return false;
-        }
-
-        if (nuevoMonto < abonado) {
-            alerta.style.display = 'block';
-            mensaje.innerText = `El Nuevo Monto no puede ser menor que lo ya abonado: $${darFormato(abonado)}`;
-            return false;
-        } else if (nuevoMonto > totalDoc) {
-            alerta.style.display = 'block';
-            mensaje.innerText = `El Nuevo Monto no puede superar el total del documento: $${darFormato(totalDoc)}`;
-            return false;
-        } else {
-            alerta.style.display = 'none';
-            return true;
-        }
+    } else {
+        alerta.style.display = 'none';
+        return true;
     }
+}
+
 
 // Guardar el monto desde el modal
 function guardarMontoModal(e) {
@@ -640,61 +661,31 @@ function guardarMontoModal(e) {
     if (!validarMontoModal(nuevoMonto)) return false;
 
     const reg_id = document.getElementById('modal_i_monto').value;
-    const montoActual = document.getElementById('modal_m_actual_monto').value;
 
-    // Primera confirmación
-    Swal.fire({
-        title: '¿Está seguro de actualizar el monto?',
-        html: `<h5>Monto actual: <b>${montoActual}$</b></h5>
-               <h5>Nuevo monto: <b>${darFormato(nuevoMonto)}$</b></h5>`,
-        showDenyButton: true,
-        confirmButtonText: "Guardar",
-        denyButtonText: "Descartar"
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: "{% url 'actualizar_monto' %}",
-                type: 'POST',
-                data: {
-                    csrfmiddlewaretoken: '{{ csrf_token }}',
-                    'reg_id': reg_id,
-                    'monto': nuevoMonto,
-                },
-                datatype: 'json',
-                success: function (data) {
-                    // Cerrar modal
-                    document.getElementById('cerrar_monto').click();
-                    // Refrescar tabla
-                    const checkBox = document.getElementById("vencido");
-                    const ven = checkBox.checked ? "1" : "0";
-                    filtros.action = `/cobranza/${cliente.value}/${vendedor.value}/${iva.value}/${ven}/`;
-                    filtros.submit();
-                },
-                error: function (xhr, status, error) {
-                    console.error('Error en AJAX:', error);
-                }
-            });
-        } else {
-            return false;
-        }
-    }) // fin confirmar
-}
- 
-// formatear entrada
-function checkPattern(e) {
-    $("#" + e).on({
-        "focus": function (event) {
-            $(event.target).select()
+    $.ajax({
+        url: "{% url 'actualizar_monto' %}",
+        type: 'POST',
+        data: {
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+            'reg_id': reg_id,
+            'monto': nuevoMonto,
         },
-        "keyup": function (event) {
-            $(event.target).val(function (index, value) {
-                return value.replace(/\D/g, "")
-                    .replace(/([0-9])([0-9]{2})$/, '$1,$2')
-                    .replace(/\B(?=(\d{3})+(?!\d)\.?)/g, ".")
-            })
+        datatype: 'json',
+        success: function(data) {
+            // Cerrar modal
+            document.getElementById('cerrar_monto').click();
+
+            // Refrescar tabla
+            const checkBox = document.getElementById("vencido");
+            const ven = checkBox.checked ? "1" : "0";
+            filtros.action = `/cobranza/${cliente.value}/${vendedor.value}/${iva.value}/${ven}/`;
+            filtros.submit();
+        },
+        error: function(xhr, status, error) {
+            console.error('Error en AJAX:', error);
         }
-    })
-} // fin formatear entrada
+    });
+}
 
 </script>
 {% endblock Scripts_Adicionales %}
