@@ -440,6 +440,8 @@
     window.location.href = '/comisiones_calculadas/0/Todas/0/';
   }
 
+  // -------------------------------------------------------- ok PDF Oficina -----------------------------------------------------------
+
 function generarPDF_oficina() {
   const totalBaseBs = document.getElementById('pt')?.innerText || '';
   const totalBaseUsd = document.getElementById('pt2')?.innerText || '';
@@ -512,7 +514,7 @@ function generarPDF_oficina() {
   }
 
   doc.text(
-    "{{ xComisionCabecera.total_comi_bs|darFormato }}",
+    totalBaseBs,
     xTotalBs,
     y,
     { align: "right" }
@@ -565,7 +567,7 @@ function generarPDF_oficina() {
   }
 
   doc.text(
-    "{{ xComisionCabecera.total_comi_usd|darFormato }}",
+    totalBaseUsd,
     xTotalUsd,
     y,
     { align: "right" }
