@@ -181,8 +181,8 @@ M1 | Comisiones calculadas
 
                 // Formatea (usa tu propia función darFormato o Intl.NumberFormat)
                 const f = n => darFormato(n);   // ← tu helper
-                $('#pt_bs').html(`<span style="font-size:15px">$ ${f(pageBs)}</span>`);
-                $('#t_bs').html(`<span style="font-size:15px">$ ${f(totalBs)}</span>`);
+                $('#pt_bs').html(`<span style="font-size:15px">Bs. ${f(pageBs)}</span>`);
+                $('#t_bs').html(`<span style="font-size:15px">Bs. ${f(totalBs)}</span>`);
                 $('#pt_usd').html(`<span style="font-size:15px">$ ${f(pageUsd)}</span>`);
                 $('#t_usd').html(`<span style="font-size:15px">$ ${f(totalUsd)}</span>`);
             },

@@ -71,6 +71,12 @@ urlpatterns = [
      path('validar_comision/', views.validar_comisionView, name='validar_comision'),
      path('cerrar_comision/', views.cerrar_comisionView, name='cerrar_comision'),
      path('comisiones_generales/<int:xPeriodo>/', views.comisiones_generalesView, name='comisiones_generales'),
+     path(
+        'comisiones/provision/',
+        views.provision_comisiones,
+        name='provision_comisiones'
+    ),
+     
 
      # ajax
      path('validar_numero/', views.Validar_numeroView, name='validar_numero'), 

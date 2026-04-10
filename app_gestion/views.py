@@ -2546,7 +2546,7 @@ def obtener_comisionesView(request):
     ).filter(
         saldo__lte=0                         # Que estén completamente pagados
     ).values(
-        'id', 'fecha', 'numero', 'cliente__nombre', 'monto', 'saldo', 'dias_v'
+        'id', 'fecha', 'numero', 'cliente__nombre', 'monto', 'saldo', 'dias_v','cliente_id'
     ).order_by(
         'fecha', 'numero'
     ) 
@@ -2601,7 +2601,7 @@ def obtener_comisiones2View(request):
     ).filter(
         saldo__lte=0                     # Que estén completamente pagados
     ).values(
-        'id', 'fecha', 'numero', 'cliente__nombre', 'monto', 'saldo', 'dias_v'
+        'id', 'fecha', 'numero', 'cliente__nombre', 'monto', 'saldo', 'dias_v','cliente_id'
     ).order_by(
         'fecha', 'numero'
     )
@@ -3288,3 +3288,141 @@ def SubirComprobanteView(request, pago_id):
     # Redirigir de vuelta al historial (ajusta la URL según tu configuración)
     return redirect('historial_pagos', 0, ' ', ' ') 
 
+def documentos_comisionables(vendedor_id):
+    xVariables = Variable.objects.first()
+
+    return Documento.objects.filter(
+        cliente__vendedor=vendedor_id,
+        cliente__comisionable='Si',
+        comision_liquidada=False,
+        dias_v__gte=-xVariables.dias_noComisionables
+    ).annotate(
+        saldo=F('monto') - F('abonado')
+    ).filter(
+        saldo__lte=0
+    )
+
+def calcular_comision(base, porcentaje):
+    return float(base) * float(porcentaje) / 100
+
+def obtener_porcentaje_backend(vendedor_id, cliente_id):
+    
+    vendedor_id = int(vendedor_id)
+    cliente_id = int(cliente_id)
+
+    # 1️⃣ Regla especial Edin Camargo
+    if vendedor_id == 17:
+        return 5
+
+    # 2️⃣ Paul + Indaca
+    if vendedor_id == 10 and cliente_id == 90:
+        return 2
+
+    # 3️⃣ Paul general
+    if vendedor_id == 10:
+        return 3
+
+    # 4️⃣ Default
+    return 4
+
+@login_required
+def provision_comisiones(request):
+
+    xPeriodos = Periodo.objects.filter(status="Abierto")
+
+    periodo_id = None
+    resultados = []
+
+    if request.method == 'POST':
+
+        periodo_id = int(request.POST.get('periodo', 0))
+
+        if periodo_id == 0:
+            return render(request, "app_gestion/provision.html", {
+                "xPeriodos": xPeriodos,
+                "resultados": [],
+                "xPeriodoId": 0
+            })
+
+        periodo = Periodo.objects.get(id=periodo_id)
+
+        vendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
+
+        # 🔥 mover fuera del loop (IMPORTANTE)
+        variables = Variable.objects.first()
+
+        for v in vendedores:
+
+            total_bs = 0
+            total_usd = 0
+
+            base_total_bs = 0
+            base_total_usd = 0
+
+            # 🔹 BS
+            docs_bs = obtener_docs(v.id, variables)
+
+            for doc in docs_bs:
+
+                fecha_pago = buscar_fecha_pagado(doc['id'])
+                if not fecha_pago or not fecha_pago['fecha_ult_pago']:
+                    continue
+
+                pagos = buscar_pagos(doc['id'])
+
+                for p in pagos:
+                    base = p[1]
+                    porcentaje = obtener_porcentaje_backend(v.id, doc['cliente_id'])
+
+                    base_total_bs += float(base)
+                    total_bs += float(base) * float(porcentaje) / 100
+
+            # 🔹 USD
+            docs_usd = obtener_docs(v.id, variables)
+
+            for doc in docs_usd:
+
+                fecha_pago = buscar_fecha_pagado(doc['id'])
+                if not fecha_pago or not fecha_pago['fecha_ult_pago']:
+                    continue
+
+                pagos = buscar_pagos2(doc['id'])
+
+                for p in pagos:
+                    base = p['total_monto']
+                    porcentaje = obtener_porcentaje_backend(v.id, doc['cliente_id'])
+
+                    base_total_usd += float(base)
+                    total_usd += float(base) * float(porcentaje) / 100
+
+            resultados.append({
+                "vendedor": v.nombre,
+                "base_bs": round(base_total_bs, 2),
+                "base_usd": round(base_total_usd, 2),
+                "bs": round(total_bs, 2),
+                "usd": round(total_usd, 2),
+                "total": round(total_bs + total_usd, 2)
+            })
+
+    return render(request, "app_gestion/provision.html", {
+        "xPeriodos": xPeriodos,
+        "resultados": resultados,
+        "xPeriodoId": periodo_id
+    })
+
+def obtener_docs(vendedor_id, variables):
+
+    return Documento.objects.filter(
+        cliente__vendedor=vendedor_id,
+        cliente__comisionable='Si',
+        comision_liquidada=False,
+        dias_v__gte=-variables.dias_noComisionables
+    ).annotate(
+        saldo=F('monto') - F('abonado')
+    ).filter(
+        saldo__lte=0
+    ).values(
+        'id',
+        'cliente_id'
+    )
+    

@@ -256,13 +256,7 @@ M1 | Calcular comisiones
                 let total_bsB = 0
                 $.each(data, function (key, item) {
 
-                    // let dias = item.dias_v * 1
-                    // if (dias < - 15) {
-                    //     xPorcentaje = 4 / 2
-                    // } else {
-                    //     xPorcentaje = 4
-                    // }
-                    xPorcentaje = 4
+                    xPorcentaje = obtenerPorcentaje(vendedor_id, item.cliente_id);
 
                     let comision_predeterminada = item.base * xPorcentaje / 100;
                     xTasa = darFormato(item.tasa)
@@ -453,13 +447,7 @@ M1 | Calcular comisiones
                 let total_usdB = 0
                 $.each(data2, function (key, item) {
 
-                    // let dias = item.dias_v * 1
-                    // if (dias < - 15) {
-                    //     xPorcentaje = 4 / 2
-                    // } else {
-                    //     xPorcentaje = 4
-                    // }
-                    xPorcentaje = 4
+                    xPorcentaje = obtenerPorcentaje(vendedor_id, item.cliente_id);
 
                     let comision_predeterminada = item.base * xPorcentaje / 100;
                     xPorcentaje = darFormato(xPorcentaje)
@@ -751,7 +739,25 @@ M1 | Calcular comisiones
 
     } // fin validar formulario
 
+function obtenerPorcentaje(vendedor_id, cliente_id) {
+    // 1️⃣ Regla especial Edin Camargo
+    if (vendedor_id == 17) {
+        return 5;
+    }
 
+    // 2️⃣ Paul + Indaca → 2%
+    if (vendedor_id == 10 && cliente_id == 90) {
+        return 2;
+    }
+
+    // 3️⃣ Paul (solo) → 3%
+    if (vendedor_id == 10) {
+        return 3;
+    }
+
+    // 4️⃣ Regla general para otros vendedores
+    return 4;
+}
 
 </script>
 {% endblock Scripts_Adicionales %}
