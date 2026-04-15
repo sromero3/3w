@@ -74,7 +74,7 @@ M1 | Provisión comisiones
                     </thead>
                     <tbody>
                         {% for r in resultados %}
-                        <tr>
+                        <tr data-vendedor-id="{{ r.vendedor_id }}">
                             <td>{{ r.vendedor }}</td>
                             <td class="text-end">{{ r.base_bs|darFormato }}</td>
                             <td class="text-end">{{ r.bs|darFormato }}</td>
@@ -110,6 +110,18 @@ M1 | Provisión comisiones
                             <div>
                                 Total 2% para comision generales USD:
                                 <b><span id="p2_base_usd"></span></b>
+                            </div>
+
+                            <div style="margin-top: 10px; border: 1px solid #198754; border-radius: 6px; padding: 10px 12px; background: #f6fffa;">
+                                <div style="font-weight: 700; margin-bottom: 6px; color: #146c43;">Total a provisionar</div>
+                                <div>
+                                    Bs (Total 2% + Total comisiones Bs):
+                                    <b><span id="g_total_bs"></span></b>
+                                </div>
+                                <div>
+                                    USD (Total 2% + Total comisiones USD):
+                                    <b><span id="g_total_usd"></span></b>
+                                </div>
                             </div>
 
                         </td>
@@ -186,10 +198,30 @@ $(document).ready(function () {
     $('#pt_base_usd').html(f(pageBaseUsd));
     $('#pt_usd').html(f(pageUsd));
 
-    const p2_bs = totalBaseBs * 0.02;
-    const p2_usd = totalBaseUsd * 0.02;
+    let totalBaseBsSinPaul = 0;
+    let totalBaseUsdSinPaul = 0;
+
+    api.rows().every(function () {
+        const $fila = $(this.node());
+        const vendedorId = parseInt($fila.data('vendedor-id')) || 0;
+
+        if (vendedorId === 10) {
+            return;
+        }
+
+        totalBaseBsSinPaul += toNumber($fila.find('td:eq(1)').text());
+        totalBaseUsdSinPaul += toNumber($fila.find('td:eq(3)').text());
+    });
+
+    const p2_bs = totalBaseBsSinPaul * 0.02;
+    const p2_usd = totalBaseUsdSinPaul * 0.02;
     $('#p2_base_bs').html(f(p2_bs));
     $('#p2_base_usd').html(f(p2_usd));
+
+    const totalGerenciaBs = p2_bs + totalBs;
+    const totalGerenciaUsd = p2_usd + totalUsd;
+    $('#g_total_bs').html(f(totalGerenciaBs));
+    $('#g_total_usd').html(f(totalGerenciaUsd));
 },
 
         

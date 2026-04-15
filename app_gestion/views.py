@@ -3322,7 +3322,11 @@ def obtener_porcentaje_backend(vendedor_id, cliente_id):
     if vendedor_id == 10:
         return 3
 
-    # 4️⃣ Default
+    # 4️⃣ Vendedor id 18
+    if vendedor_id == 18:
+        return 1.5
+
+    # 5️⃣ Default
     return 4
 
 @login_required
@@ -3396,6 +3400,7 @@ def provision_comisiones(request):
                     total_usd += float(base) * float(porcentaje) / 100
 
             resultados.append({
+                "vendedor_id": v.id,
                 "vendedor": v.nombre,
                 "base_bs": round(base_total_bs, 2),
                 "base_usd": round(base_total_usd, 2),
