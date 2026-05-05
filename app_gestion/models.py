@@ -286,7 +286,7 @@ class Pago(models.Model):
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     # documento = models.ForeignKey(Documento, on_delete=models.CASCADE)
     referencia = models.CharField(max_length=30, null=True, blank=True)
-    monto = models.DecimalField(max_digits=9, decimal_places=2, verbose_name="Monto en Bs.")
+    monto = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Monto en Bs.")
     # validators=[MinValueValidator(0.00), MaxValueValidator(999999.99)], 
     monto_procesar = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Monto en $")
     observacion = models.TextField(max_length=250, blank=True, verbose_name="Observación")
