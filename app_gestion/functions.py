@@ -37,28 +37,52 @@ def darFormato(cifra):
 
 
 # Actauliza los dias de vencimiento 
+from datetime import date
+from django.db.models import F
+
 def actualizar_dias_vencido():
     hoy = date.today()
-    xControl =  Control.objects.get(id=1)
-    fecha_actual = datetime.now()
     
-    if xControl.fecha_control != hoy:    
-          # print("fechas dif voy a actaualzar")
-          xDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0)
-          for xDocumento in xDocumentos:
-               fecha_str = xDocumento.vencimiento.strftime('%d/%m/%Y')
-               # Convierte la cadena de texto a un objeto de fecha
-               fecha_v = datetime.strptime(fecha_str, "%d/%m/%Y")
-               # Resta la fecha dada de la fecha actual
-           
-               diferencia = fecha_v - fecha_actual
-            #    print("Vence ",fecha_v, "diferencia =======",diferencia)
-               xDocumento.dias_v = diferencia.days + 1
-               xDocumento.save()
-               xControl.fecha_control = hoy
-               xControl.save()
+    xControl = Control.objects.get(id=1)
 
-    return 
+    if xControl.fecha_control != hoy:
+        
+        xDocumentos = Documento.objects.annotate(
+            saldo=F('monto') - F('abonado')
+        ).filter(saldo__gt=0)
+
+        for doc in xDocumentos:
+
+            # positivo si aún falta, negativo si ya venció
+            doc.dias_v = (doc.vencimiento - hoy).days
+
+            doc.save(update_fields=['dias_v'])
+
+        xControl.fecha_control = hoy
+        xControl.save(update_fields=['fecha_control'])
+
+# def actualizar_dias_vencido():
+#     hoy = date.today()
+#     xControl =  Control.objects.get(id=1)
+#     fecha_actual = datetime.now()
+    
+#     if xControl.fecha_control != hoy:    
+#           # print("fechas dif voy a actaualzar")
+#           xDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0)
+#           for xDocumento in xDocumentos:
+#                fecha_str = xDocumento.vencimiento.strftime('%d/%m/%Y')
+#                # Convierte la cadena de texto a un objeto de fecha
+#                fecha_v = datetime.strptime(fecha_str, "%d/%m/%Y")
+#                # Resta la fecha dada de la fecha actual
+           
+#                diferencia = fecha_v - fecha_actual
+#             #    print("Vence ",fecha_v, "diferencia =======",diferencia)
+#                xDocumento.dias_v = diferencia.days + 1
+#                xDocumento.save()
+#                xControl.fecha_control = hoy
+#                xControl.save()
+
+#     return 
 
 def buscar_fecha_pagado(doc_id):
     # Subquery para obtener el último pago__fecha

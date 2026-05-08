@@ -116,7 +116,11 @@ M1 | Documentos
                                 </td>
                                 <td>{{ xDocumento.fecha|date:"d/m/y" }}</td>
                                 <td>{{ xDocumento.vencimiento|date:"d/m/y" }}</td>
-                                <td align="center">{{ xDocumento.dias_v }}</td>
+                                        {% if xDocumento.dias_v < 0  %}
+                                <td style="color: red;">{{xDocumento.dias_v}} </td>
+                            {% else %}
+                                <td>{{xDocumento.dias_v}}</td>
+                            {% endif %}
                                 <td>{{ xDocumento.cliente__nombre }}</td>
                                 <td align="right">{{ xDocumento.monto|darFormato }}</td>
                                 <td align="right">{{ xDocumento.abonado|darFormato }}</td>
