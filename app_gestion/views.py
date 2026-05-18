@@ -469,29 +469,46 @@ def Editar_documentoView(request, id):
         form = agregar_documentoForm(request.POST, instance=xDocumento)
 
         request.POST._mutable = True
-        # print(request.POST['monto'])
         request.POST['monto'] = quitarFormato(request.POST['monto'])
-        # print(request.POST['monto'])
-        request.POST['vencimiento'] = datetime.strptime(request.POST['vencimiento'], '%Y-%m-%d')
-        request.POST['fecha'] = datetime.strptime(request.POST['fecha'], '%Y-%m-%d')
-             
+
         if form.is_valid():
-            fecha_actual = datetime.now()
-            hoyStr = fecha_actual.strftime('%d/%m/%Y %H:%M')
+            hoyStr = datetime.now().strftime('%d/%m/%Y %H:%M')
             documento = form.save(commit=False)
-            diferencia = request.POST['vencimiento'] - fecha_actual 
-            documento.dias_v = diferencia.days + 1
-            dias_credito =  request.POST['vencimiento'] - request.POST['fecha']
-            documento.credito = dias_credito.days
+
+            # Nueva lógica de fechas y días
+            from datetime import date
+            f = request.POST['fecha']
+            v = request.POST['vencimiento']
+            fecha_v = date.fromisoformat(str(v))
+            fecha_f = date.fromisoformat(str(f))
+            hoy = date.today()
+
+            documento.fecha = f
+            documento.vencimiento = v
+            documento.credito = (fecha_v - fecha_f).days
+
+            saldo = documento.monto - documento.abonado
+            if saldo > 0:
+                documento.dias_v = (fecha_v - hoy).days
+            else:
+                ultimo_pago = Pago_detalle.objects.filter(
+                    documento_id=documento.id
+                ).select_related('pago').order_by('-pago__fecha', '-id').first()
+
+                if ultimo_pago:
+                    documento.dias_v = (fecha_v - ultimo_pago.pago.fecha).days
+                else:
+                    documento.dias_v = (fecha_v - hoy).days
+
             if rClienteId != int(request.POST['cliente']):
                 documento.seguimiento = documento.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" + "</b>"
                 documento.seguimiento = documento.seguimiento + "&nbsp cambió el cliente de: "+ rClienteNombre + " a "+ request.POST.get("nombre_cliente") +"<br>"
-  
+
             nMonto = round(Decimal(request.POST.get('monto')),2)
-            if rMonto != nMonto: 
+            if rMonto != nMonto:
                 documento.seguimiento = documento.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" + "</b>"
                 documento.seguimiento = documento.seguimiento + "&nbsp cambió el monto de: "+ darFormato(rMonto) + " a "+ darFormato(request.POST.get("monto")) +"<br>"
-            
+
             documento.save()
             return redirect('documentos', rClienteId, 1)
         else:
@@ -992,34 +1009,40 @@ def Validar_numeroView(request):
 
 @login_required
 def Actualizar_fechasView(request):
-    # parametros
-    id =  request.POST.get('campo')
+    id = request.POST.get('campo')
     data = {'status': True}
     f = request.POST.get('f')
     v = request.POST.get('v')
-    fecha_actual = datetime.now()
-    # Obtengo el registro a editar
+
     try:
         documento = Documento.objects.get(id=id)
-        # print("Encontrado el Documento: ",documento.id)
-    except documento.DoesNotExist:
+    except Documento.DoesNotExist:
         data = {'status': False}
-    
-    # actualizo las fechas
+        return JsonResponse(data, safe=False)
+
+    fecha_v = date.fromisoformat(v)
+    fecha_f = date.fromisoformat(f)
+    hoy = date.today()
+
     documento.fecha = f
     documento.vencimiento = v
-    # Convierto la fecha str a objeto de fecha
-    fecha_v = datetime.strptime(v, '%Y-%m-%d')
-    # Resto la fecha de veneciemto de la fecha actual
-    diferencia = fecha_v - fecha_actual 
-    documento.dias_v = diferencia.days  + 1
-    # Actualizo dias de credito
-    fecha_f = datetime.strptime(f, '%Y-%m-%d')
-    dias_creito  =  fecha_v - fecha_f
-    documento.credito = dias_creito.days 
-          
+    documento.credito = (fecha_v - fecha_f).days
+
+    saldo = documento.monto - documento.abonado
+    if saldo > 0:
+        documento.dias_v = (fecha_v - hoy).days
+    else:
+        ultimo_pago = Pago_detalle.objects.filter(
+            documento_id=id
+        ).select_related('pago').order_by('-pago__fecha', '-id').first()
+
+        if ultimo_pago:
+            documento.dias_v = (fecha_v - ultimo_pago.pago.fecha).days
+        else:
+            documento.dias_v = (fecha_v - hoy).days
+
     documento.save()
-    
+
     return JsonResponse(data, safe=False)
 
 @login_required
