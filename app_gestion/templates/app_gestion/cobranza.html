@@ -114,9 +114,9 @@ M1 | Cobranza
                             </td>
                             <td>{{xDocumento.vencimiento|date:"d/m/y"}}</td>
                             {% if xDocumento.dias_v < 0  %}
-                                <td style="color: red;">{{xDocumento.dias_v}} </td>
+                                <td align="right" style="color: red;">{{xDocumento.dias_v}} </td>
                             {% else %}
-                                <td>{{xDocumento.dias_v}}</td>
+                                <td align="right">{{xDocumento.dias_v}}</td>
                             {% endif %}
                             <td>{{xDocumento.cliente__nombre}}</td>
                             <td align="right">

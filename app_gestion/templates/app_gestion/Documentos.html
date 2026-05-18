@@ -84,13 +84,13 @@ M1 | Documentos
                                 </th>
                                 <th>Fecha</th>
                                 <th>Vence</th>
-                                <th>Días Vencidos</th>
+                                <th>DV</th>
                                 <th style="width:350px">Cliente</th>
                                 <th>Monto</th>
                                 <th>Abonado</th>
                                 <th>Saldo</th>
-                                <th>Vendedor</th>
                                 <th>Condición</th>
+                                <th>Vendedor</th>
                                 <th>Iva</th>
                                 <th>Opción</th>
                                 <th>Seguimiento</th>
@@ -116,17 +116,17 @@ M1 | Documentos
                                 </td>
                                 <td>{{ xDocumento.fecha|date:"d/m/y" }}</td>
                                 <td>{{ xDocumento.vencimiento|date:"d/m/y" }}</td>
-                                        {% if xDocumento.dias_v < 0  %}
-                                <td style="color: red;">{{xDocumento.dias_v}} </td>
-                            {% else %}
-                                <td>{{xDocumento.dias_v}}</td>
-                            {% endif %}
+                                {% if xDocumento.dias_v < 0  %}
+                                    <td align="right" style="color: red;">{{xDocumento.dias_v}} </td>
+                                {% else %}
+                                    <td align="right">{{xDocumento.dias_v}}</td>
+                                {% endif %}
                                 <td>{{ xDocumento.cliente__nombre }}</td>
                                 <td align="right">{{ xDocumento.monto|darFormato }}</td>
                                 <td align="right">{{ xDocumento.abonado|darFormato }}</td>
                                 <td align="right">{{ xDocumento.saldo|darFormato }}</td>
-                                <td>{{ xDocumento.cliente_id__vendedor__nombre|truncatechars:15 }}</td>
                                 <td>{{ xDocumento.condicion__condicion }} a {{ xDocumento.credito }}</td>
+                                <td>{{ xDocumento.cliente_id__vendedor__nombre|truncatechars:15 }}</td>
                                 <td {% if xDocumento.iva__iva == "-" %} align="center" {% endif %}>{{ xDocumento.iva__iva }}</td>
                                 <td style="width:0px">
                                     <a href="{% url 'editar_documento' xDocumento.id %}">
@@ -214,14 +214,17 @@ M1 | Documentos
                     "colvis": "Visibilidad"
                 }
             },
-            ordering: false,
+            ordering: true,
             responsive: true,
             lengthChange: true,
             autoWidth: true,
             pageLength: 50,
             scrollX: true,
-            order: [[3, "asc"]],
-            columnDefs: [{ targets: [1, 5, 6, 7], orderable: false }]
+            // Solo permitir ordenar en las columnas DV (4) y Saldo (8)
+            columnDefs: [
+                { targets: [0,1,2,3,5,6,7,9,10,11,12,13], orderable: false },
+                { targets: [4,8], orderable: true }
+            ]
         });
 
         var selectizeInstance = $('#cliente').selectize({});

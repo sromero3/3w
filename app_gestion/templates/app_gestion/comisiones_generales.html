@@ -41,15 +41,7 @@
                 data-desde="{{ xPeriodo.desde|date:'Y-m-d' }}"
                 data-semana="{{ xPeriodo.numero_semana}}"
                 data-hasta="{{ xPeriodo.hasta|date:'Y-m-d' }}"
-                {%
-                if
-                xPeriodo.id=""
-                ="xPeriodo_seleccionado"
-                %}
-                selected
-                {%
-                endif
-                %}
+                {% if xPeriodo.id == xPeriodo_seleccionado %}selected{% endif %}
               >
                 {{ xPeriodo.numero_semana }} - {{ xPeriodo.desde|date:"d/m/y" }}
                 - {{xPeriodo.hasta|date:"d/m/y" }}
