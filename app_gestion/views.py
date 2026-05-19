@@ -1985,10 +1985,6 @@ def Pago_cuenta_corregirView(request, id, forma_id):
     }
     return render(request, 'app_gestion/pago_cuenta_corregir.html', context)
 
-
-
-
-
 @login_required
 def Pago_documentos_corregirView(request, id, forma_id):
     xUsuario = request.user
@@ -3089,6 +3085,70 @@ def ingreso_rangoView(request, xTipo, xCta, fecha_ini, fecha_fin):
      }
  
     return render(request, 'app_gestion/ingresos_rango.html', context)
+
+
+@login_required
+def ingreso_rango_conciliacionView(request, xCta, fecha_ini, fecha_fin):
+    xUsuario = request.user
+
+    if xCta != 0:
+         xCta_seleccionada = xCta
+    else:
+        xCta_seleccionada = 0
+    
+    xCtas = BancoDestino.objects.exclude(id__in=[2,4,5,6,7,8,9,10,11,12,13,14,15,17]).order_by('nombre')
+    
+    if request.method == 'GET':
+        # print("--------- Parametros recibidos GET ----------") 
+        fecha_ini  = date.today() 
+        fecha_fin  = date.today() 
+        xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
+        xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
+    else:  
+        # print("--------- Parametros recibidos POST ----------")
+        xFecha_ini = fecha_ini
+        xFecha_fin = fecha_fin 
+    
+    qPagos = Pago.objects.filter(
+        fecha__range=(fecha_ini, fecha_fin),
+    ).exclude(
+        forma_id__in=[6, 9]
+    ).exclude(
+        referencia__icontains='Abono excedente'
+    ).values(
+        'id',
+        'cliente_id',
+        'cliente__nombre',  
+        'referencia',
+        'fecha',
+        'monto',
+        'monto_procesar',
+        'forma__forma',
+        'tasa',
+        'observacion',
+        'seguimiento',
+        'forma_id',
+        'banco_destino__nombre',
+        'tipo',
+        'creado',
+        'recibido'
+    ).order_by('-id')
+
+    if xCta == 0:
+        xPagos = qPagos
+    else:
+        xPagos = qPagos.filter(banco_destino_id=xCta)
+
+    context = {
+        'xUsuario': xUsuario,
+        'xPagos': xPagos,
+        'xCtas': xCtas,
+        'xCta_seleccionada': int(xCta_seleccionada),
+        'xFecha_ini': xFecha_ini,
+        'xFecha_fin': xFecha_fin,
+     }
+ 
+    return render(request, 'app_gestion/ingresos_rango_conciliacion.html', context)
 
     
 @login_required

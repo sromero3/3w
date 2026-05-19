@@ -1,0 +1,159 @@
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+{% block title %}
+M1 | Ingresos por rango (Conciliación)
+{% endblock title %}
+{% block icon %}
+{% endblock %}
+{% block styles %}
+{% endblock styles %}
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px;">
+    <div class="col-lg-12">
+        <div class="card" id="data-section" style="opacity: 0;">
+            <div class="card-body">
+                <h5 class="card-title">
+                    Ingresos por rango (Conciliación)
+                    <a href="{% url 'inicio' %}" class="float-end">
+                        <i class="bi bi-house-door" title='Cerrar'></i>
+                    </a>
+                </h5>
+
+                <form id="filtros" action="" method="post" class="mb-4" style="margin-bottom: 8px !important;">
+                    {% csrf_token %}
+                    <div class="row col">
+                        <div class="col-md-4">
+                            <span class="titulos">Desde</span>
+                            <input type="date" id="fecha_ini" name="fecha_ini" value="{{xFecha_ini}}" class="form-control alto" onChange="obtener_ingresos()" />
+                        </div>
+                        <div class="col-md-4">
+                            <span class="titulos">Hasta</span>
+                            <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}" class="form-control alto" onChange="obtener_ingresos()" />
+                        </div>
+                        <div class="col-md-4">
+                            <span class="titulos">A Cuenta</span>
+                            <select name="cuenta" id="cuenta" required onfocus="limpiar()" onChange="obtener_ingresos()" class="form-control custom-selectd-flex alto">
+                                <option value="0" selected>Todos</option>
+                                {% for xCta in xCtas %}
+                                    <option value={{xCta.id}} {% if xCta.id == xCta_seleccionada %} selected {% endif %}>
+                                        {{ xCta.nombre }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </form>
+
+                <table id="ingresos" class="table table-hover table-bordered" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th>Procesado</th>
+                            <th>Referencia</th>
+                            <th>Cliente</th>
+                            <th style="width:120px">Monto Bs</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for xPago in xPagos %}
+                        <tr>
+                            <td align="center">{{ xPago.creado|date:"d-m-Y" }} {{ xPago.creado|time }}</td>
+
+                            {% if xPago.observacion == "" %}
+                                {% if xPago.referencia == "-" %}
+                                    <td align="center">{{ xPago.referencia }}</td>
+                                {% else %}
+                                    <td>{{ xPago.referencia|rellenar }}</td>
+                                {% endif %}
+                            {% else %}
+                                <td>
+                                    {{ xPago.referencia|rellenar }}
+                                    <a href="#">
+                                        <i class="bi bi-search" style="font-size: small;" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true" data-bs-title="{{xPago.observacion}}<br>"></i>
+                                    </a>
+                                </td>
+                            {% endif %}
+
+                            <td>{{ xPago.cliente__nombre }}</td>
+                            <td align="right">{{ xPago.monto|darFormato }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes izquierda">T. Consulta:</td>
+                            <td id="pt_bs" class="sin-bordes"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</main><!-- End #main -->
+{% endblock content %}
+
+{% block Scripts_Adicionales %}
+<script>
+    $(document).ready(function () {
+        $("#ingresos").DataTable({
+
+            footerCallback: function (row, data, start, end) {
+                const api = this.api();
+
+                const toNumber = s =>
+                    typeof s === 'string'
+                        ? parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0
+                        : typeof s === 'number'
+                            ? s
+                            : 0;
+
+                const pageBs = api.column(3, { page: 'current' })
+                    .data()
+                    .reduce((a, b) => toNumber(a) + toNumber(b), 0);
+
+                const f = n => darFormato(n);
+                $('#pt_bs').html(`<span style="font-size:15px">Bs. ${f(pageBs)}</span>`);
+            },
+
+            language: {
+                "sProcessing":     "Procesando...",
+                "sLengthMenu":     "Mostrar _MENU_ registros",
+                "sZeroRecords":    "No se encontraron resultados",
+                "sEmptyTable":     "*** No se encontró información ***",
+                "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
+                "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+                "sSearch":         "Buscar:",
+                "sLoadingRecords": "Cargando...",
+                "oPaginate": {
+                    "sFirst":    "Primero",
+                    "sLast":     "Último",
+                    "sNext":     "Siguiente",
+                    "sPrevious": "Anterior"
+                }
+            },
+            "ordering":     false,
+            "responsive":   true,
+            "lengthChange": true,
+            "autoWidth":    true,
+            "pageLength":   500,
+            "scrollX":      true,
+            "order":        [[1, "desc"]],
+            "columnDefs":   [{ "targets": [3], "orderable": false }]
+        });
+
+        // Mostrar con transición
+        setTimeout(() => {
+            document.getElementById('data-section').style.opacity = 1;
+        }, 200);
+    });
+
+    function obtener_ingresos() {
+        filtros.action = `/ingreso_rango_conciliacion/${cuenta.value}/${fecha_ini.value}/${fecha_fin.value}/`
+        filtros.submit();
+    }
+
+</script>
+{% endblock Scripts_Adicionales %}
