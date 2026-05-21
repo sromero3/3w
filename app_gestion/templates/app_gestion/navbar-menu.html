@@ -217,16 +217,13 @@
             <span>Ingresos </span>
           </a>
         </li>
-        <li>
-          <a href="{% url 'ingreso_rango_conciliacion' 0  ' ' ' ' %}">
-            <span>Ingresos Conciliación</span>
-          </a>
-        </li>
+     
         <li>
           <a href="{% url 'ingreso_resumen'  ' ' ' ' %}">
             <span>Ingresos resumen </span>
           </a>
         </li>
+  
         <li>
           <a href="{% url 'dolares_no_recibidos' %}">
             <span>Dolares no recibidos </span>
@@ -245,6 +242,16 @@
         <li>
           <a href="{% url 'saldo_favor' %}">
             <span>Clientes con Excedentes</span>
+          </a>
+        </li>
+                 <li>
+          <a href="{% url 'ingreso_rango_conciliacion' 0  ' ' ' ' %}">
+            <span>Conciliación</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'ventas' 0 ' ' ' ' %}">
+            <span>Ventas</span>
           </a>
         </li>
       </ul>

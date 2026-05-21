@@ -51,6 +51,7 @@ urlpatterns = [
      # Consultas
      path('estado_cuentas/<int:id>/<desde>/<fecha_ini>/<fecha_fin>/', views.Estado_cuentaView, name='estado_cuenta'),
      path('estado_cuentas_detalle_doc/<int:id>/<xDoc>/<xMonto>/', views.estado_cuentas_detalle_docView, name='estado_cuentas_detalle_doc'),
+     path('ventas/<int:xCliente>/<fecha_ini>/<fecha_fin>/', views.ventasView, name='ventas'),
      path('cobranza_vendedor/<int:xVendedor>/<fecha_fin>/<int:xCliente>/', views.Cobranza_vendedorView, name='cobranza_vendedor'),
      path('historial_pagos/<int:xCliente>/<fecha_ini>/<fecha_fin>/', views.historial_pagosView, name='historial_pagos'),
      path('ingreso_rango/<int:xTipo>/<int:xCta>/<fecha_ini>/<fecha_fin>/', views.ingreso_rangoView, name='ingreso_rango'),

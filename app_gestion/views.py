@@ -3514,3 +3514,65 @@ def obtener_docs(vendedor_id, variables):
         'cliente_id'
     )
     
+
+@login_required
+def ventasView(request, xCliente, fecha_ini, fecha_fin):
+    xUsuario = request.user
+    xClientes = Cliente.objects.all()
+    if request.method == 'GET':
+        fecha_ini  = date.today() - timedelta(days=15)
+        fecha_fin  = date.today()
+        xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
+        xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
+        xCliente = ''  # Iniciar vacío
+    else:
+        xFecha_ini = fecha_ini
+        xFecha_fin = fecha_fin
+
+    # Si xCliente es vacío o no numérico, no filtrar ni mostrar documentos
+    try:
+        xCliente_seleccionado = int(xCliente)
+    except (ValueError, TypeError):
+        xCliente_seleccionado = ''
+
+    qDocumentos = Documento.objects.annotate(
+        saldo=F('monto') - F('abonado')
+    ).values(
+        'saldo','id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva',
+        'condicion__condicion','cliente_id__vendedor__nombre','cliente_id__vendedor_id',
+        'observacion','abonado','dias_v','credito','seguimiento'
+    ).order_by('-id')
+
+    if xCliente_seleccionado == '':
+        xDocumentos = []
+    elif xCliente_seleccionado == 0:
+        xDocumentos = qDocumentos.filter(fecha__range=(xFecha_ini, xFecha_fin))
+    else:
+        xDocumentos = qDocumentos.filter(cliente_id=xCliente_seleccionado, fecha__range=(xFecha_ini, xFecha_fin))
+    # Calcular totales para el resumen
+
+    if isinstance(xDocumentos, list):
+        total_ventas = len(xDocumentos)
+    else:
+        total_ventas = xDocumentos.count()
+    total_monto = 0
+    for doc in xDocumentos:
+        monto = doc.get('monto', 0)
+        try:
+            total_monto += float(monto)
+        except Exception:
+            pass
+    # Redondear a dos decimales para evitar errores de punto flotante
+    total_monto = round(total_monto, 2)
+
+    context = {
+        'xUsuario': xUsuario,
+        'xDocumentos': xDocumentos,
+        'xClientes': xClientes,
+        'xCliente_seleccionado': xCliente_seleccionado,
+        'xFecha_ini': xFecha_ini,
+        'xFecha_fin': xFecha_fin,
+        'total_ventas': total_ventas,
+        'total_monto': total_monto,
+    }
+    return render(request, 'app_gestion/ventas.html', context)

@@ -4,12 +4,18 @@ from datetime import datetime
 register = Library()
 
 # Filtro para dar formato numeros
+
 def darFormato(cifra):
-    s1 = "{:,}".format(cifra)
-    s2 = s1.replace(',','n')
-    s3 = s2.replace('.',',')
-    s4 = s3.replace('n','.')
-    return (s4)
+    try:
+        # Forzar a float y dos decimales
+        cifra = float(cifra)
+        s1 = "{:,.2f}".format(cifra)
+        s2 = s1.replace(',', 'n')
+        s3 = s2.replace('.', ',')
+        s4 = s3.replace('n', '.')
+        return s4
+    except Exception:
+        return cifra
 
 register.filter("darFormato", darFormato)
 

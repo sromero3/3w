@@ -22,16 +22,21 @@ M1 | Ingresos por rango (Conciliación)
 
                 <form id="filtros" action="" method="post" class="mb-4" style="margin-bottom: 8px !important;">
                     {% csrf_token %}
-                    <div class="row col">
-                        <div class="col-md-4">
+                    <div class="row col align-items-end">
+                        <div class="col-md-3">
                             <span class="titulos">Desde</span>
                             <input type="date" id="fecha_ini" name="fecha_ini" value="{{xFecha_ini}}" class="form-control alto" onChange="obtener_ingresos()" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <span class="titulos">Hasta</span>
                             <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}" class="form-control alto" onChange="obtener_ingresos()" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button type="button" class="btn btn-outline-secondary" title="Retroceder 1 día" onclick="retrocederUnDia()" style="height:30px; min-width:30px; padding:0 6px 1px 6px; display:flex; align-items:center; margin-bottom:1px;">
+                                <i class="bi bi-arrow-left" style="font-size:1.1rem;"></i>
+                            </button>
+                        </div>
+                        <div class="col-md-5">
                             <span class="titulos">A Cuenta</span>
                             <select name="cuenta" id="cuenta" required onfocus="limpiar()" onChange="obtener_ingresos()" class="form-control custom-selectd-flex alto">
                                 <option value="0" selected>Todos</option>
@@ -48,6 +53,7 @@ M1 | Ingresos por rango (Conciliación)
                 <table id="ingresos" class="table table-hover table-bordered" style="width:100%;">
                     <thead>
                         <tr>
+                            <th>Fecha</th>
                             <th>Procesado</th>
                             <th>Referencia</th>
                             <th>Cliente</th>
@@ -57,8 +63,9 @@ M1 | Ingresos por rango (Conciliación)
                     <tbody>
                         {% for xPago in xPagos %}
                         <tr>
+                            <td align="center">{{ xPago.fecha|date:"d-m-Y" }}</td>
                             <td align="center">{{ xPago.creado|date:"d-m-Y" }} {{ xPago.creado|time }}</td>
-
+                            
                             {% if xPago.observacion == "" %}
                                 {% if xPago.referencia == "-" %}
                                     <td align="center">{{ xPago.referencia }}</td>
@@ -73,7 +80,6 @@ M1 | Ingresos por rango (Conciliación)
                                     </a>
                                 </td>
                             {% endif %}
-
                             <td>{{ xPago.cliente__nombre }}</td>
                             <td align="right">{{ xPago.monto|darFormato }}</td>
                         </tr>
@@ -83,11 +89,20 @@ M1 | Ingresos por rango (Conciliación)
                         <tr>
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
                             <td class="sin-bordes izquierda">T. Consulta:</td>
                             <td id="pt_bs" class="sin-bordes"></td>
                         </tr>
                     </tfoot>
                 </table>
+
+                <div class="row justify-content-end">
+                    <div class="col-auto pt-2">
+                        <button class="btn btn-primary" style="width: auto" onclick="generarPDF()">
+                            Generar PDF
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -95,28 +110,35 @@ M1 | Ingresos por rango (Conciliación)
 {% endblock content %}
 
 {% block Scripts_Adicionales %}
+<!-- jsPDF y autoTable -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
+        // Resta un día a ambas fechas y actualiza el filtro
+        function retrocederUnDia() {
+            const fechaIni = document.getElementById('fecha_ini');
+            const fechaFin = document.getElementById('fecha_fin');
+            if (fechaIni.value && fechaFin.value) {
+                const ini = new Date(fechaIni.value);
+                const fin = new Date(fechaFin.value);
+                ini.setDate(ini.getDate() - 1);
+                fin.setDate(fin.getDate() - 1);
+                // Formatear a yyyy-mm-dd
+                const f = d => d.toISOString().slice(0, 10);
+                fechaIni.value = f(ini);
+                fechaFin.value = f(fin);
+                obtener_ingresos();
+            }
+        }
     $(document).ready(function () {
         $("#ingresos").DataTable({
-
-            footerCallback: function (row, data, start, end) {
-                const api = this.api();
-
-                const toNumber = s =>
-                    typeof s === 'string'
-                        ? parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0
-                        : typeof s === 'number'
-                            ? s
-                            : 0;
-
-                const pageBs = api.column(3, { page: 'current' })
-                    .data()
-                    .reduce((a, b) => toNumber(a) + toNumber(b), 0);
-
-                const f = n => darFormato(n);
-                $('#pt_bs').html(`<span style="font-size:15px">Bs. ${f(pageBs)}</span>`);
-            },
-
+            paging: false,
+            ordering: false,
+            responsive: true,
+            lengthChange: true,
+            autoWidth: true,
+            pageLength: 500,
+            scrollX: true,
             language: {
                 "sProcessing":     "Procesando...",
                 "sLengthMenu":     "Mostrar _MENU_ registros",
@@ -134,17 +156,22 @@ M1 | Ingresos por rango (Conciliación)
                     "sPrevious": "Anterior"
                 }
             },
-            "ordering":     false,
-            "responsive":   true,
-            "lengthChange": true,
-            "autoWidth":    true,
-            "pageLength":   500,
-            "scrollX":      true,
-            "order":        [[1, "desc"]],
-            "columnDefs":   [{ "targets": [3], "orderable": false }]
+            footerCallback: function (row, data, start, end) {
+                const api = this.api();
+                const toNumber = s =>
+                    typeof s === 'string'
+                        ? parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0
+                        : typeof s === 'number'
+                            ? s
+                            : 0;
+                // Ahora la columna de Monto Bs es la 4 (índice 4)
+                const pageBs = api.column(4, { page: 'current' })
+                    .data()
+                    .reduce((a, b) => toNumber(a) + toNumber(b), 0);
+                const f = n => darFormato(n);
+                $('#pt_bs').html(`<span style="font-size:15px">Bs. ${f(pageBs)}</span>`);
+            }
         });
-
-        // Mostrar con transición
         setTimeout(() => {
             document.getElementById('data-section').style.opacity = 1;
         }, 200);
@@ -155,5 +182,84 @@ M1 | Ingresos por rango (Conciliación)
         filtros.submit();
     }
 
+    function agregarPieDePagina(data) {
+        const doc = data.doc;
+        const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
+        const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
+        const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
+        const totalPages = doc.internal.getNumberOfPages();
+        const titulo = "SISTEMA DE GESTIÓN EMPRESARIAL";
+        const tituloWidth = doc.getTextWidth(titulo);
+        const tituloX = (pageWidth - tituloWidth) / 2;
+        const paginaTexto = `Página ${pageNumber} de ${totalPages}`;
+        doc.setFontSize(8);
+        doc.setTextColor(120);
+        doc.text(titulo, tituloX, pageHeight - 5);
+        doc.text(paginaTexto, pageWidth - 14, pageHeight - 5, { align: "right" });
+    }
+
+    function generarPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const totalPagesExp = "{total_pages_count_string}";
+        let y = 10;
+        // Datos del encabezado
+        const cuentaEl = document.getElementById("cuenta");
+        const cuentaNombre = cuentaEl.options[cuentaEl.selectedIndex].text;
+        const fechaIni = document.getElementById("fecha_ini").value;
+        const fechaFin = document.getElementById("fecha_fin").value;
+        const fechaHoy = new Date().toLocaleString("es-VE");
+        const formatFecha = (f) => {
+            if (!f) return '-';
+            const d = new Date(f);
+            return d.toLocaleDateString("es-VE", { day: "2-digit", month: "2-digit", year: "numeric" });
+        }
+        // Título
+        doc.setFontSize(14);
+        doc.text("Ingresos por rango (Conciliación)", 14, y);
+        y += 8;
+        // Datos del encabezado
+        doc.setFontSize(10);
+        doc.text(`Cuenta: ${cuentaNombre}`, 14, y);
+        y += 6;
+        doc.text(`Desde: ${formatFecha(fechaIni)}`, 14, y);
+        y += 6;
+        doc.text(`Hasta: ${formatFecha(fechaFin)}`, 14, y);
+        y += 6;
+        doc.text(`Generado: ${fechaHoy}`, 14, y);
+        // Tabla
+        doc.autoTable({
+            html: "#ingresos",
+            startY: y + 4,
+            theme: "grid",
+            headStyles: { fillColor: [1, 31, 58] },
+            styles: {
+                fontSize: 9,
+                overflow: "linebreak",
+                halign: "right",
+            },
+            columnStyles: {
+                0: { halign: "center" },  // Procesado
+                1: { halign: "center" },    // Fecha
+                2: { halign: "left" },    // Referencia
+                3: { halign: "left" },    // Cliente
+                4: { halign: "right" },   // Monto Bs
+            },
+            didDrawPage: agregarPieDePagina,
+        });
+        if (typeof doc.putTotalPages === "function") {
+            doc.putTotalPages(totalPagesExp);
+        }
+        doc.save(`Ingresos Conciliacion - ${cuentaNombre}.pdf`);
+    }
 </script>
 {% endblock Scripts_Adicionales %}
+
+<!-- Botón PDF -->
+<div class="row justify-content-end">
+    <div class="col-auto pt-2">
+        <button class="btn btn-primary" style="width: auto" onclick="generarPDF()">
+            Generar PDF
+        </button>
+    </div>
+</div>
