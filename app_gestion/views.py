@@ -2021,6 +2021,7 @@ def Pago_documentos_corregirView(request, id, forma_id):
     rCliente = Cliente.objects.get(id=xPago.cliente.id)
     xId = xPago.cliente.id
     rMonto = xPago.monto
+    rMonto_iva = xPago.monto_iva
     rMonto_procesar = xPago.monto_procesar
     rFormaId = xPago.forma_id
     rForma = PagoForma.objects.get(id=xPago.forma.id)
@@ -2044,6 +2045,7 @@ def Pago_documentos_corregirView(request, id, forma_id):
         oFecha = xPago.fecha.strftime('%d/%m/%Y')
         oForma = xPago.forma_id
         oMonto_p = xPago.monto_procesar
+        oMonto_iva = xPago.monto_iva
         oBanco = xPago.banco_destino_id
         oBamcoStr = rObjBanco.nombre
         oReferencia = xPago.referencia
@@ -2064,6 +2066,7 @@ def Pago_documentos_corregirView(request, id, forma_id):
         
         # preparando los campos numericos
         request.POST['monto'] = quitarFormato(request.POST['monto'])
+        request.POST['monto_iva'] = quitarFormato(request.POST['monto_iva'])
         request.POST['tasa'] = quitarFormato(request.POST['tasa'])
         request.POST['monto_procesar'] = quitarFormato(request.POST['monto_procesar'])
         strMonto_procesar = darFormato(request.POST['monto_procesar'])
@@ -2187,6 +2190,7 @@ def Pago_documentos_corregirView(request, id, forma_id):
         'rFormaId': rFormaId,
         'rMonto_procesar': rMonto_procesar,
         'rMonto': rMonto,
+        'rMonto_iva': rMonto_iva,
         'xTasa': xTasa,
         'rRef': rRef,
         'rCliente': rCliente,
