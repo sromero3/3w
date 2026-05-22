@@ -3145,9 +3145,23 @@ def ingreso_rango_conciliacionView(request, xCta, fecha_ini, fecha_fin):
     ).order_by('-id')
 
     if xCta == 0:
-        xPagos = qPagos
+        xPagos = list(qPagos)
     else:
-        xPagos = qPagos.filter(banco_destino_id=xCta)
+        xPagos = list(qPagos.filter(banco_destino_id=xCta))
+
+    # Agregar monto_total a cada pago como Decimal, igual que monto base
+    for pago in xPagos:
+        try:
+            monto = pago.get('monto', 0) or 0
+            monto_iva = pago.get('monto_iva', 0) or 0
+            # Asegura que ambos sean Decimal
+            if not isinstance(monto, Decimal):
+                monto = Decimal(str(monto).replace(',', '.'))
+            if not isinstance(monto_iva, Decimal):
+                monto_iva = Decimal(str(monto_iva).replace(',', '.'))
+            pago['monto_total'] = monto + monto_iva
+        except Exception:
+            pago['monto_total'] = Decimal('0.00')
 
     context = {
         'xUsuario': xUsuario,
@@ -3157,7 +3171,7 @@ def ingreso_rango_conciliacionView(request, xCta, fecha_ini, fecha_fin):
         'xFecha_ini': xFecha_ini,
         'xFecha_fin': xFecha_fin,
      }
- 
+
     return render(request, 'app_gestion/ingresos_rango_conciliacion.html', context)
 
     

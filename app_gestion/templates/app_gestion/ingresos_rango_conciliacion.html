@@ -58,8 +58,8 @@ M1 | Ingresos por rango (Conciliación)
                             <th>Referencia</th>
                             <th style="width:140px">Monto</th>
                             <th>Cliente</th>
-                            <th style="width:120px">Monto base</th>
-                            <th style="width:120px">IVA</th>
+                            {# <th style="width:120px">Monto base</th> #}
+                            {# <th style="width:120px">IVA</th> #}
                         </tr>
                     </thead>
                     <tbody>
@@ -82,24 +82,23 @@ M1 | Ingresos por rango (Conciliación)
                                     </a>
                                 </td>
                             {% endif %}
-                            <td align="right">{{ xPago.monto|add:xPago.monto_iva|darFormato }}</td>
+                            
+                            <td align="right">{{ xPago.monto_total|darFormato }}</td>
                             <td>{{ xPago.cliente__nombre }}</td>
-                            <td align="right">{{ xPago.monto|darFormato }}</td>
-                            <td align="right">{{ xPago.monto_iva|darFormato }}</td>
+                            {# <td align="right">{{ xPago.monto|darFormato }}</td> #}
+                            {# <td align="right">{{ xPago.monto_iva|darFormato }}</td> #}
                         </tr>
                         {% endfor %}
                     </tbody>
-                    <tfoot>
-                        <tr>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
-                            <td id="pt_conciliado" class="sin-bordes">T. Consulta:</td>
-                            <td class="sin-bordes"></td>
-                            <td id="pt_bs" class="sin-bordes"></td>
-                            <td id="pt_iva" class="sin-bordes"></td>
-                        </tr>
-                    </tfoot>
+                        <tfoot>
+                            <tr>
+                                <td class="sin-bordes"></td>
+                                <td class="sin-bordes"></td>
+                                <td class="sin-bordes"></td>
+                                <td id="pt_conciliado" class="sin-bordes">T. Consulta:</td>
+                                <td class="sin-bordes"></td>
+                            </tr>
+                        </tfoot>
                 </table>
 
                 <div class="row justify-content-end">
@@ -162,29 +161,21 @@ M1 | Ingresos por rango (Conciliación)
                     "sPrevious": "Anterior"
                 }
             },
-            footerCallback: function (row, data, start, end) {
-                const api = this.api();
-                const toNumber = s =>
-                    typeof s === 'string'
-                        ? parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0
-                        : typeof s === 'number'
-                            ? s
-                            : 0;
-                // Ahora la columna de Monto Conciliado es la 3 (índice 3)
-                const pageConciliado = api.column(3, { page: 'current' })
-                    .data()
-                    .reduce((a, b) => toNumber(a) + toNumber(b), 0);
-                const pageBs = api.column(5, { page: 'current' })
-                    .data()
-                    .reduce((a, b) => toNumber(a) + toNumber(b), 0);
-                const pageIva = api.column(6, { page: 'current' })
-                    .data()
-                    .reduce((a, b) => toNumber(a) + toNumber(b), 0);
-                const f = n => darFormato(n);
-                $('#pt_bs').html(`<span style="font-size:15px">Bs. ${f(pageBs)}</span>`);
-                $('#pt_iva').html(`<span style="font-size:15px">Bs. ${f(pageIva)}</span>`);
-                $('#pt_conciliado').html(`<span style="font-size:15px">Bs. ${f(pageConciliado)}</span>`);
-            }
+                footerCallback: function (row, data, start, end) {
+                    const api = this.api();
+                    const toNumber = s =>
+                        typeof s === 'string'
+                            ? parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0
+                            : typeof s === 'number'
+                                ? s
+                                : 0;
+                    // Solo calcular el total de la columna Monto (índice 3)
+                    const pageConciliado = api.column(3, { page: 'current' })
+                        .data()
+                        .reduce((a, b) => toNumber(a) + toNumber(b), 0);
+                    const f = n => darFormato(n);
+                    $('#pt_conciliado').html(`<span style="font-size:15px">Bs. ${f(pageConciliado)}</span>`);
+                }
         });
         setTimeout(() => {
             document.getElementById('data-section').style.opacity = 1;
