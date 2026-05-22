@@ -1,10 +1,6 @@
 |{% load static %}
-<header
-  id="header"
-  style="background-color: #5c5e5f"
-  class="header fixed-top d-flex align-items-center"
->
-  <!-- <header id="header" style="background-color:#1977CC" class="header fixed-top d-flex align-items-center"> -->
+
+   <header id="header" style="background-color:#012849" class="header fixed-top d-flex align-items-center">
   >
   <div class="d-flex align-items-center justify-content-between">
     <a href="#" class="logo d-flex align-items-center">
@@ -145,15 +141,14 @@
       </a>
       <ul
         id="components-nav"
-        class="nav-content collapse"
-        data-bs-parent="#sidebar-nav"
-      >
+        class="nav-content collapse">
+        
         <li>
-          <a href="#"><span>-</span></a>
+          <a href="{% url 'ventas' 0 ' ' ' ' %}">
+            <span>Ventas</span>
+          </a>
         </li>
-        <li>
-          <a href="#"><span>-</span></a>
-        </li>
+     
       </ul>
     </li>
     <!-- fin consultas Nav -->

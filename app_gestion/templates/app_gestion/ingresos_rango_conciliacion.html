@@ -56,8 +56,10 @@ M1 | Ingresos por rango (Conciliación)
                             <th>Fecha</th>
                             <th>Procesado</th>
                             <th>Referencia</th>
+                            <th style="width:140px">Monto</th>
                             <th>Cliente</th>
-                            <th style="width:120px">Monto Bs</th>
+                            <th style="width:120px">Monto base</th>
+                            <th style="width:120px">IVA</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -80,8 +82,10 @@ M1 | Ingresos por rango (Conciliación)
                                     </a>
                                 </td>
                             {% endif %}
+                            <td align="right">{{ xPago.monto|add:xPago.monto_iva|darFormato }}</td>
                             <td>{{ xPago.cliente__nombre }}</td>
                             <td align="right">{{ xPago.monto|darFormato }}</td>
+                            <td align="right">{{ xPago.monto_iva|darFormato }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -90,8 +94,10 @@ M1 | Ingresos por rango (Conciliación)
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
-                            <td class="sin-bordes izquierda">T. Consulta:</td>
+                            <td id="pt_conciliado" class="sin-bordes">T. Consulta:</td>
+                            <td class="sin-bordes"></td>
                             <td id="pt_bs" class="sin-bordes"></td>
+                            <td id="pt_iva" class="sin-bordes"></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -164,12 +170,20 @@ M1 | Ingresos por rango (Conciliación)
                         : typeof s === 'number'
                             ? s
                             : 0;
-                // Ahora la columna de Monto Bs es la 4 (índice 4)
-                const pageBs = api.column(4, { page: 'current' })
+                // Ahora la columna de Monto Conciliado es la 3 (índice 3)
+                const pageConciliado = api.column(3, { page: 'current' })
+                    .data()
+                    .reduce((a, b) => toNumber(a) + toNumber(b), 0);
+                const pageBs = api.column(5, { page: 'current' })
+                    .data()
+                    .reduce((a, b) => toNumber(a) + toNumber(b), 0);
+                const pageIva = api.column(6, { page: 'current' })
                     .data()
                     .reduce((a, b) => toNumber(a) + toNumber(b), 0);
                 const f = n => darFormato(n);
                 $('#pt_bs').html(`<span style="font-size:15px">Bs. ${f(pageBs)}</span>`);
+                $('#pt_iva').html(`<span style="font-size:15px">Bs. ${f(pageIva)}</span>`);
+                $('#pt_conciliado').html(`<span style="font-size:15px">Bs. ${f(pageConciliado)}</span>`);
             }
         });
         setTimeout(() => {
@@ -232,18 +246,20 @@ M1 | Ingresos por rango (Conciliación)
             html: "#ingresos",
             startY: y + 4,
             theme: "grid",
-            headStyles: { fillColor: [1, 31, 58] },
+            headStyles: { fillColor: [1, 31, 58], halign: 'center', valign: 'middle', align: 'center' },
             styles: {
                 fontSize: 9,
                 overflow: "linebreak",
                 halign: "right",
             },
             columnStyles: {
-                0: { halign: "center" },  // Procesado
-                1: { halign: "center" },    // Fecha
+                0: { halign: "center" },  // Fecha
+                1: { halign: "center" },  // Procesado
                 2: { halign: "left" },    // Referencia
-                3: { halign: "left" },    // Cliente
-                4: { halign: "right" },   // Monto Bs
+                3: { halign: "right" },   // Monto Conciliado
+                4: { halign: "left" },    // Cliente
+                5: { halign: "right" },   // Monto base
+                6: { halign: "right" },   // IVA
             },
             didDrawPage: agregarPieDePagina,
         });

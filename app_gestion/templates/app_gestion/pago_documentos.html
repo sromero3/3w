@@ -57,6 +57,15 @@ M1 | Pago a documentos
                         <span class="titulos">{{form.monto.label}}</span>
                         <input id="monto" name="monto" class="form-control input-numero alto" value="" maxlength="13" onChange="Calcular()" onblur="FormatearNumerosInputs(this)"></input>
                     </div>
+                    <div id="div_monto_iva" class="col-md-6" hidden>
+                        <span class="titulos">Monto IVA</span>
+                        <input id="monto_iva"
+                               name="monto_iva"
+                               class="form-control input-numero alto"
+                               value=""
+                               maxlength="13"
+                               onblur="FormatearNumerosInputs(this)">
+                    </div>
                     <div id="div_tasa" class="col-md-6" hidden>
                         <span class="titulos">{{form.tasa.label}}</span>
                         <input class="form-control alto input-numero" name="tasa" id="tasa" value="{{xTasa}}"
@@ -183,6 +192,7 @@ M1 | Pago a documentos
             document.getElementById("div_ref").removeAttribute('hidden')
             document.getElementById("div_monto").removeAttribute('hidden')
             document.getElementById("div_tasa").removeAttribute('hidden')
+            document.getElementById("div_monto_iva").removeAttribute('hidden')
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById("div_ban").removeAttribute('hidden')
             document.getElementById('monto').setAttribute("required", "")
@@ -219,6 +229,7 @@ M1 | Pago a documentos
         if (document.getElementById('forma').value == 2) { // Dolares en efectivo
             document.getElementById("div_ref").hidden = true
             document.getElementById("div_monto").hidden = true
+            document.getElementById("div_monto_iva").hidden = true
             document.getElementById("div_tasa").hidden = true
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById("div_ban").hidden = true
@@ -233,6 +244,7 @@ M1 | Pago a documentos
         if (document.getElementById('forma').value == 3 || document.getElementById('forma').value == 10) { // Zelle o Binance
             document.getElementById("div_ref").removeAttribute('hidden')
             document.getElementById("div_ban").removeAttribute('hidden')
+            document.getElementById("div_monto_iva").hidden = true
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById('monto').setAttribute("required", "")
             document.getElementById('banco_destino').setAttribute("required", "")
@@ -273,6 +285,7 @@ M1 | Pago a documentos
         if (document.getElementById('forma').value == 4) { // Bolivares en efectivo
             document.getElementById("div_monto").removeAttribute('hidden')
             document.getElementById("div_tasa").removeAttribute('hidden')
+            document.getElementById("div_monto_iva").removeAttribute('hidden')
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById('monto').setAttribute("required", "")
             document.getElementById("monto").value = ""
@@ -283,10 +296,11 @@ M1 | Pago a documentos
             document.getElementById('banco_destino').removeAttribute("required")
         } // fin form 4
 
-        if (document.getElementById('forma').value == 6) { // Notta de credito
+        if (document.getElementById('forma').value == 6) { // Nota de credito
             document.getElementById("div_ref").hidden = true
             document.getElementById("div_monto").hidden = true
             document.getElementById("div_tasa").hidden = true
+            document.getElementById("div_monto_iva").hidden = true
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById("div_ban").hidden = true
             document.getElementById("monto_procesar").removeAttribute('readonly')
@@ -300,6 +314,7 @@ M1 | Pago a documentos
         if (document.getElementById('forma').value == 7) {// Deposito Bancos Nacionales ($)
             document.getElementById("div_ref").removeAttribute('hidden')
             document.getElementById("div_ban").removeAttribute('hidden')
+            document.getElementById("div_monto_iva").hidden = true
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById('monto').setAttribute("required", "")
             document.getElementById('banco_destino').setAttribute("required", "")
@@ -339,9 +354,10 @@ M1 | Pago a documentos
             }) // cargar bancos destinos
         } // fin forma 7
 
-          if (document.getElementById('forma').value == 8) { // Dolares en efectivo
+        if (document.getElementById('forma').value == 8) { // Cruce de cuentas
             document.getElementById("div_ref").hidden = true
             document.getElementById("div_monto").hidden = true
+            document.getElementById("div_monto_iva").hidden = true
             document.getElementById("div_tasa").hidden = true
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById("div_ban").hidden = true

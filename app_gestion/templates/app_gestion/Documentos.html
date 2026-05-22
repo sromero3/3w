@@ -190,6 +190,7 @@ M1 | Documentos
 <script>
     $(document).ready(function () {
         $("#documentos").DataTable({
+            order: [[0, 'desc']],
             language: {
                 "sProcessing": "Procesando...",
                 "sLengthMenu": "Mostrar _MENU_ registros",
@@ -220,10 +221,10 @@ M1 | Documentos
             autoWidth: true,
             pageLength: 50,
             scrollX: true,
-            // Solo permitir ordenar en las columnas DV (4) y Saldo (8)
+            // Solo permitir ordenar en la columna DV (4)
             columnDefs: [
-                { targets: [0,1,2,3,5,6,7,9,10,11,12,13], orderable: false },
-                { targets: [4,8], orderable: true }
+                { targets: [0,1,2,3,5,6,7,8,9,10,11,12,13], orderable: false },
+                { targets: [4], orderable: true }
             ]
         });
 

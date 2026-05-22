@@ -698,7 +698,7 @@ def Pago_cuentaView(request, id, cliente):
 
     form = asentar_pagoForm(request.POST)
     if request.method == 'POST':
- 
+
         # preparando los campos numericos
         request.POST._mutable = True
         if request.POST['monto'] == "":
@@ -713,10 +713,15 @@ def Pago_cuentaView(request, id, cliente):
         request.POST['monto'] = quitarFormato(request.POST['monto'])
         request.POST['tasa'] = quitarFormato(request.POST['tasa'])
         request.POST['monto_procesar'] = quitarFormato(request.POST['monto_procesar'])
+        # Asegurar que monto_iva esté presente y formateado
+        if 'monto_iva' in request.POST:
+            request.POST['monto_iva'] = quitarFormato(request.POST['monto_iva']) if request.POST['monto_iva'] else "0"
+        else:
+            request.POST['monto_iva'] = "0"
         strMonto_procesar = darFormato(request.POST['monto_procesar'])
-       
+
         if form.is_valid():
-   
+
             pago = form.save(commit=False)
             pago.cliente_id = id
             pago.usuario_id = request.user.id
@@ -725,9 +730,9 @@ def Pago_cuentaView(request, id, cliente):
             pago.seguimiento =  "<b>-" + request.user.username + " a las " + hoyStr + "</b>" + "<br>"
             pago.seguimiento =  pago.seguimiento + "&nbsp Procesó pago por: " + strMonto_procesar +"<br>"
             pago.tipo = 1
-            xForma =  request.POST['forma'] 
+            xForma =  request.POST['forma']
 
-           # Procesar archivo si se envió
+            # Procesar archivo si se envió
             comprobante_file = request.FILES.get('comprobante')
             if comprobante_file:
                 # Abrir imagen
@@ -750,9 +755,8 @@ def Pago_cuentaView(request, id, cliente):
                     save=False
                 )
 
-    
             # guardar el pago
-            form.save()
+            pago.save()
             # asignar el id del pago guardado
             xPago_id = pago.id
 
@@ -1538,7 +1542,7 @@ def Pago_documentosView(request, id, cliente):
 
     form = asentar_pagoForm(request.POST)
     if request.method == 'POST':
- 
+
         # preparando los campos dependeindo de que forma de pago 
         request.POST._mutable = True
         if request.POST['monto'] == "":
@@ -1553,6 +1557,11 @@ def Pago_documentosView(request, id, cliente):
         request.POST['monto'] = quitarFormato(request.POST['monto'])
         request.POST['tasa'] = quitarFormato(request.POST['tasa'])
         request.POST['monto_procesar'] = quitarFormato(request.POST['monto_procesar'])
+        # Asegurar que monto_iva esté presente y formateado
+        if 'monto_iva' in request.POST:
+            request.POST['monto_iva'] = quitarFormato(request.POST['monto_iva']) if request.POST['monto_iva'] else "0"
+        else:
+            request.POST['monto_iva'] = "0"
         strMonto_procesar = darFormato(request.POST['monto_procesar'])
 
         hoy = timezone.now()
@@ -3122,6 +3131,7 @@ def ingreso_rango_conciliacionView(request, xCta, fecha_ini, fecha_fin):
         'referencia',
         'fecha',
         'monto',
+        'monto_iva',
         'monto_procesar',
         'forma__forma',
         'tasa',
@@ -3575,4 +3585,13 @@ def ventasView(request, xCliente, fecha_ini, fecha_fin):
         'total_ventas': total_ventas,
         'total_monto': total_monto,
     }
+
+    # Selección de template según grupo de usuario (igual que cobranzaView)
+    if xUsuario.groups.exists():
+        grupo = xUsuario.groups.first().name
+        print(grupo)
+        if grupo == 'm2':
+            return render(request, 'app_gestion/ventas_m2.html', context)
+
     return render(request, 'app_gestion/ventas.html', context)
+    
