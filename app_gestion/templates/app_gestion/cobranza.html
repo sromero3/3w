@@ -91,9 +91,9 @@ M1 | Cobranza
                             <th>Monto</th>
                             <th>Abonado</th>
                             <th>Pendiente</th>
-                            <th style="width:150px">Vendedor</th>
                             <th style="width:100px">Iva</th>
                             <th style="width:90px">Condición</th>
+                            <th style="width:150px">Vendedor</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -132,7 +132,7 @@ M1 | Cobranza
                             <td align="right">{{xDocumento.abonado|darFormato}}</td>
                             <td align="right">{{xDocumento.saldo|darFormato}}</td>
                             <!-- <td>{{xDocumento.cliente_id__ciudad__ciudad}}</td> -->
-                            <td>{{xDocumento.cliente_id__vendedor__nombre|truncatechars:15}}</td>
+
                             {% if xDocumento.iva__iva == "-" %}
                             <td align="center">{{xDocumento.iva__iva}}</td>
                             {% else %}
@@ -146,6 +146,7 @@ M1 | Cobranza
                             {% else %}
                             <td>{{xDocumento.condicion__condicion}} a {{xDocumento.credito}}</td>
                             {% endif %}
+                            <td>{{xDocumento.cliente_id__vendedor__nombre|truncatechars:15}}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

@@ -288,7 +288,7 @@ class Pago(models.Model):
     referencia = models.CharField(max_length=30, null=True, blank=True)
     monto = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Monto en Bs.")
     # validators=[MinValueValidator(0.00), MaxValueValidator(999999.99)], 
-    monto_procesar = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Monto en $")
+    monto_procesar = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Monto Base Imponible en $")
     monto_iva = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Monto IVA")
     observacion = models.TextField(max_length=250, blank=True, verbose_name="Observación")
     seguimiento = models.TextField(blank=True)
