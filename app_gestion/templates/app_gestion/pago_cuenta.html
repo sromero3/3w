@@ -263,9 +263,21 @@ M1 | Pago a cuenta
                 datatype: 'json',
                 success: function (data) {
                     let select_tipo = $('select[name="banco_destino"]')
-                    $.each(data, function (key, item) {
-                        options += '<option value="' + item.id + '">' + item.nombre + '</option>'
-                    })
+                    if (document.getElementById('forma').value == 10) {
+                        // Solo opción con id 17
+                        $.each(data, function (key, item) {
+                            if (item.id == 17) {
+                                options += '<option value="' + item.id + '">' + item.nombre + '</option>'
+                            }
+                        });
+                    } else {
+                        // Mostrar todas menos la de id 17
+                        $.each(data, function (key, item) {
+                            if (item.id != 17) {
+                                options += '<option value="' + item.id + '">' + item.nombre + '</option>'
+                            }
+                        });
+                    }
                     select_tipo.html(options)
                 },
                 error: function (xhr, txtStatus, error) {
@@ -319,7 +331,7 @@ M1 | Pago a cuenta
             document.getElementById("div_monto").hidden = true
 
             // cargar bancos destinos
-            let campo = "Nacional"
+            let campo = "Nacional$"
             let options = '<option value=""></option>'
             $.ajax({
                 url: "{% url 'cargar_bancos' %}",
@@ -333,9 +345,7 @@ M1 | Pago a cuenta
                 success: function (data) {
                     let select_tipo = $('select[name="banco_destino"]')
                     $.each(data, function (key, item) {
-                        if (item.id == 2 ||  item.id == 3){
                             options += '<option value="' + item.id + '">' + item.nombre + '</option>'
-                        }
                     })
                     select_tipo.html(options)
                 },

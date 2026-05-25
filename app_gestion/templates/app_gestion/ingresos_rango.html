@@ -19,7 +19,7 @@ M1 | Ingresos por rango
                         <i class="bi bi-house-door" title='Cerrar'></i>
                     </a>
                       <span class="pt-2" style="font-size: 0.75rem; color: #a0a8af; display: block;">
-                        Filtrado por fecha de Procesado
+                        Filtrado por fecha de la transacción
                     </span>
                 </h5>
 
@@ -68,8 +68,8 @@ M1 | Ingresos por rango
                 <table id="ingresos" class="table table-hover table-bordered" style="width:100%;">
                     <thead>
                         <tr>
-                            <th>Procesado</th>
                             <th>Fecha</th>
+                            <th>Procesado</th>
                             <th>Referencia</th>
                             <th>Forma</th>
                             <th>Cliente</th>
@@ -82,9 +82,8 @@ M1 | Ingresos por rango
                     <tbody>
                         {% for xPago in xPagos %}
                         <tr>
-                            
-                            <td align="center">{{ xPago.creado|date:"d-m-Y" }} {{ xPago.creado|time }}</td>
                             <td>{{ xPago.fecha|date:"d-m-Y" }}</td>
+                            <td align="center">{{ xPago.creado|date:"d-m-Y" }} {{ xPago.creado|time }}</td>
                             {% if xPago.observacion == "" %}
                                 {% if xPago.referencia == "-" %}
                                     <td align="center">{{ xPago.referencia }}</td>

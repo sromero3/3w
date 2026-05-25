@@ -184,7 +184,12 @@ M1 | Ingresos por rango (Conciliación)
         }, 200);
     });
 
+
     function obtener_ingresos() {
+        if (!cuenta.value) {
+            // Opcional: muestra un mensaje al usuario
+            return;
+        }
         filtros.action = `/ingreso_rango_conciliacion/${cuenta.value}/${fecha_ini.value}/${fecha_fin.value}/`
         filtros.submit();
     }
