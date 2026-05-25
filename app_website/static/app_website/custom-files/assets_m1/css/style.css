@@ -1511,3 +1511,7 @@ input[type="number"]::-webkit-outer-spin-button {
    
   }
 } */
+
+select:invalid {
+  color: #6c757d;
+}

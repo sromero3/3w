@@ -39,7 +39,7 @@ M1 | Ingresos por rango (Conciliación)
                         <div class="col-md-5">
                             <span class="titulos">A Cuenta</span>
                             <select name="cuenta" id="cuenta" required onfocus="limpiar()" onChange="obtener_ingresos()" class="form-control custom-selectd-flex alto">
-                                <option value="0" selected>Todos</option>
+                                <option value="" selected disabled>Seleccione una cuenta</option>
                                 {% for xCta in xCtas %}
                                     <option value={{xCta.id}} {% if xCta.id == xCta_seleccionada %} selected {% endif %}>
                                         {{ xCta.nombre }}
@@ -50,6 +50,7 @@ M1 | Ingresos por rango (Conciliación)
                     </div>
                 </form>
 
+                {% if xCta_seleccionada %}
                 <table id="ingresos" class="table table-hover table-bordered" style="width:100%;">
                     <thead>
                         <tr>
@@ -100,6 +101,7 @@ M1 | Ingresos por rango (Conciliación)
                             </tr>
                         </tfoot>
                 </table>
+                {% endif %}
 
                 <div class="row justify-content-end">
                     <div class="col-auto pt-2">

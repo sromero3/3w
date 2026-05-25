@@ -3048,9 +3048,10 @@ def ingreso_rangoView(request, xTipo, xCta, fecha_ini, fecha_fin):
         # print("--------- Parametros recibidos POST ----------")
         xFecha_ini = fecha_ini
         xFecha_fin = fecha_fin 
+
     
     qPagos = Pago.objects.filter(
-        fecha__range=(fecha_ini, fecha_fin),
+        creado__date__range=(fecha_ini, fecha_fin),
     ).exclude(
         forma_id__in=[6, 9]
     ).exclude(

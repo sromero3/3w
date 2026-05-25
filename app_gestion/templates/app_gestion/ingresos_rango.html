@@ -18,6 +18,9 @@ M1 | Ingresos por rango
                     <a href="{% url 'inicio' %}" class="float-end">
                         <i class="bi bi-house-door" title='Cerrar'></i>
                     </a>
+                      <span class="pt-2" style="font-size: 0.75rem; color: #a0a8af; display: block;">
+                        Filtrado por fecha de Procesado
+                    </span>
                 </h5>
 
                 <form id="filtros" action="" method="post" class="mb-4" style="margin-bottom: 8px !important;">
@@ -66,6 +69,7 @@ M1 | Ingresos por rango
                     <thead>
                         <tr>
                             <th>Procesado</th>
+                            <th>Fecha</th>
                             <th>Referencia</th>
                             <th>Forma</th>
                             <th>Cliente</th>
@@ -78,8 +82,9 @@ M1 | Ingresos por rango
                     <tbody>
                         {% for xPago in xPagos %}
                         <tr>
+                            
                             <td align="center">{{ xPago.creado|date:"d-m-Y" }} {{ xPago.creado|time }}</td>
-
+                            <td>{{ xPago.fecha|date:"d-m-Y" }}</td>
                             {% if xPago.observacion == "" %}
                                 {% if xPago.referencia == "-" %}
                                     <td align="center">{{ xPago.referencia }}</td>
@@ -145,6 +150,7 @@ M1 | Ingresos por rango
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes izquierda">T. Consulta:</td>
+                            <td class="sin-bordes"></td>
                             <td id="pt_bs" class="sin-bordes"></td>
                             <td style="color: green;" id="total_recibidos" class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
@@ -206,32 +212,29 @@ M1 | Ingresos por rango
                             : 0;
                 // Sumar solo montos donde el checkbox esté marcado
                 let totalRecibidos = 0;
-                 // Recorremos las filas visibles (de la página actual)
+                // Recorremos las filas visibles (de la página actual)
                 api.rows({ page: 'current' }).every(function (rowIdx, tableLoop, rowLoop) {
                     const rowNode = this.node();
-                    // Buscar checkbox en la columna 6 (índice 6)
+                    // Buscar checkbox en la columna 7 (índice 7)
                     const checkbox = rowNode.querySelector('input[name="recibido"]');
                     if (checkbox && checkbox.checked) {
-                        // Obtener el valor del monto en columna 5 (índice 5)
-                        const montoText = api.cell(rowIdx, 5).data();
+                        // Obtener el valor del monto en columna 6 (índice 6)
+                        const montoText = api.cell(rowIdx, 6).data();
                         totalRecibidos += toNumber(montoText);
                     }
                 });
-                
-                /* -------- BS (col 5) -------- */
-                const totalBs = api.column(5).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
-                const pageBs = api.column(5, { page: 'current' })
+
+                /* -------- BS (col 6) -------- */
+                const totalBs = api.column(6).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
+                const pageBs = api.column(6, { page: 'current' })
                     .data()
                     .reduce((a, b) => toNumber(a) + toNumber(b), 0);
-
-               
 
                 // Formatea (usa tu propia función darFormato o Intl.NumberFormat)
                 const f = n => darFormato(n);  
                 const tRecibidos = f(totalRecibidos);
                 $('#pt_bs').html(`<span style="font-size:15px">$ ${f(pageBs)}</span>`);
                 $('#total_recibidos').html(`<span style="font-size:15px">$ ${tRecibidos}</span>`);
-
             },
             language: {
                 "sProcessing": "Procesando...",

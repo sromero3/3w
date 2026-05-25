@@ -12,10 +12,13 @@ M1 | Historial de pagos
         <div class="card" id="data-section" style="opacity: 0;">
             <div class="card-body">
                 <h5 class="card-title">
-                    Historial de pagos
+                    Historial de pagos 
                     <a href="{% url 'inicio' %}" class="float-end">
                         <i class="bi bi-house-door" title='Cerrar'></i>
                     </a>
+                    <span class="pt-2" style="font-size: 0.75rem; color: #a0a8af; display: block;">
+                        Filtrado por fecha de la transacción
+                    </span>
                 </h5>
 
                 <form id="filtros" action="" method="post" class="mb-4" style="margin-bottom: 8px !important;">
