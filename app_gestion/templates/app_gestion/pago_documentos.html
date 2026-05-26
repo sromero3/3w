@@ -66,6 +66,16 @@ M1 | Pago a documentos
                                maxlength="13"
                                onblur="FormatearNumerosInputs(this)">
                     </div>
+
+                    <div id="div_ajuste" class="col-md-6" hidden>
+                        <span class="titulos">Ajuste</span>
+                        <input id="ajuste"
+                               name="ajuste"
+                               class="form-control input-numero alto"
+                               value=""
+                               maxlength="13"
+                               onblur="FormatearNumerosInputs(this)">
+                    </div>
                     <div id="div_tasa" class="col-md-6" hidden>
                         <span class="titulos">{{form.tasa.label}}</span>
                         <input class="form-control alto input-numero" name="tasa" id="tasa" value="{{xTasa}}"
@@ -193,6 +203,7 @@ M1 | Pago a documentos
             document.getElementById("div_monto").removeAttribute('hidden')
             document.getElementById("div_tasa").removeAttribute('hidden')
             document.getElementById("div_monto_iva").removeAttribute('hidden')
+            document.getElementById("div_ajuste").removeAttribute('hidden')
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById("div_ban").removeAttribute('hidden')
             document.getElementById('monto').setAttribute("required", "")
@@ -230,6 +241,7 @@ M1 | Pago a documentos
             document.getElementById("div_ref").hidden = true
             document.getElementById("div_monto").hidden = true
             document.getElementById("div_monto_iva").hidden = true
+            document.getElementById("div_ajuste").hidden = true
             document.getElementById("div_tasa").hidden = true
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById("div_ban").hidden = true
@@ -298,6 +310,7 @@ M1 | Pago a documentos
             document.getElementById("div_monto").removeAttribute('hidden')
             document.getElementById("div_tasa").removeAttribute('hidden')
             document.getElementById("div_monto_iva").removeAttribute('hidden')
+            document.getElementById("div_ajuste").removeAttribute('hidden')
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById('monto').setAttribute("required", "")
             document.getElementById("monto").value = ""
@@ -306,6 +319,8 @@ M1 | Pago a documentos
             document.getElementById("div_ref").hidden = true
             document.getElementById("div_ban").hidden = true
             document.getElementById('banco_destino').removeAttribute("required")
+            document.getElementById("div_ajuste").hidden = true
+            document.getElementById("div_monto_iva").hidden = true
         } // fin form 4
 
         if (document.getElementById('forma').value == 6) { // Nota de credito
@@ -321,6 +336,8 @@ M1 | Pago a documentos
             document.getElementById("monto").value = ""
             document.getElementById('monto_procesar').value = ""
             document.getElementById('banco_destino').removeAttribute("required")
+            document.getElementById("div_ajuste").hidden = true
+            document.getElementById("div_monto_iva").hidden = true
         } // fin forma 6
 
         if (document.getElementById('forma').value == 7) {// Deposito Bancos Nacionales ($)
@@ -338,6 +355,8 @@ M1 | Pago a documentos
             document.getElementById('banco_destino').setAttribute("required", "")
             document.getElementById("div_tasa").hidden = true
             document.getElementById("div_monto").hidden = true
+            document.getElementById("div_ajuste").hidden = true
+            document.getElementById("div_monto_iva").hidden = true
 
             // cargar bancos destinos
             let campo = "Nacional"
@@ -370,6 +389,7 @@ M1 | Pago a documentos
             document.getElementById("div_ref").hidden = true
             document.getElementById("div_monto").hidden = true
             document.getElementById("div_monto_iva").hidden = true
+            document.getElementById("div_ajuste").hidden = true
             document.getElementById("div_tasa").hidden = true
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById("div_ban").hidden = true
@@ -379,6 +399,8 @@ M1 | Pago a documentos
             document.getElementById("monto").value = ""
             document.getElementById('monto_procesar').value = ""
             document.getElementById('banco_destino').removeAttribute("required")
+            document.getElementById("div_ajuste").hidden = true
+            document.getElementById("div_monto_iva").hidden = true
         } // fin forma 8
 
 
@@ -388,6 +410,7 @@ M1 | Pago a documentos
     checkPattern("monto_iva")
     checkPattern("monto_procesar")
     checkPattern("tasa")
+    checkPattern("ajuste")
 
     document.getElementById('tasa').value = darFormato(document.getElementById('tasa').value)
 

@@ -55,6 +55,20 @@ M1 | Pago a cuenta
                         <input class="form-control alto input-numero" name="tasa" id="tasa" value="{{xTasa}}"
                             onChange="Calcular()" required maxlength="6">
                     </div>
+                          <div id="div_monto_iva" class="col-md-6">
+                        <span class="titulos">{{form.monto_iva.label}}</span>
+                        <input id="monto_iva" name="monto_iva" class="form-control input-numero alto"
+                            readonly maxlength="10" value="{{rMonto_iva}}" onblur="FormatearNumerosInputs(this)"></input>
+                    </div>
+                    <div id="div_ajuste" class="col-md-6">
+                        <span class="titulos">Ajuste</span>
+                        <input id="ajuste"
+                               name="ajuste"
+                               class="form-control input-numero alto"
+                               value="{{rAjuste}}"
+                               maxlength="13"
+                               onblur="FormatearNumerosInputs(this)">
+                    </div>
                     <div id="div_ban" class="col-md-6" style="margin-bottom: 15px" hidden>
                         <span class="titulos">{{form.banco_destino.label}}</span>
                         <select name="banco_destino" id="banco_destino" class="form-control alto d-flex">
@@ -72,6 +86,7 @@ M1 | Pago a cuenta
                             readonly maxlength="10" value="{{rMonto_procesar}}" onblur="FormatearNumerosInputs(this)"></input>
                     </div>
                     <!-- fin Campos variables -->
+              
 
                     <div class="col-12 pb-4">
                         <span class="titulos">
@@ -182,6 +197,7 @@ M1 | Pago a cuenta
     checkPattern("monto")
     checkPattern("monto_procesar")
     checkPattern("tasa")
+    checkPattern("ajuste") 
 
     document.getElementById('tasa').value = darFormato(document.getElementById('tasa').value)
 

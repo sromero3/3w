@@ -290,6 +290,7 @@ class Pago(models.Model):
     # validators=[MinValueValidator(0.00), MaxValueValidator(999999.99)], 
     monto_procesar = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Monto Base Imponible en $")
     monto_iva = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Monto IVA")
+    ajuste = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Ajuste")
     observacion = models.TextField(max_length=250, blank=True, verbose_name="Observación")
     seguimiento = models.TextField(blank=True)
     forma = models.ForeignKey(PagoForma, on_delete=models.CASCADE, verbose_name="Forma de pago")

@@ -713,11 +713,14 @@ def Pago_cuentaView(request, id, cliente):
         request.POST['monto'] = quitarFormato(request.POST['monto'])
         request.POST['tasa'] = quitarFormato(request.POST['tasa'])
         request.POST['monto_procesar'] = quitarFormato(request.POST['monto_procesar'])
-        # Asegurar que monto_iva esté presente y formateado
         if 'monto_iva' in request.POST:
             request.POST['monto_iva'] = quitarFormato(request.POST['monto_iva']) if request.POST['monto_iva'] else "0"
         else:
             request.POST['monto_iva'] = "0"
+        if 'ajuste' in request.POST:
+            request.POST['ajuste'] = quitarFormato(request.POST['ajuste']) if request.POST['ajuste'] else "0"
+        else:
+            request.POST['ajuste'] = "0"
         strMonto_procesar = darFormato(request.POST['monto_procesar'])
 
         if form.is_valid():
@@ -1562,6 +1565,14 @@ def Pago_documentosView(request, id, cliente):
             request.POST['monto_iva'] = quitarFormato(request.POST['monto_iva']) if request.POST['monto_iva'] else "0"
         else:
             request.POST['monto_iva'] = "0"
+        if 'monto_iva' in request.POST:
+            request.POST['monto_iva'] = quitarFormato(request.POST['monto_iva']) if request.POST['monto_iva'] else "0"
+        else:
+            request.POST['monto_iva'] = "0"
+        if 'ajuste' in request.POST:
+            request.POST['ajuste'] = quitarFormato(request.POST['ajuste']) if request.POST['ajuste'] else "0"
+        else:
+            request.POST['ajuste'] = "0"
         strMonto_procesar = darFormato(request.POST['monto_procesar'])
 
         hoy = timezone.now()
@@ -1789,6 +1800,8 @@ def Pago_cuenta_corregirView(request, id, forma_id):
     xPago = Pago.objects.get(id=id)
     rCliente = Cliente.objects.get(id=xPago.cliente.id)
     rMonto = xPago.monto
+    rMonto_iva = xPago.monto_iva
+    rAjuste = xPago.ajuste
     rMonto_procesar = xPago.monto_procesar
     rFormaId = xPago.forma_id
     rForma = PagoForma.objects.get(id=xPago.forma.id)
@@ -1812,6 +1825,8 @@ def Pago_cuenta_corregirView(request, id, forma_id):
         oFecha = xPago.fecha.strftime('%d/%m/%Y')
         oForma = xPago.forma_id
         oMonto_p = xPago.monto_procesar
+        oMonto_iva = xPago.monto_iva
+        oAjuste = xPago.ajuste
         oBanco = xPago.banco_destino_id
         oBamcoStr = rObjBanco.nombre
         oReferencia = xPago.referencia
@@ -1832,6 +1847,8 @@ def Pago_cuenta_corregirView(request, id, forma_id):
         
         # preparando los campos numericos
         request.POST['monto'] = quitarFormato(request.POST['monto'])
+        request.POST['monto_iva'] = quitarFormato(request.POST['monto_iva'])
+        request.POST['ajuste'] = quitarFormato(request.POST['ajuste'])
         request.POST['tasa'] = quitarFormato(request.POST['tasa'])
         request.POST['monto_procesar'] = quitarFormato(request.POST['monto_procesar'])
         strMonto_procesar = darFormato(request.POST['monto_procesar'])
@@ -1984,6 +2001,8 @@ def Pago_cuenta_corregirView(request, id, forma_id):
         'rFormaId': rFormaId,
         'rMonto_procesar': rMonto_procesar,
         'rMonto': rMonto,
+        'rMonto_iva': rMonto_iva,
+        'rAjuste': rAjuste, 
         'xTasa': xTasa,
         'rRef': rRef,
         'rCliente': rCliente,
@@ -2015,13 +2034,13 @@ def Pago_documentos_corregirView(request, id, forma_id):
     elif forma_id == 8:
         xBancosdestino = BancoDestino.objects.exclude(tipo='Inter')    
 
-
     # Obtengo el registro a editar
     xPago = Pago.objects.get(id=id)
     rCliente = Cliente.objects.get(id=xPago.cliente.id)
     xId = xPago.cliente.id
     rMonto = xPago.monto
     rMonto_iva = xPago.monto_iva
+    rAjuste = xPago.ajuste
     rMonto_procesar = xPago.monto_procesar
     rFormaId = xPago.forma_id
     rForma = PagoForma.objects.get(id=xPago.forma.id)
@@ -2046,6 +2065,7 @@ def Pago_documentos_corregirView(request, id, forma_id):
         oForma = xPago.forma_id
         oMonto_p = xPago.monto_procesar
         oMonto_iva = xPago.monto_iva
+        oAjuste = xPago.ajuste
         oBanco = xPago.banco_destino_id
         oBamcoStr = rObjBanco.nombre
         oReferencia = xPago.referencia
@@ -2067,6 +2087,7 @@ def Pago_documentos_corregirView(request, id, forma_id):
         # preparando los campos numericos
         request.POST['monto'] = quitarFormato(request.POST['monto'])
         request.POST['monto_iva'] = quitarFormato(request.POST['monto_iva'])
+        request.POST['ajuste'] = quitarFormato(request.POST['ajuste'])
         request.POST['tasa'] = quitarFormato(request.POST['tasa'])
         request.POST['monto_procesar'] = quitarFormato(request.POST['monto_procesar'])
         strMonto_procesar = darFormato(request.POST['monto_procesar'])
@@ -2089,6 +2110,7 @@ def Pago_documentos_corregirView(request, id, forma_id):
                 pago.seguimiento = pago.seguimiento + "&nbsp Corrigió fecha de: "+ str(oFecha) + " a "+ fechaStr +"<br>"
      
             nMonto_p = round(Decimal(request.POST.get('monto_procesar')),2)
+            
             if nMonto_p != oMonto_p:
                 if hay_cambio == False:
                     pago.seguimiento = pago.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" +  "</b>"
@@ -2134,7 +2156,7 @@ def Pago_documentos_corregirView(request, id, forma_id):
             try:
                 xExc = Excedente.objects.get(doc_id=xPago_detalle.documento_id)
                 xExc.delete()
-                print("marca 1 no hace falta")
+
             except Excedente.DoesNotExist:
                 # print("No hay excedente")
                 pass
@@ -2191,6 +2213,7 @@ def Pago_documentos_corregirView(request, id, forma_id):
         'rMonto_procesar': rMonto_procesar,
         'rMonto': rMonto,
         'rMonto_iva': rMonto_iva,
+        'rAjuste': rAjuste, 
         'xTasa': xTasa,
         'rRef': rRef,
         'rCliente': rCliente,
