@@ -867,7 +867,7 @@ def Validar_referenciaView(request):
 # cargar bancos destinos
 def Cargar_bancosView(request):
     # print('Dato: ',request.POST.get('campo'))
-    xBancosdestino = BancoDestino.objects.exclude(id=6).filter(tipo=request.POST.get('campo')).values('id','nombre')
+    xBancosdestino = BancoDestino.objects.exclude(id=6).filter(tipo=request.POST.get('campo')).order_by('nombre').values('id','nombre')
     data = list(xBancosdestino)
     return JsonResponse(data, safe=False)
 

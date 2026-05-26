@@ -101,13 +101,20 @@ M1 | Pago a cuenta
                     </div>
 
                     <div id="div_ban" class="col-md-6" hidden>
-                        <span class="titulos">{{ form.banco_destino.label }}</span>
-                        <select name="banco_destino"
-                                id="banco_destino"
-                                class="form-control alto d-flex">
+                        <span class="titulos">
+                            {{ form.banco_destino.label }}
+                        </span>
+                        <select
+                            name="banco_destino"
+                            id="banco_destino"
+                            class="form-control alto d-flex"
+                        >
                             <option value="" selected></option>
+
                             {% for xBancodestino in xBancosdestino %}
-                                <option value="{{ xBancodestino.id }}">{{ xBancodestino.nombre }}</option>
+                                <option value="{{ xBancodestino.id }}">
+                                    {{ xBancodestino.nombre }}
+                                </option>
                             {% endfor %}
                         </select>
                     </div>

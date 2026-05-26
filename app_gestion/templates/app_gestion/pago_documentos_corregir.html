@@ -61,7 +61,7 @@ M1 | Pago a documentos
                     <div id="div_monto_iva" class="col-md-6">
                         <span class="titulos">{{form.monto_iva.label}}</span>
                         <input id="monto_iva" name="monto_iva" class="form-control input-numero alto"
-                            readonly maxlength="10" value="{{rMonto_iva}}" onblur="FormatearNumerosInputs(this)"></input>
+                            readonly maxlength="10" value="{{form.monto_iva.value}}" onblur="FormatearNumerosInputs(this)"></input>
                     </div>
                     <div id="div_tasa" class="col-md-6" hidden>
                         <span class="titulos">{{form.tasa.label}}</span>
@@ -86,6 +86,11 @@ M1 | Pago a documentos
                             readonly maxlength="10"  onChange="actualizar_residuo()" value="{{rMonto_procesar}}" onblur="FormatearNumerosInputs(this)"></input>
                     </div>
                     
+                    <div id="div_monto_procesar" class="col-md-6" hidden>
+                        <span class="titulos">{{form.monto_procesar.label}}</span>
+                        <input id="monto_procesar" name="monto_procesar" class="form-control input-numero alto"
+                            readonly maxlength="10" onChange="obtener_saldos()" onblur="FormatearNumerosInputs(this)"></input>
+                    </div>
                     <!-- fin Campos variables -->
 
                     <!-- tabla de pagos -->
