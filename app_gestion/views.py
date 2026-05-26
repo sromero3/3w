@@ -3154,6 +3154,7 @@ def ingreso_rango_conciliacionView(request, xCta, fecha_ini, fecha_fin):
             'fecha',
             'monto',
             'monto_iva',
+            'ajuste',
             'monto_procesar',
             'forma__forma',
             'tasa',
@@ -3172,11 +3173,16 @@ def ingreso_rango_conciliacionView(request, xCta, fecha_ini, fecha_fin):
             try:
                 monto = pago.get('monto', 0) or 0
                 monto_iva = pago.get('monto_iva', 0) or 0
-                # Asegura que ambos sean Decimal
+                ajuste = pago.get('ajuste', 0) or 0
+                # Asegura que todos sean Decimal
                 if not isinstance(monto, Decimal):
                     monto = Decimal(str(monto).replace(',', '.'))
                 if not isinstance(monto_iva, Decimal):
                     monto_iva = Decimal(str(monto_iva).replace(',', '.'))
+                if not isinstance(ajuste, Decimal):
+                    ajuste = Decimal(str(ajuste).replace(',', '.'))
+                if ajuste > 0:
+                    monto = monto - ajuste
                 pago['monto_total'] = monto + monto_iva
             except Exception:
                 pago['monto_total'] = Decimal('0.00')
@@ -3202,6 +3208,93 @@ def ingreso_rango_conciliacionView(request, xCta, fecha_ini, fecha_fin):
      }
 
     return render(request, 'app_gestion/ingresos_rango_conciliacion.html', context)
+
+
+
+@login_required
+def ingreso_rango_conciliacion_suView(request, xCta, fecha_ini, fecha_fin):
+    xUsuario = request.user
+
+
+    # Validación: si xCta no está seleccionado, es vacío o 0, no procesar pagos
+    try:
+        xCta_int = int(xCta)
+    except (ValueError, TypeError):
+        xCta_int = 0
+
+    if not xCta or str(xCta).strip() == "" or xCta_int == 0:
+        xCta_seleccionada = 0
+        xPagos = []
+    else:
+        xCta_seleccionada = xCta_int
+        qPagos = Pago.objects.filter(
+            fecha__range=(fecha_ini, fecha_fin),
+        ).exclude(
+            forma_id__in=[6, 9]
+        ).exclude(
+            referencia__icontains='Abono excedente'
+        ).values(
+            'id',
+            'cliente_id',
+            'cliente__nombre',  
+            'referencia',
+            'fecha',
+            'monto',
+            'monto_iva',
+            'ajuste',
+            'monto_procesar',
+            'forma__forma',
+            'tasa',
+            'observacion',
+            'seguimiento',
+            'forma_id',
+            'banco_destino__nombre',
+            'tipo',
+            'creado',
+            'recibido'
+        ).order_by('-id')
+        xPagos = list(qPagos.filter(banco_destino_id=xCta_int))
+
+        # Agregar monto_total a cada pago como Decimal, igual que monto base
+        for pago in xPagos:
+            try:
+                monto = pago.get('monto', 0) or 0
+                monto_iva = pago.get('monto_iva', 0) or 0
+                ajuste = pago.get('ajuste', 0) or 0
+                # Asegura que todos sean Decimal
+                if not isinstance(monto, Decimal):
+                    monto = Decimal(str(monto).replace(',', '.'))
+                if not isinstance(monto_iva, Decimal):
+                    monto_iva = Decimal(str(monto_iva).replace(',', '.'))
+                if not isinstance(ajuste, Decimal):
+                    ajuste = Decimal(str(ajuste).replace(',', '.'))
+                if ajuste > 0:
+                    monto = monto - ajuste
+                pago['monto_total'] = monto + monto_iva
+            except Exception:
+                pago['monto_total'] = Decimal('0.00')
+
+    xCtas = BancoDestino.objects.exclude(id__in=[2,4,5,6,7,8,9,10,11,12,13,14,15,17]).order_by('nombre')
+
+    if request.method == 'GET':
+        fecha_ini  = date.today() 
+        fecha_fin  = date.today() 
+        xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
+        xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
+    else:
+        xFecha_ini = fecha_ini
+        xFecha_fin = fecha_fin
+
+    context = {
+        'xUsuario': xUsuario,
+        'xPagos': xPagos,
+        'xCtas': xCtas,
+        'xCta_seleccionada': int(xCta_seleccionada),
+        'xFecha_ini': xFecha_ini,
+        'xFecha_fin': xFecha_fin,
+     }
+
+    return render(request, 'app_gestion/ingresos_rango_conciliacion_su.html', context)
 
     
 @login_required

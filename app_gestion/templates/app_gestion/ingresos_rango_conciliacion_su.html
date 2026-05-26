@@ -2,7 +2,7 @@
 {% load static %}
 {% load filtros %}
 {% block title %}
-M1 | Ingresos por rango (Conciliación)
+M1 | Ingresos por rango (Conciliación Sumarizado)
 {% endblock title %}
 {% block icon %}
 {% endblock %}
@@ -14,7 +14,7 @@ M1 | Ingresos por rango (Conciliación)
         <div class="card" id="data-section" style="opacity: 0;">
             <div class="card-body">
                 <h5 class="card-title">
-                    Ingresos por rango (Conciliación)
+                    Ingresos por rango (Conciliación Sumarizado)
                     <a href="{% url 'inicio' %}" class="float-end">
                         <i class="bi bi-house-door" title='Cerrar'></i>
                     </a>
@@ -59,9 +59,8 @@ M1 | Ingresos por rango (Conciliación)
                             <th>Referencia</th>
                             <th style="width:140px">Monto transferencia</th>
                             <th>Cliente</th>
-                            <th style="width:120px">Monto base</th>
-                            <th style="width:120px">IVA</th>
-                            <th style="width:120px">Ajuste</th>
+                            {# <th style="width:120px">Monto base</th> #}
+                            {# <th style="width:120px">IVA</th> #}
                         </tr>
                     </thead>
                     <tbody>
@@ -87,9 +86,8 @@ M1 | Ingresos por rango (Conciliación)
                             
                             <td align="right">{{ xPago.monto_total|darFormato }}</td>
                             <td>{{ xPago.cliente__nombre }}</td>
-                            <td align="right">{{ xPago.monto|darFormato }}</td>
-                            <td align="right">{{ xPago.monto_iva|darFormato }}</td>
-                            <td align="right">{{ xPago.ajuste|darFormato }}</td>
+                            {# <td align="right">{{ xPago.monto|darFormato }}</td> #}
+                            {# <td align="right">{{ xPago.monto_iva|darFormato }}</td> #}
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -98,11 +96,8 @@ M1 | Ingresos por rango (Conciliación)
                                 <td class="sin-bordes"></td>
                                 <td class="sin-bordes"></td>
                                 <td class="sin-bordes"></td>
-                                <td id="pt_monto_total" class="sin-bordes"></td>
+                                <td id="pt_conciliado" class="sin-bordes">T. Consulta:</td>
                                 <td class="sin-bordes"></td>
-                                <td id="pt_monto_base" class="sin-bordes"></td>
-                                <td id="pt_iva" class="sin-bordes"></td>
-                                <td id="pt_ajuste" class="sin-bordes"></td>
                             </tr>
                         </tfoot>
                 </table>
@@ -168,25 +163,21 @@ M1 | Ingresos por rango (Conciliación)
                     "sPrevious": "Anterior"
                 }
             },
-            footerCallback: function (row, data, start, end) {
-                const api = this.api();
-                const toNumber = s =>
-                    typeof s === 'string'
-                        ? parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0
-                        : typeof s === 'number'
-                            ? s
-                            : 0;
-                // Calcular totales de cada columna numérica
-                const totalMonto = api.column(3, { page: 'current' }).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
-                const totalBase = api.column(5, { page: 'current' }).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
-                const totalIva = api.column(6, { page: 'current' }).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
-                const totalAjuste = api.column(7, { page: 'current' }).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
-                const f = n => darFormato(n);
-                $('#pt_monto_total').html(`<span style="font-size:15px">Bs. ${f(totalMonto)}</span>`);
-                $('#pt_monto_base').html(`<span style="font-size:15px">Bs. ${f(totalBase)}</span>`);
-                $('#pt_iva').html(`<span style="font-size:15px">Bs. ${f(totalIva)}</span>`);
-                $('#pt_ajuste').html(`<span style="font-size:15px">Bs. ${f(totalAjuste)}</span>`);
-            }
+                footerCallback: function (row, data, start, end) {
+                    const api = this.api();
+                    const toNumber = s =>
+                        typeof s === 'string'
+                            ? parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0
+                            : typeof s === 'number'
+                                ? s
+                                : 0;
+                    // Solo calcular el total de la columna Monto (índice 3)
+                    const pageConciliado = api.column(3, { page: 'current' })
+                        .data()
+                        .reduce((a, b) => toNumber(a) + toNumber(b), 0);
+                    const f = n => darFormato(n);
+                    $('#pt_conciliado').html(`<span style="font-size:15px">Bs. ${f(pageConciliado)}</span>`);
+                }
         });
         setTimeout(() => {
             document.getElementById('data-section').style.opacity = 1;
@@ -199,7 +190,7 @@ M1 | Ingresos por rango (Conciliación)
             // Opcional: muestra un mensaje al usuario
             return;
         }
-        filtros.action = `/ingreso_rango_conciliacion/${cuenta.value}/${fecha_ini.value}/${fecha_fin.value}/`
+        filtros.action = `/ingreso_rango_conciliacion_su/${cuenta.value}/${fecha_ini.value}/${fecha_fin.value}/`
         filtros.submit();
     }
 
