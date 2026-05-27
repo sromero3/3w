@@ -1565,10 +1565,6 @@ def Pago_documentosView(request, id, cliente):
             request.POST['monto_iva'] = quitarFormato(request.POST['monto_iva']) if request.POST['monto_iva'] else "0"
         else:
             request.POST['monto_iva'] = "0"
-        if 'monto_iva' in request.POST:
-            request.POST['monto_iva'] = quitarFormato(request.POST['monto_iva']) if request.POST['monto_iva'] else "0"
-        else:
-            request.POST['monto_iva'] = "0"
         if 'ajuste' in request.POST:
             request.POST['ajuste'] = quitarFormato(request.POST['ajuste']) if request.POST['ajuste'] else "0"
         else:
