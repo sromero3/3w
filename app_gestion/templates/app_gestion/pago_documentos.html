@@ -67,7 +67,7 @@ M1 | Pago a documentos
                                onblur="FormatearNumerosInputs(this)">
                     </div>
 
-                    <div id="div_ajuste" class="col-md-6" hidden>
+                    <div id="div_ajuste" class="col-md-6">
                         <span class="titulos">Ajuste</span>
                         <input id="ajuste"
                                name="ajuste"
@@ -203,7 +203,6 @@ M1 | Pago a documentos
             document.getElementById("div_monto").removeAttribute('hidden')
             document.getElementById("div_tasa").removeAttribute('hidden')
             document.getElementById("div_monto_iva").removeAttribute('hidden')
-            document.getElementById("div_ajuste").removeAttribute('hidden')
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById("div_ban").removeAttribute('hidden')
             document.getElementById('monto').setAttribute("required", "")
@@ -241,7 +240,6 @@ M1 | Pago a documentos
             document.getElementById("div_ref").hidden = true
             document.getElementById("div_monto").hidden = true
             document.getElementById("div_monto_iva").hidden = true
-            document.getElementById("div_ajuste").hidden = true
             document.getElementById("div_tasa").hidden = true
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById("div_ban").hidden = true
@@ -310,7 +308,6 @@ M1 | Pago a documentos
             document.getElementById("div_monto").removeAttribute('hidden')
             document.getElementById("div_tasa").removeAttribute('hidden')
             document.getElementById("div_monto_iva").removeAttribute('hidden')
-            document.getElementById("div_ajuste").removeAttribute('hidden')
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById('monto').setAttribute("required", "")
             document.getElementById("monto").value = ""
@@ -319,7 +316,6 @@ M1 | Pago a documentos
             document.getElementById("div_ref").hidden = true
             document.getElementById("div_ban").hidden = true
             document.getElementById('banco_destino').removeAttribute("required")
-            document.getElementById("div_ajuste").hidden = true
             document.getElementById("div_monto_iva").hidden = true
         } // fin form 4
 
@@ -336,7 +332,6 @@ M1 | Pago a documentos
             document.getElementById("monto").value = ""
             document.getElementById('monto_procesar').value = ""
             document.getElementById('banco_destino').removeAttribute("required")
-            document.getElementById("div_ajuste").hidden = true
             document.getElementById("div_monto_iva").hidden = true
         } // fin forma 6
 
@@ -355,7 +350,6 @@ M1 | Pago a documentos
             document.getElementById('banco_destino').setAttribute("required", "")
             document.getElementById("div_tasa").hidden = true
             document.getElementById("div_monto").hidden = true
-            document.getElementById("div_ajuste").hidden = true
             document.getElementById("div_monto_iva").hidden = true
 
             // cargar bancos destinos
@@ -389,7 +383,6 @@ M1 | Pago a documentos
             document.getElementById("div_ref").hidden = true
             document.getElementById("div_monto").hidden = true
             document.getElementById("div_monto_iva").hidden = true
-            document.getElementById("div_ajuste").hidden = true
             document.getElementById("div_tasa").hidden = true
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById("div_ban").hidden = true
@@ -399,7 +392,6 @@ M1 | Pago a documentos
             document.getElementById("monto").value = ""
             document.getElementById('monto_procesar').value = ""
             document.getElementById('banco_destino').removeAttribute("required")
-            document.getElementById("div_ajuste").hidden = true
             document.getElementById("div_monto_iva").hidden = true
         } // fin forma 8
 

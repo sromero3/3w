@@ -104,6 +104,8 @@ M1 | Calcular comisiones
                     </table>
 
                     <div class="text-center">
+                        <input type="hidden" id="total_comi_bs_cobrar" name="total_comi_bs_cobrar" value="0,00" />
+                        <input type="hidden" id="total_comi_usd_cobrar" name="total_comi_usd_cobrar" value="0,00" />
                         <button type="submit" id="guardar" class="btn btn-primary"
                             onclick="validar(event)">Guardar</button>
                         <button type="button" class="btn btn-secondary"
@@ -118,6 +120,9 @@ M1 | Calcular comisiones
 {% endblock content %}
 {% block Scripts_Adicionales %}
 <script>
+
+    let totalAjustePeriodoBs = 0;
+    let totalAjustePeriodoUsd = 0;
 
     function checkPattern(e) {
         $("#" + e).on({
@@ -233,6 +238,8 @@ M1 | Calcular comisiones
             return;
         }
 
+        obtener_ajustes_comision(fecha_ini, fecha_fin, vendedor_id);
+
         //  ahora si buscar las comisiones
 
 
@@ -338,12 +345,31 @@ M1 | Calcular comisiones
                         </td>
                     </tr>`
 
+                html +=
+                    `<tr>
+                        <td colspan="8" style="text-align:right; font-weight:bold;">Ajustes</td>
+                        <td>
+                            <input id="total_ajuste_bs" class="form-control input-numero sin-bordes alto"
+                            value="0,00" readonly style="font-weight: bold; color: #dc3545;">
+                        </td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="8" style="text-align:right; font-weight:bold;">Comisión Bs a cobrar</td>
+                        <td>
+                            <input id="total_comi_bs_neto" class="form-control input-numero sin-bordes alto"
+                            value="0,00" readonly style="font-weight: bold;">
+                        </td>
+                        <td></td>
+                    </tr>`
+
                 // Pintando la tabla
                 $('#tabla_xAsientos_bs').html(html);
                 // aplicando el formateo a los inputs
                 $.each(data, function (key, item) {
                     checkPattern(`bs-xPor-${item.id}`);
                 });
+                recalcularComisionBsNeta();
             },
             error: function (xhr, status, error) {
                 // console.log(xhr.responseText);
@@ -528,6 +554,22 @@ M1 | Calcular comisiones
                          </td>
                           <td>
                         </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8" style="text-align:right; font-weight:bold;">Ajustes</td>
+                        <td>
+                            <input id="total_ajuste_usd" class="form-control input-numero sin-bordes alto"
+                            value="0,00" readonly style="font-weight: bold; color: #dc3545;">
+                        </td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="8" style="text-align:right; font-weight:bold;">Comisión USD a cobrar</td>
+                        <td>
+                            <input id="total_comi_usd_neto" class="form-control input-numero sin-bordes alto"
+                            value="0,00" readonly style="font-weight: bold;">
+                        </td>
+                        <td></td>
                     </tr>`
 
                 // Pintando la tabla
@@ -536,6 +578,7 @@ M1 | Calcular comisiones
                 $.each(data2, function (key, item) {
                     checkPattern(`usd-xPor-${item.id}`);
                 });
+                recalcularComisionUsdNeta();
             },
             error: function (xhr, status, error) {
                 // console.log(xhr.responseText);
@@ -669,6 +712,56 @@ M1 | Calcular comisiones
             if (!isNaN(valor)) totalBase += valor;
         });
         document.getElementById('total_base_bs').value = darFormato(totalBase);
+
+        recalcularComisionBsNeta();
+    }
+
+    function recalcularComisionBsNeta() {
+        const totalComisionInput = document.getElementById('total_comi_bs');
+        const ajusteInput = document.getElementById('total_ajuste_bs');
+        const netoInput = document.getElementById('total_comi_bs_neto');
+        const cobrarInput = document.getElementById('total_comi_bs_cobrar');
+
+        if (!totalComisionInput || !netoInput || !cobrarInput) {
+            return;
+        }
+
+        const totalComision = quitarFormato(totalComisionInput.value || '0') * 1;
+        const totalAjuste = totalAjustePeriodoBs * 1;
+        const totalNeto = totalComision - totalAjuste;
+
+        if (ajusteInput) {
+            ajusteInput.value = darFormato(totalAjuste);
+        }
+
+        netoInput.value = darFormato(totalNeto);
+        cobrarInput.value = darFormato(totalNeto);
+    }
+
+    function obtener_ajustes_comision(fecha_ini, fecha_fin, vendedor_id) {
+        $.ajax({
+            url: "{% url 'obtener_ajustes_comision' %}",
+            type: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                'fecha_ini': fecha_ini,
+                'fecha_fin': fecha_fin,
+                'vendedor_id': vendedor_id,
+            },
+            dataType: 'json',
+            success: function (data) {
+                totalAjustePeriodoBs = parseFloat(data.total_ajuste_bs || data.total_ajuste || 0);
+                totalAjustePeriodoUsd = parseFloat(data.total_ajuste_usd || 0);
+                recalcularComisionBsNeta();
+                recalcularComisionUsdNeta();
+            },
+            error: function () {
+                totalAjustePeriodoBs = 0;
+                totalAjustePeriodoUsd = 0;
+                recalcularComisionBsNeta();
+                recalcularComisionUsdNeta();
+            }
+        });
     }
 
     // Recalcular totales USD
@@ -686,6 +779,30 @@ M1 | Calcular comisiones
             if (!isNaN(valor)) totalBase += valor;
         });
         document.getElementById('total_base_usd').value = darFormato(totalBase);
+
+        recalcularComisionUsdNeta();
+    }
+
+    function recalcularComisionUsdNeta() {
+        const totalComisionInput = document.getElementById('total_comi_usd');
+        const ajusteInput = document.getElementById('total_ajuste_usd');
+        const netoInput = document.getElementById('total_comi_usd_neto');
+        const cobrarInput = document.getElementById('total_comi_usd_cobrar');
+
+        if (!totalComisionInput || !netoInput || !cobrarInput) {
+            return;
+        }
+
+        const totalComision = quitarFormato(totalComisionInput.value || '0') * 1;
+        const totalAjuste = totalAjustePeriodoUsd * 1;
+        const totalNeto = totalComision - totalAjuste;
+
+        if (ajusteInput) {
+            ajusteInput.value = darFormato(totalAjuste);
+        }
+
+        netoInput.value = darFormato(totalNeto);
+        cobrarInput.value = darFormato(totalNeto);
     }
 
     // Guardar formulario

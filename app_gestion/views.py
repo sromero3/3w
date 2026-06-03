@@ -2468,8 +2468,10 @@ def calcular_comisionView(request):
         # 1. Obtener datos
         periodo_id = request.POST.get('periodo')
         vendedor_id = request.POST.get('vendedor')
-        total_bs = quitarFormato(request.POST['total_comi_bs'])
-        total_usd = quitarFormato(request.POST['total_comi_usd'])
+        total_bs_post = request.POST.get('total_comi_bs_cobrar') or request.POST.get('total_comi_bs')
+        total_bs = quitarFormato(total_bs_post)
+        total_usd_post = request.POST.get('total_comi_usd_cobrar') or request.POST.get('total_comi_usd')
+        total_usd = quitarFormato(total_usd_post)
        
 
         # 2. Buscar o crear cabecera
@@ -2690,6 +2692,44 @@ def obtener_comisiones2View(request):
 
 
 @login_required
+def obtener_ajustes_comisionView(request):
+    fecha_ini = request.POST.get('fecha_ini')
+    fecha_fin = request.POST.get('fecha_fin')
+    vendedor_id = request.POST.get('vendedor_id')
+
+    filtros_base = dict(
+        cliente__vendedor_id=vendedor_id,
+        cliente__comisionable='Si',
+        fecha__range=(fecha_ini, fecha_fin),
+        ajuste__gt=0,
+    )
+
+    # Mantener la misma lógica de comisión: Bs usa formas [1, 4] y USD [2, 3, 7, 8, 10].
+    total_ajuste_bs = (
+        Pago.objects.filter(
+            **filtros_base,
+            forma_id__in=[1, 4],
+        ).aggregate(total=Sum('ajuste')).get('total') or 0
+    )
+
+    total_ajuste_usd = (
+        Pago.objects.filter(
+            **filtros_base,
+            forma_id__in=[2, 3, 7, 8, 10],
+        ).aggregate(total=Sum('ajuste')).get('total') or 0
+    )
+
+    return JsonResponse(
+        {
+            'total_ajuste': float(total_ajuste_bs),  # compatibilidad temporal
+            'total_ajuste_bs': float(total_ajuste_bs),
+            'total_ajuste_usd': float(total_ajuste_usd),
+        },
+        safe=False,
+    )
+
+
+@login_required
 def comisiones_calculadasView(request, xPeriodo, xStatus, xVendedor):
     xUsuario = request.user
 
@@ -2758,6 +2798,7 @@ def ver_comisionView(request, xComi):
 
     # Detalles en bolívares (tasa > 0)
     detalles_bs = ComisionDetalle.objects.filter(comision_id=xComi, tasa__gt=0)
+    total_comi_bs_bruta = detalles_bs.aggregate(total=Sum('comision_calculada')).get('total') or 0
     xComisiones_bs = []
 
     for detalle in detalles_bs:
@@ -2786,6 +2827,7 @@ def ver_comisionView(request, xComi):
 
     # Detalles en dólares (tasa == 0)
     detalles_usd = ComisionDetalle.objects.filter(comision_id=xComi, tasa=0)
+    total_comi_usd_bruta = detalles_usd.aggregate(total=Sum('comision_calculada')).get('total') or 0
     xComisiones_usd = []
 
     for detalle in detalles_usd:
@@ -2810,11 +2852,35 @@ def ver_comisionView(request, xComi):
 
         xComisiones_usd.append(detalle)
 
+    total_ajuste_bs = (
+        Pago.objects.filter(
+            cliente__vendedor_id=xComisionCabecera['vendedor_id'],
+            cliente__comisionable='Si',
+            fecha__range=(xComisionCabecera['periodo__desde'], xComisionCabecera['periodo__hasta']),
+            ajuste__gt=0,
+            forma_id__in=[1, 4],
+        ).aggregate(total=Sum('ajuste')).get('total') or 0
+    )
+
+    total_ajuste_usd = (
+        Pago.objects.filter(
+            cliente__vendedor_id=xComisionCabecera['vendedor_id'],
+            cliente__comisionable='Si',
+            fecha__range=(xComisionCabecera['periodo__desde'], xComisionCabecera['periodo__hasta']),
+            ajuste__gt=0,
+            forma_id__in=[2, 3, 7, 8, 10],
+        ).aggregate(total=Sum('ajuste')).get('total') or 0
+    )
+
     context = {
         'xUsuario': xUsuario,
         'xComisionCabecera': xComisionCabecera,
         'xComisiones_bs': xComisiones_bs,
         'xComisiones_usd': xComisiones_usd,
+        'xTotalComiBsBruta': total_comi_bs_bruta,
+        'xTotalAjusteBs': total_ajuste_bs,
+        'xTotalComiUsdBruta': total_comi_usd_bruta,
+        'xTotalAjusteUsd': total_ajuste_usd,
     }
     return render(request, 'app_gestion/ver_comision.html', context)
 

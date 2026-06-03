@@ -68,6 +68,7 @@ urlpatterns = [
      path('calcular_comision/', views.calcular_comisionView, name='calcular_comision'),
      path('obtener_comisiones_Bs/', views.obtener_comisionesView, name='obtener_comisiones_bs'),
      path('obtener_comisiones_usd/', views.obtener_comisiones2View, name='obtener_comisiones_usd'),
+     path('obtener_ajustes_comision/', views.obtener_ajustes_comisionView, name='obtener_ajustes_comision'),
      path('comisiones_calculadas/<int:xPeriodo>/<str:xStatus>/<int:xVendedor>/', views.comisiones_calculadasView, name='comisiones_calculadas'),
      path('ver_comision/<int:xComi>/', views.ver_comisionView, name='ver_comision'),
      path('rev_comision/<int:xComi>/', views.rev_comisionView, name='rev_comision'),

@@ -100,7 +100,7 @@ M1 | Pago a cuenta
                                onblur="FormatearNumerosInputs(this)">
                     </div>
 
-                    <div id="div_ajuste" class="col-md-6" hidden>
+                    <div id="div_ajuste" class="col-md-6">
                         <span class="titulos">Ajuste</span>
                         <input id="ajuste"
                                name="ajuste"
@@ -202,7 +202,6 @@ M1 | Pago a cuenta
             document.getElementById("div_monto").removeAttribute('hidden')
             document.getElementById("div_tasa").removeAttribute('hidden')
             document.getElementById("div_monto_iva").removeAttribute('hidden')
-            document.getElementById("div_ajuste").removeAttribute('hidden')
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById("div_ban").removeAttribute('hidden')
             document.getElementById('monto').setAttribute("required", "")
@@ -240,7 +239,6 @@ M1 | Pago a cuenta
             document.getElementById("div_ref").hidden = true
             document.getElementById("div_monto").hidden = true
             document.getElementById("div_monto_iva").hidden = true
-            document.getElementById("div_ajuste").hidden = true
             document.getElementById("div_tasa").hidden = true
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById("div_ban").hidden = true
@@ -310,7 +308,6 @@ M1 | Pago a cuenta
             document.getElementById("div_tasa").removeAttribute('hidden')
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById("div_monto_iva").removeAttribute('hidden')
-            document.getElementById("div_ajuste").removeAttribute('hidden')
             document.getElementById('monto').setAttribute("required", "")
             document.getElementById("monto").value = ""
             document.getElementById("monto_procesar").value = ""
@@ -318,7 +315,6 @@ M1 | Pago a cuenta
             document.getElementById("div_ref").hidden = true
             document.getElementById("div_ban").hidden = true
             document.getElementById('banco_destino').removeAttribute("required")
-            document.getElementById("div_ajuste").hidden = true
             document.getElementById("div_monto_iva").hidden = true
         } // fin forma 4
 
@@ -351,7 +347,6 @@ M1 | Pago a cuenta
             document.getElementById('banco_destino').setAttribute("required", "")
             document.getElementById("div_tasa").hidden = true
             document.getElementById("div_monto").hidden = true
-            document.getElementById("div_ajuste").hidden = true
             document.getElementById("div_monto_iva").hidden = true
 
             // cargar bancos destinos
@@ -385,7 +380,6 @@ M1 | Pago a cuenta
             document.getElementById("div_tasa").hidden = true
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById("div_monto_iva").removeAttribute('hidden')
-            document.getElementById("div_ajuste").removeAttribute('hidden')
             document.getElementById("div_ban").hidden = true
             document.getElementById("monto_procesar").removeAttribute('readonly')
             document.getElementById('monto_procesar').setAttribute("required", "")
@@ -393,13 +387,8 @@ M1 | Pago a cuenta
             document.getElementById("monto").value = ""
             document.getElementById('monto_procesar').value = ""
             document.getElementById('banco_destino').removeAttribute("required")
-            document.getElementById("div_ajuste").hidden = true
             document.getElementById("div_monto_iva").hidden = true
         } // fin forma 8
-        // Ocultar ajuste por defecto si no corresponde
-        if (![1,4,8].includes(Number(document.getElementById('forma').value))) {
-            document.getElementById("div_ajuste").hidden = true;
-        }
 
     } // fin mostrar campos
 

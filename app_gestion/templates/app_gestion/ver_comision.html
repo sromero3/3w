@@ -76,6 +76,14 @@
               <td></td>
               <td id="pt" class="text-end fw-bold"></td>
               <td></td>
+              <td class="text-end fw-bold">{{ xTotalComiBsBruta|darFormato }}</td>
+            </tr>
+            <tr>
+              <td colspan="7" class="text-end fw-bold">DESCUENTO POR AJUSTES :</td>
+              <td class="text-end fw-bold text-danger">{{ xTotalAjusteBs|darFormato }}</td>
+            </tr>
+            <tr>
+              <td colspan="7" class="text-end fw-bold">COMISIÓN BS A COBRAR:</td>
               <td class="text-end fw-bold">{{ xComisionCabecera.total_comi_bs|darFormato }}</td>
             </tr>
           </tfoot>
@@ -120,6 +128,14 @@
               <td></td>
               <td id="pt2" class="text-end fw-bold"></td>
               <td></td>
+              <td class="text-end fw-bold">{{ xTotalComiUsdBruta|darFormato }}</td>
+            </tr>
+            <tr>
+              <td colspan="7" class="text-end fw-bold">DESCUENTO POR AJUSTES :</td>
+              <td class="text-end fw-bold text-danger">{{ xTotalAjusteUsd|darFormato }}</td>
+            </tr>
+            <tr>
+              <td colspan="7" class="text-end fw-bold">COMISIÓN USD A COBRAR:</td>
               <td class="text-end fw-bold">{{ xComisionCabecera.total_comi_usd|darFormato }}</td>
             </tr>
           </tfoot>
@@ -256,6 +272,12 @@
   function generarPDF() {
     const totalBaseBs = document.getElementById('pt')?.innerText || '';
     const totalBaseUsd = document.getElementById('pt2')?.innerText || '';
+    const totalComiBsBruta = "{{ xTotalComiBsBruta|darFormato }}";
+    const totalAjusteBs = "{{ xTotalAjusteBs|darFormato }}";
+    const totalComiBsNeta = "{{ xComisionCabecera.total_comi_bs|darFormato }}";
+    const totalComiUsdBruta = "{{ xTotalComiUsdBruta|darFormato }}";
+    const totalAjusteUsd = "{{ xTotalAjusteUsd|darFormato }}";
+    const totalComiUsdNeta = "{{ xComisionCabecera.total_comi_usd|darFormato }}";
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
@@ -320,7 +342,7 @@
     doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
 
-    doc.text("TOTALES:", tablaActual.settings.margin.left, y);
+    doc.text("TOTAL COMISIÓN BS:", tablaActual.settings.margin.left, y);
 
     // Calcular posición x dinámica para "Base Imp."
     const columns = tablaActual.columns;
@@ -339,9 +361,26 @@
       { align: "right" }
     );
 
-    // Imprimir xComisionCabecera.total_comi_bs
     doc.text(
-      "{{ xComisionCabecera.total_comi_bs|darFormato }}",
+      totalComiBsBruta,
+      tablaActual.settings.margin.left + 180,
+      y,
+      { align: "right" }
+    );
+
+    y += 6;
+    doc.text("DESCUENTO POR AJUSTES :", tablaActual.settings.margin.left, y);
+    doc.text(
+      totalAjusteBs,
+      tablaActual.settings.margin.left + 180,
+      y,
+      { align: "right" }
+    );
+
+    y += 6;
+    doc.text("COMISIÓN BS A COBRAR:", tablaActual.settings.margin.left, y);
+    doc.text(
+      totalComiBsNeta,
       tablaActual.settings.margin.left + 180,
       y,
       { align: "right" }
@@ -387,7 +426,7 @@
     doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
 
-    doc.text("TOTALES:", tablaActual.settings.margin.left, y);
+    doc.text("TOTAL BASE USD:", tablaActual.settings.margin.left, y);
 
     // Calcular posición x dinámica para "Base Imp." USD
     const columnsUsd = doc.lastAutoTable.columns;
@@ -407,7 +446,25 @@
     );
 
     doc.text(
-      "{{ xComisionCabecera.total_comi_usd|darFormato }}",
+      totalComiUsdBruta,
+      tablaActual.settings.margin.left + 180,
+      y,
+      { align: "right" }
+    );
+
+    y += 6;
+    doc.text("DESCUENTO POR AJUSTES :", tablaActual.settings.margin.left, y);
+    doc.text(
+      totalAjusteUsd,
+      tablaActual.settings.margin.left + 180,
+      y,
+      { align: "right" }
+    );
+
+    y += 6;
+    doc.text("COMISIÓN USD A COBRAR:", tablaActual.settings.margin.left, y);
+    doc.text(
+      totalComiUsdNeta,
       tablaActual.settings.margin.left + 180,
       y,
       { align: "right" }
@@ -445,6 +502,11 @@
 function generarPDF_oficina() {
   const totalBaseBs = document.getElementById('pt')?.innerText || '';
   const totalBaseUsd = document.getElementById('pt2')?.innerText || '';
+  const totalAjusteBs = "{{ xTotalAjusteBs|darFormato }}";
+  const totalComiBsNeta = "{{ xComisionCabecera.total_comi_bs|darFormato }}";
+  const totalAjusteUsd = "{{ xTotalAjusteUsd|darFormato }}";
+  const totalComiUsdBruta = "{{ xTotalComiUsdBruta|darFormato }}";
+  const totalComiUsdNeta = "{{ xComisionCabecera.total_comi_usd|darFormato }}";
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
@@ -504,7 +566,7 @@ function generarPDF_oficina() {
   y = tablaActual.finalY + 5;
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
-  doc.text("TOTALES:", tablaActual.settings.margin.left, y);
+  doc.text("TOTAL BASE BS:", tablaActual.settings.margin.left, y);
 
   const columns = tablaActual.columns;
   const marginLeft = tablaActual.settings.margin.left;
@@ -515,6 +577,24 @@ function generarPDF_oficina() {
 
   doc.text(
     totalBaseBs,
+    xTotalBs,
+    y,
+    { align: "right" }
+  );
+
+  y += 6;
+  doc.text("DESCUENTO POR AJUSTES :", tablaActual.settings.margin.left, y);
+  doc.text(
+    totalAjusteBs,
+    xTotalBs,
+    y,
+    { align: "right" }
+  );
+
+  y += 6;
+  doc.text("COMISIÓN BS A COBRAR:", tablaActual.settings.margin.left, y);
+  doc.text(
+    totalComiBsNeta,
     xTotalBs,
     y,
     { align: "right" }
@@ -557,7 +637,7 @@ function generarPDF_oficina() {
   y = doc.lastAutoTable.finalY + 5;
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
-  doc.text("TOTALES:", doc.lastAutoTable.settings.margin.left, y);
+  doc.text("TOTAL BASE USD:", doc.lastAutoTable.settings.margin.left, y);
 
   const columnsUsd = doc.lastAutoTable.columns;
   const marginLeftUsd = doc.lastAutoTable.settings.margin.left;
@@ -568,6 +648,33 @@ function generarPDF_oficina() {
 
   doc.text(
     totalBaseUsd,
+    xTotalUsd,
+    y,
+    { align: "right" }
+  );
+
+  y += 6;
+  doc.text("TOTAL COMISIÓN USD:", doc.lastAutoTable.settings.margin.left, y);
+  doc.text(
+    totalComiUsdBruta,
+    xTotalUsd,
+    y,
+    { align: "right" }
+  );
+
+  y += 6;
+  doc.text("DESCUENTO POR AJUSTES :", doc.lastAutoTable.settings.margin.left, y);
+  doc.text(
+    totalAjusteUsd,
+    xTotalUsd,
+    y,
+    { align: "right" }
+  );
+
+  y += 6;
+  doc.text("COMISIÓN USD A COBRAR:", doc.lastAutoTable.settings.margin.left, y);
+  doc.text(
+    totalComiUsdNeta,
     xTotalUsd,
     y,
     { align: "right" }
