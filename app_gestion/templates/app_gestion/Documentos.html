@@ -91,7 +91,8 @@ M1 | Documentos
                                 <th>Saldo</th>
                                 <th>Condición</th>
                                 <th>Vendedor</th>
-                                <th>Iva</th>
+                                <th>Estado Iva</th>
+                                <th>Monto IVA</th>
                                 <th>Opción</th>
                                 <th>Seguimiento</th>
                             </tr>
@@ -128,6 +129,7 @@ M1 | Documentos
                                 <td>{{ xDocumento.condicion__condicion }} a {{ xDocumento.credito }}</td>
                                 <td>{{ xDocumento.cliente_id__vendedor__nombre|truncatechars:15 }}</td>
                                 <td {% if xDocumento.iva__iva == "-" %} align="center" {% endif %}>{{ xDocumento.iva__iva }}</td>
+                                <td align="right">{{ xDocumento.monto_iva|darFormato }}</td>
                                 <td style="width:0px">
                                     <a href="{% url 'editar_documento' xDocumento.id %}">
                                         &nbsp;&nbsp;<i class="bi bi-pencil"></i>
@@ -223,7 +225,7 @@ M1 | Documentos
             scrollX: true,
             // Solo permitir ordenar en la columna DV (4)
             columnDefs: [
-                { targets: [0,1,2,3,5,6,7,8,9,10,11,12,13], orderable: false },
+                { targets: [0,1,2,3,5,6,7,8,9,10,11,12,13,14], orderable: false },
                 { targets: [4], orderable: true }
             ]
         });

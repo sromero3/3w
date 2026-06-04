@@ -51,7 +51,6 @@ urlpatterns = [
      # Consultas
      path('estado_cuentas/<int:id>/<desde>/<fecha_ini>/<fecha_fin>/', views.Estado_cuentaView, name='estado_cuenta'),
      path('estado_cuentas_detalle_doc/<int:id>/<xDoc>/<xMonto>/', views.estado_cuentas_detalle_docView, name='estado_cuentas_detalle_doc'),
-     path('ventas/<int:xCliente>/<fecha_ini>/<fecha_fin>/', views.ventasView, name='ventas'),
      path('cobranza_vendedor/<int:xVendedor>/<fecha_fin>/<int:xCliente>/', views.Cobranza_vendedorView, name='cobranza_vendedor'),
      path('historial_pagos/<int:xCliente>/<fecha_ini>/<fecha_fin>/', views.historial_pagosView, name='historial_pagos'),
      path('ingreso_rango/<int:xTipo>/<int:xCta>/<fecha_ini>/<fecha_fin>/', views.ingreso_rangoView, name='ingreso_rango'),
@@ -63,6 +62,8 @@ urlpatterns = [
      path('saldo_favor/', views.saldo_favorView, name='saldo_favor'),
      path('dolares_no_recibidos/', views.dolares_no_recibidosView, name='dolares_no_recibidos'),
      path('dolares_no_recibidos_modal/', views.dolares_no_recibidos_modalView, name='dolares_no_recibidos_modal'),
+     path('ventas/<int:xCliente>/<fecha_ini>/<fecha_fin>/', views.ventasView, name='ventas'),
+     path('iva_pendientes/<int:xCliente>/<fecha_ini>/<fecha_fin>/', views.iva_pendientesView, name='iva_pendientes'),
 
     # Comisiones  
      path('calcular_comision/', views.calcular_comisionView, name='calcular_comision'),

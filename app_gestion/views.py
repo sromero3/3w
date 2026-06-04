@@ -301,7 +301,7 @@ def documentosView(request, xCliente, xDias):
         xDia_seleccionado  = request.POST.get('dias')
 
     actualizar_dias_vencido()
-    qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).values('saldo','id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','condicion__condicion','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado', 'dias_v','credito','seguimiento').order_by('-id')
+    qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).values('saldo','id','numero','fecha','vencimiento','cliente__nombre','monto','monto_iva','iva__iva','condicion__condicion','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado', 'dias_v','credito','seguimiento').order_by('-id')
 
    
     if xCliente == 0 and xDias == 0:
@@ -354,6 +354,7 @@ def add_documentoView(request):
 
         request.POST._mutable = True
         request.POST['monto'] = quitarFormato(request.POST['monto'])
+        request.POST['monto_iva'] = quitarFormato(request.POST['monto_iva']) if request.POST.get('monto_iva') else "0"
         request.POST['vencimiento'] = datetime.strptime(request.POST['vencimiento'], '%Y-%m-%d')
        
         hoy = timezone.now()
@@ -462,6 +463,7 @@ def Editar_documentoView(request, id):
     rCondicionId = xDocumento.condicion.id
     rNum = xDocumento.numero
     rMonto = xDocumento.monto
+    rMonto_iva = xDocumento.monto_iva
   
     form = agregar_documentoForm(instance=xDocumento)
 
@@ -470,6 +472,7 @@ def Editar_documentoView(request, id):
 
         request.POST._mutable = True
         request.POST['monto'] = quitarFormato(request.POST['monto'])
+        request.POST['monto_iva'] = quitarFormato(request.POST['monto_iva']) if request.POST.get('monto_iva') else "0"
 
         if form.is_valid():
             hoyStr = datetime.now().strftime('%d/%m/%Y %H:%M')
@@ -526,6 +529,7 @@ def Editar_documentoView(request, id):
         'rCondicionId':rCondicionId,
         'rNum': rNum,
         'rMonto': darFormato(rMonto),
+        'rMonto_iva': darFormato(rMonto_iva),
     }
     
 
@@ -545,6 +549,7 @@ def Eliminar_documentoView(request, id):
     rFecha = xDocumento.vencimiento.strftime('%d/%m/%Y')
     rVencimiento = xDocumento.vencimiento.strftime('%d/%m/%Y')
     rMonto = xDocumento.monto
+    rMonto_iva = xDocumento.monto_iva
     rIva = xDocumento.iva
     rCondicion = xDocumento.condicion
     rObserva = xDocumento.observacion
@@ -564,6 +569,7 @@ def Eliminar_documentoView(request, id):
         'rObserva':rObserva,
         'rNum': rNum,
         'rMonto': darFormato(rMonto),
+        'rMonto_iva': darFormato(rMonto_iva),
         'rFecha': rFecha,
         'rVencimiento': rVencimiento,
         'rCondicion': rCondicion
@@ -614,9 +620,9 @@ def cobranzaView(request, xCliente, xVendedor, xIva, xVencido):
 
     actualizar_dias_vencido()
     if xVencido_seleccionado == 1:
-       qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','iva__id','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado','saldo','dias_v','condicion__condicion','credito').filter(dias_v__lte=0)
+         qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','numero','fecha','vencimiento','cliente__nombre','monto','monto_iva','iva__iva','iva__id','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado','saldo','dias_v','condicion__condicion','credito').filter(dias_v__lte=0)
     else: 
-       qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva','iva__id','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado','saldo','dias_v','condicion__condicion','credito')
+         qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).values('id','numero','fecha','vencimiento','cliente__nombre','monto','monto_iva','iva__iva','iva__id','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado','saldo','dias_v','condicion__condicion','credito')
  
     if xCliente == 0 and xVendedor == 0 and xIva == 0:
        xDocumentos=qDocumentos
@@ -1444,9 +1450,9 @@ def Cobranza_vendedorView(request, xVendedor,  fecha_fin, xCliente):
         # print("--------- Parametros recibidos POST ----------")
         xFecha_fin = fecha_fin
         if xCliente == 0:
-            qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).filter(cliente_id__vendedor__id=xVendedor, vencimiento__lte=xFecha_fin).values('id','cliente_id','numero','credito','fecha','dias_v','vencimiento','monto','cliente_id__vendedor__id','abonado','saldo','cliente__nombre','iva__iva').order_by('cliente__nombre').order_by('vencimiento')
+            qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).filter(cliente_id__vendedor__id=xVendedor, vencimiento__lte=xFecha_fin).values('id','cliente_id','numero','credito','fecha','dias_v','vencimiento','monto','monto_iva','cliente_id__vendedor__id','abonado','saldo','cliente__nombre','iva__iva').order_by('cliente__nombre').order_by('vencimiento')
         else:
-            qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).filter(cliente_id__vendedor__id=xVendedor, vencimiento__lte=xFecha_fin, cliente_id=xCliente).values('id','cliente_id','numero','credito','fecha','dias_v','vencimiento','monto','cliente_id__vendedor__id','abonado','saldo','cliente__nombre','iva__iva').order_by('cliente__nombre').order_by('vencimiento')
+            qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).filter(saldo__gt=0).filter(cliente_id__vendedor__id=xVendedor, vencimiento__lte=xFecha_fin, cliente_id=xCliente).values('id','cliente_id','numero','credito','fecha','dias_v','vencimiento','monto','monto_iva','cliente_id__vendedor__id','abonado','saldo','cliente__nombre','iva__iva').order_by('cliente__nombre').order_by('vencimiento')
 
         # Si sequire empezar desde el doc mas viejo
         # for x in qDocumentos:
@@ -2705,25 +2711,73 @@ def obtener_ajustes_comisionView(request):
     )
 
     # Mantener la misma lógica de comisión: Bs usa formas [1, 4] y USD [2, 3, 7, 8, 10].
+    pagos_ajuste_bs = Pago.objects.filter(
+        **filtros_base,
+        forma_id__in=[1, 4],
+    ).values(
+        'id',
+        'fecha',
+        'cliente_id',
+        'cliente__nombre',
+        'forma_id',
+        'forma__forma',
+        'ajuste',
+        'referencia',
+        'monto_procesar',
+        'tasa',
+    ).order_by('fecha', 'id')
+
+    pagos_ajuste_usd = Pago.objects.filter(
+        **filtros_base,
+        forma_id__in=[2, 3, 7, 8, 10],
+    ).values(
+        'id',
+        'fecha',
+        'cliente_id',
+        'cliente__nombre',
+        'forma_id',
+        'forma__forma',
+        'ajuste',
+        'referencia',
+        'monto_procesar',
+        'tasa',
+    ).order_by('fecha', 'id')
+
     total_ajuste_bs = (
-        Pago.objects.filter(
-            **filtros_base,
-            forma_id__in=[1, 4],
-        ).aggregate(total=Sum('ajuste')).get('total') or 0
+        pagos_ajuste_bs.aggregate(total=Sum('ajuste')).get('total') or 0
     )
 
     total_ajuste_usd = (
-        Pago.objects.filter(
-            **filtros_base,
-            forma_id__in=[2, 3, 7, 8, 10],
-        ).aggregate(total=Sum('ajuste')).get('total') or 0
+        pagos_ajuste_usd.aggregate(total=Sum('ajuste')).get('total') or 0
     )
+
+    def serializar_ajustes(queryset):
+        detalle = []
+        for pago in queryset:
+            detalle.append({
+                'id': pago['id'],
+                'fecha': pago['fecha'].strftime('%d/%m/%Y') if pago.get('fecha') else '',
+                'cliente_id': pago.get('cliente_id'),
+                'cliente_nombre': pago.get('cliente__nombre') or '',
+                'forma_id': pago.get('forma_id'),
+                'forma': pago.get('forma__forma') or '',
+                'referencia': pago.get('referencia') or '',
+                'monto_procesar': float(pago.get('monto_procesar') or 0),
+                'tasa': float(pago.get('tasa') or 0),
+                'ajuste': float(pago.get('ajuste') or 0),
+            })
+        return detalle
+
+    detalle_bs = serializar_ajustes(pagos_ajuste_bs)
+    detalle_usd = serializar_ajustes(pagos_ajuste_usd)
 
     return JsonResponse(
         {
             'total_ajuste': float(total_ajuste_bs),  # compatibilidad temporal
             'total_ajuste_bs': float(total_ajuste_bs),
             'total_ajuste_usd': float(total_ajuste_usd),
+            'detalle_bs': detalle_bs,
+            'detalle_usd': detalle_usd,
         },
         safe=False,
     )
@@ -3077,7 +3131,7 @@ def comisiones_generalesView(request, xPeriodo):
         'xPeriodo_seleccionado': int(xPeriodo_seleccionado),
         'xPeriodos': xPeriodos,
     }
-
+    print(xComisionGenerales)
     return render(request, 'app_gestion/comisiones_generales.html', context)
 
 
@@ -3787,9 +3841,73 @@ def ventasView(request, xCliente, fecha_ini, fecha_fin):
     # Selección de template según grupo de usuario (igual que cobranzaView)
     if xUsuario.groups.exists():
         grupo = xUsuario.groups.first().name
-        print(grupo)
         if grupo == 'm2':
             return render(request, 'app_gestion/ventas_m2.html', context)
 
     return render(request, 'app_gestion/ventas.html', context)
     
+
+    
+@login_required
+def iva_pendientesView(request, xCliente, fecha_ini, fecha_fin):
+    xUsuario = request.user
+    xClientes = Cliente.objects.all()
+    if request.method == 'GET':
+        fecha_ini  = date.today() - timedelta(days=15)
+        fecha_fin  = date.today()
+        xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
+        xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
+        xCliente = ''  # Iniciar vacío
+    else:
+        xFecha_ini = fecha_ini
+        xFecha_fin = fecha_fin
+
+    # Si xCliente es vacío o no numérico, no filtrar ni mostrar documentos
+    try:
+        xCliente_seleccionado = int(xCliente)
+    except (ValueError, TypeError):
+        xCliente_seleccionado = ''
+
+    qDocumentos = Documento.objects.annotate(
+        saldo=F('monto') - F('abonado')
+    ).values(
+        'saldo','id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva',
+        'condicion__condicion','cliente_id__vendedor__nombre','cliente_id__vendedor_id',
+        'observacion','abonado','dias_v','credito','seguimiento','monto_iva'
+    ).order_by('-id')
+
+    if xCliente_seleccionado == '':
+        xDocumentos = []
+    elif xCliente_seleccionado == 0:
+        xDocumentos = qDocumentos.filter(fecha__range=(xFecha_ini, xFecha_fin))
+    else:
+        xDocumentos = qDocumentos.filter(cliente_id=xCliente_seleccionado, fecha__range=(xFecha_ini, xFecha_fin))
+    # Calcular totales para el resumen
+
+    if isinstance(xDocumentos, list):
+        total_ventas = len(xDocumentos)
+    else:
+        total_ventas = xDocumentos.count()
+    total_monto = 0
+    for doc in xDocumentos:
+        monto = doc.get('monto', 0)
+        try:
+            total_monto += float(monto)
+        except Exception:
+            pass
+    # Redondear a dos decimales para evitar errores de punto flotante
+    total_monto = round(total_monto, 2)
+
+    context = {
+        'xUsuario': xUsuario,
+        'xDocumentos': xDocumentos,
+        'xClientes': xClientes,
+        'xCliente_seleccionado': xCliente_seleccionado,
+        'xFecha_ini': xFecha_ini,
+        'xFecha_fin': xFecha_fin,
+        'total_ventas': total_ventas,
+        'total_monto': total_monto,
+    }
+
+
+    return render(request, 'app_gestion/iva_pendientes.html', context)

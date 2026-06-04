@@ -113,6 +113,37 @@ M1 | Calcular comisiones
                     </div>
                 </form>
 
+                <div class="modal fade" id="modalAjustes" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalAjustesTitle">Ajustes</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Fecha</th>
+                                                <th>Cliente</th>
+                                                <th>Forma</th>
+                                                <th>Referencia</th>
+                                                <th class="text-end">Monto procesar</th>
+                                                <th class="text-end">Ajuste</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="modalAjustesBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="modal-footer d-flex justify-content-end align-items-center">
+                                <span class="fw-bold text-danger" id="modalAjustesTotal"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -123,6 +154,8 @@ M1 | Calcular comisiones
 
     let totalAjustePeriodoBs = 0;
     let totalAjustePeriodoUsd = 0;
+    let detalleAjustesBs = [];
+    let detalleAjustesUsd = [];
 
     function checkPattern(e) {
         $("#" + e).on({
@@ -347,7 +380,12 @@ M1 | Calcular comisiones
 
                 html +=
                     `<tr>
-                        <td colspan="8" style="text-align:right; font-weight:bold;">Ajustes</td>
+                        <td colspan="8" style="text-align:right; font-weight:bold;">
+                            <a href="javascript:void(0)" title="Ver ajustes" onclick="abrirModalAjustes('bs')">
+                                <i class="bi bi-file-earmark" style="font-size: small;"></i>
+                            </a>
+                            <span class="ms-1">Ajustes</span>
+                        </td>
                         <td>
                             <input id="total_ajuste_bs" class="form-control input-numero sin-bordes alto"
                             value="0,00" readonly style="font-weight: bold; color: #dc3545;">
@@ -556,7 +594,12 @@ M1 | Calcular comisiones
                         </td>
                     </tr>
                     <tr>
-                        <td colspan="8" style="text-align:right; font-weight:bold;">Ajustes</td>
+                        <td colspan="8" style="text-align:right; font-weight:bold;">
+                            <a href="javascript:void(0)" title="Ver ajustes" onclick="abrirModalAjustes('usd')">
+                                <i class="bi bi-file-earmark" style="font-size: small;"></i>
+                            </a>
+                            <span class="ms-1">Ajustes</span>
+                        </td>
                         <td>
                             <input id="total_ajuste_usd" class="form-control input-numero sin-bordes alto"
                             value="0,00" readonly style="font-weight: bold; color: #dc3545;">
@@ -752,6 +795,8 @@ M1 | Calcular comisiones
             success: function (data) {
                 totalAjustePeriodoBs = parseFloat(data.total_ajuste_bs || data.total_ajuste || 0);
                 totalAjustePeriodoUsd = parseFloat(data.total_ajuste_usd || 0);
+                detalleAjustesBs = data.detalle_bs || [];
+                detalleAjustesUsd = data.detalle_usd || [];
                 recalcularComisionBsNeta();
                 recalcularComisionUsdNeta();
             },
@@ -803,6 +848,39 @@ M1 | Calcular comisiones
 
         netoInput.value = darFormato(totalNeto);
         cobrarInput.value = darFormato(totalNeto);
+    }
+
+    function abrirModalAjustes(tipo) {
+        const modalTitle = document.getElementById('modalAjustesTitle');
+        const modalBody = document.getElementById('modalAjustesBody');
+        const modalTotal = document.getElementById('modalAjustesTotal');
+        const data = tipo === 'usd' ? detalleAjustesUsd : detalleAjustesBs;
+        const total = tipo === 'usd' ? totalAjustePeriodoUsd : totalAjustePeriodoBs;
+
+        modalTitle.textContent = tipo === 'usd' ? 'Detalle de ajustes USD' : 'Detalle de ajustes Bs';
+        modalTotal.textContent = `Total ajustes: ${darFormato(total)}`;
+
+        if (!data.length) {
+            modalBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No hay ajustes para mostrar.</td></tr>';
+        } else {
+            let html = '';
+            data.forEach((item) => {
+                html += `
+                    <tr>
+                        <td>${item.fecha}</td>
+                        <td>${item.cliente_nombre}</td>
+                        <td>${item.forma}</td>
+                        <td>${item.referencia}</td>
+                        <td class="text-end">${darFormato(item.monto_procesar)}</td>
+                        <td class="text-end text-danger">${darFormato(item.ajuste)}</td>
+                    </tr>`;
+            });
+            modalBody.innerHTML = html;
+        }
+
+        const modalElement = document.getElementById('modalAjustes');
+        const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+        modalInstance.show();
     }
 
     // Guardar formulario

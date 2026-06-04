@@ -1,9 +1,8 @@
-{% extends "app_gestion/base_m2.html" %}
-{% load static %}
+{% extends "app_gestion/base_m1.html" %}
 {% load static %}
 {% load filtros %}
 {% block title %}
-M1 | Ventas
+M1 | IVA Pendientes
 {% endblock %}
 
 {% block styles %}
@@ -22,8 +21,8 @@ M1 | Ventas
         <div class="card" id="data-section" style="opacity: 0;">
             <div class="card-body">
                 <h5 class="card-title">
-                    Ventas
-                    <a href="{% url 'inicio_m2' %}" class="float-end">
+                    IVA Pendientes
+                    <a href="{% url 'inicio' %}" class="float-end">
                         <i class="bi bi-house-door" title="Cerrar"></i>
                     </a>
                 </h5>
@@ -52,37 +51,6 @@ M1 | Ventas
                     </div>
                 </form>
 
-                <!-- Resumen de Ventas como cards profesionales -->
-                <div class="row justify-content-center mb-4" style="gap: 0.5rem;">
-                    <div class="col-md-3 col-10">
-                        <div class="card shadow-sm border-0 h-100" style="background: linear-gradient(135deg, #e8f5e9 60%, #c8e6c9 100%);">
-                            <div class="card-body d-flex align-items-center">
-                                <div class="me-3" style="font-size:2.2rem; color:#388e3c;">
-                                    <i class="bi bi-clipboard-data"></i>
-                                </div>
-                                <div>
-                                    <div class="fw-bold text-uppercase" style="font-size:0.95rem; color:#388e3c; letter-spacing:1px;">Total Ventas</div>
-                                    <div class="fs-4 fw-semibold" style="color:#222;">{{ total_ventas }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-10">
-                        <div class="card shadow-sm border-0 h-100" style="background: linear-gradient(135deg, #e3f2fd 60%, #b3e5fc 100%);">
-                            <div class="card-body d-flex align-items-center">
-                                <div class="me-3" style="font-size:2.2rem; color:#1976d2;">
-                                    <i class="bi bi-currency-dollar"></i>
-                                </div>
-                                <div>
-                                    <div class="fw-bold text-uppercase" style="font-size:0.95rem; color:#1976d2; letter-spacing:1px;">Total Monto</div>
-                                    <div class="fs-4 fw-semibold" style="color:#222;">{{ total_monto|darFormato }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                       
-
                 <table id="ventas" class="table table-hover table-bordered" style="width:100%">
                     <thead>
                         <tr>
@@ -97,6 +65,7 @@ M1 | Ventas
                             <th>Condición</th>
                             <th>Vendedor</th>
                             <th>Estado Iva</th>
+                            <th>Monto IVA</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -117,9 +86,26 @@ M1 | Ventas
                             <td>{{ xDocumento.condicion__condicion }} a {{ xDocumento.credito }}</td>
                             <td>{{ xDocumento.cliente_id__vendedor__nombre|truncatechars:15 }}</td>
                             <td {% if xDocumento.iva__iva == "-" %} align="center" {% endif %}>{{ xDocumento.iva__iva }}</td>
+                            <td align="right">{{ xDocumento.monto_iva|default:0|darFormato }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes izquierda">Total Monto IVA:</td>
+                            <td id="pt_monto_iva" class="sin-bordes text-end"></td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -135,6 +121,20 @@ M1 | Ventas
     $(document).ready(function () {
         $(function () {
             $("#ventas").DataTable({
+                footerCallback: function (row, data, start, end) {
+                    const api = this.api();
+                    const toNumber = s =>
+                        typeof s === 'string'
+                            ? parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0
+                            : typeof s === 'number'
+                                ? s
+                                : 0;
+
+                    const totalMontoIva = api.column(11, { page: 'current' }).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
+                    const f = n => darFormato(n);
+
+                    $('#pt_monto_iva').html(`<span style="font-size:15px">Bs. ${f(totalMontoIva)}</span>`);
+                },
                 language: {
                     "sProcessing": "Procesando...",
                     "sLengthMenu": "Mostrar _MENU_ registros",
@@ -190,7 +190,7 @@ M1 | Ventas
         let fecha_ini = document.getElementById("fecha_ini").value;
         let fecha_fin = document.getElementById("fecha_fin").value;
         if (cliente !== '') {
-            filtros.action = `/ventas/${cliente}/${fecha_ini}/${fecha_fin}/`;
+            filtros.action = `/iva_pendientes/${cliente}/${fecha_ini}/${fecha_fin}/`;
             filtros.submit();
         }
     }

@@ -54,6 +54,9 @@ class agregar_documentoForm(ModelForm):
         self.fields['monto'].widget.input_type = 'text' #Pasa el campo numerico a texto          
         self.fields['monto'].widget.attrs.update(
             {'onblur': "FormatearNumerosInputs(this)", 'maxlength': '10', 'class': 'form-control input-numero alto'})
+        self.fields['monto_iva'].widget.input_type = 'text' #Pasa el campo numerico a texto
+        self.fields['monto_iva'].widget.attrs.update(
+            {'onblur': "FormatearNumerosInputs(this)", 'maxlength': '10', 'class': 'form-control input-numero alto'})
         self.fields['vencimiento'].widget.attrs.update({'onChange': "calcular_dias()"})
         self.fields['fecha'].widget.attrs.update({'onChange': "calcular_dias()"})
         self.fields['observacion'].widget.attrs.update({'class': 'form-control'})
@@ -61,7 +64,7 @@ class agregar_documentoForm(ModelForm):
       
     class Meta:
         model = Documento
-        fields = ('numero','cliente','fecha','vencimiento','monto','observacion','iva','condicion','credito')
+        fields = ('numero','cliente','fecha','vencimiento','monto','observacion','iva','condicion','monto_iva','credito')
  
         widgets = {
             'fecha': DateInput(format=('%Y-%m-%d')),

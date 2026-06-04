@@ -87,6 +87,11 @@ M1 | Documentos crud
                             {% endfor %}
                         </select>
                     </div>
+                    <div class="col-6">
+                        <span class="titulos">Monto IVA</span>
+                        <input name="monto_iva" id="id_monto_iva" class="form-control input-numero alto"
+                            value="0,00" required maxlength="10" onblur="FormatearNumerosInputs(this)">
+                    </div>
                     <div class="col-12 pb-4">
                         <span class="titulos">
                             {{form.observacion.label}}</span>
@@ -157,6 +162,11 @@ M1 | Documentos crud
                             {% endfor %}
                         </select>
                     </div>
+                    <div class="col-6">
+                        <span class="titulos">Monto IVA</span>
+                        <input name="monto_iva" id="id_monto_iva" class="form-control input-numero alto"
+                            value="{{rMonto_iva}}" required maxlength="10" onblur="FormatearNumerosInputs(this)">
+                    </div>
                     <div class="col-12 pb-4">
                         <span class="titulos">
                             {{form.observacion.label}}</span>
@@ -199,6 +209,11 @@ M1 | Documentos crud
                             Condición</span>
                         <input name="condicion" id="condicion" value="{{rCondicion}}" class="form-control d-flex alto"
                             disabled />
+                    </div>
+                    <div class="col-6">
+                        <span class="titulos">Monto IVA</span>
+                        <input name="monto_iva" id="id_monto_iva" value="{{rMonto_iva}}"
+                            class="form-control input-numero alto" disabled maxlength="10">
                     </div>
 
                     <div class="col-12 pb-4">
@@ -311,6 +326,7 @@ M1 | Documentos crud
         }
 
         checkPattern("id_monto")
+        checkPattern("id_monto_iva")
         // Si editando dar formato
         if (document.getElementById('id_monto').value != "") {
             // document.getElementById('id_monto').value = darFormato(document.getElementById('id_monto').value)

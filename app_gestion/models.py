@@ -238,6 +238,7 @@ class Documento(models.Model):
     dias_v = models.IntegerField(default=0)
     credito = models.IntegerField(default=0)
     monto = models.DecimalField(max_digits=8, decimal_places=2)
+    monto_iva = models.DecimalField(max_digits=8, decimal_places=2, default=0, verbose_name="Monto IVA")
     abonado = models.DecimalField(max_digits=8, decimal_places=2,default=0)
     observacion = models.TextField(max_length=1000, blank=True,null=True, verbose_name="Observación")
     seguimiento = models.TextField(blank=True)

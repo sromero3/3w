@@ -92,6 +92,7 @@ M1 | Cobranza
                             <th>Abonado</th>
                             <th>Pendiente</th>
                             <th style="width:100px">Iva</th>
+                            <th>Monto IVA</th>
                             <th style="width:90px">Condición</th>
                             <th style="width:150px">Vendedor</th>
                         </tr>
@@ -140,6 +141,7 @@ M1 | Cobranza
                                  <i style="font-size: small;" class="bi bi-pencil"></a></i>
                             </td>
                             {% endif %}
+                               <td align="right">{{xDocumento.monto_iva|darFormato}}</td>
                             <!-- <td style="width:30px; color: rgb(90, 91, 92);">{{xDocumento.id|rellenar}}</td> -->
                             {% if xDocumento.condicion__condicion == "Contado" %}
                             <td style="color: red;">{{xDocumento.condicion__condicion}} a {{xDocumento.credito}}</td>
@@ -160,8 +162,8 @@ M1 | Cobranza
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes izquierda">T. Pag:</td>
                             <td id="pt" class="sin-bordes"></td>
-                            <!-- <td class="sin-bordes"></td> -->
                             <td class="sin-bordes"></td>
+                            <td id="pt_iva" class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
                         </tr>
@@ -174,8 +176,8 @@ M1 | Cobranza
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes izquierda">T. Cons:</td>
                             <td id="t" class="sin-bordes"></td>
-                            <!-- <td class="sin-bordes"></td> -->
                             <td class="sin-bordes"></td>
+                            <td id="t_iva" class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
                         </tr>
@@ -328,13 +330,33 @@ M1 | Cobranza
                             b = b.replace(".", "") // Eliminado el punto en la unidad de mil
                             return intVal(a) + intVal(b)
                         }, 0)
+                    totalIva = api
+                        .column(9)
+                        .data()
+                        .reduce(function (a, b) {
+                            b = b.replace(".", "") // Eliminado el punto en la unidad de mil
+                            return intVal(a) + intVal(b)
+                        }, 0)
+
+                    pageTotalIva = api
+                        .column(9, { page: 'current' })
+                        .data()
+                        .reduce(function (a, b) {
+                            b = b.replace(".", "") // Eliminado el punto en la unidad de mil
+                            return intVal(a) + intVal(b)
+                        }, 0)
+
                     // Update footer
 
                     let pt = darFormato(pageTotal)
                     let t = darFormato(total)
+                    let ptIva = darFormato(pageTotalIva)
+                    let tIva = darFormato(totalIva)
 
                     $('#pt').html('<span style="font-size: 15px">$' + pt + '</span>')
                     $('#t').html('<span style="font-size: 15px">$' + t + '</span>')
+                    $('#pt_iva').html('<span style="font-size: 15px">Bs.' + ptIva + '</span>')
+                    $('#t_iva').html('<span style="font-size: 15px">Bs.' + tIva + '</span>')
                 },
                 language: {
                     "sProcessing": "Procesando...",
