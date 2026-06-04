@@ -63,7 +63,9 @@ urlpatterns = [
      path('dolares_no_recibidos/', views.dolares_no_recibidosView, name='dolares_no_recibidos'),
      path('dolares_no_recibidos_modal/', views.dolares_no_recibidos_modalView, name='dolares_no_recibidos_modal'),
      path('ventas/<int:xCliente>/<fecha_ini>/<fecha_fin>/', views.ventasView, name='ventas'),
-     path('iva_pendientes/<int:xCliente>/<fecha_ini>/<fecha_fin>/', views.iva_pendientesView, name='iva_pendientes'),
+    path('iva_pendientes/<int:xCliente>/<fecha_ini>/<fecha_fin>/', views.iva_pendientes_legacyView),
+    path('iva_pendientes/<int:xCliente>/<int:xVendedor>/<int:xIva>/<fecha_ini>/<fecha_fin>/', views.iva_pendientes_legacy_v2View),
+    path('iva_pendientes/<int:xCliente>/<int:xVendedor>/<int:xIva>/<int:xSaldo>/<fecha_ini>/<fecha_fin>/', views.iva_pendientesView, name='iva_pendientes'),
 
     # Comisiones  
      path('calcular_comision/', views.calcular_comisionView, name='calcular_comision'),

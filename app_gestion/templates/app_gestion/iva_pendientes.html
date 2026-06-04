@@ -29,7 +29,37 @@ M1 | IVA Pendientes
 
                 <form id="filtros" action="" method="post" class="row g-3">
                     {% csrf_token %}
-                    <div class="col-md-4">
+                    <div class="col-md-2">
+                        <label class="titulos d-flex me-2 mt-1">Vendedor</label>
+                        <select name="vendedor" id="vendedor" onchange="obtener_ventas()">
+                            <option value="0" {% if xVendedor_seleccionado == 0 %}selected{% endif %}>TODOS</option>
+                            {% for xVendedor in xVendedores %}
+                            <option value="{{ xVendedor.id }}" {% if xVendedor.id == xVendedor_seleccionado %}selected{% endif %}>
+                                {{ xVendedor.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="titulos d-flex me-2 mt-1">Estado Iva</label>
+                        <select name="iva" id="iva" class="form-control d-flex alto" onchange="obtener_ventas()">
+                            <option value="0" {% if xIva_seleccionado == 0 %}selected{% endif %}>TODOS</option>
+                            {% for xIva in xIvas %}
+                            <option value="{{ xIva.id }}" {% if xIva.id == xIva_seleccionado %}selected{% endif %}>
+                                {{ xIva.iva }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="titulos d-flex me-2 mt-1">Desde</label>
+                        <input type="date" id="fecha_ini" name="fecha_ini" value="{{xFecha_ini}}" class="form-control alto" onchange="obtener_ventas()"/>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="titulos d-flex me-2 mt-1">Hasta</label>
+                        <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}" class="form-control alto" onchange="obtener_ventas()"/>
+                    </div>
+                    <div class="col-md-2">
                         <label class="titulos d-flex me-2 mt-1">Cliente</label>
                         <select name="cliente" id="cliente" required onchange="obtener_ventas()">
                             <option value="" {% if xCliente_seleccionado == '' %}selected{% endif %} disabled hidden>Seleccione...</option>
@@ -41,13 +71,13 @@ M1 | IVA Pendientes
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <label class="titulos d-flex me-2 mt-1">Desde</label>
-                        <input type="date" id="fecha_ini" name="fecha_ini" value="{{xFecha_ini}}" class="form-control alto" onchange="obtener_ventas()"/>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="titulos d-flex me-2 mt-1">Hasta</label>
-                        <input type="date" id="fecha_fin" name="fecha_fin" value="{{xFecha_fin}}" class="form-control alto" onchange="obtener_ventas()"/>
+                    <div class="col-md-2">
+                        <label class="titulos d-flex me-2 mt-1">Saldo</label>
+                        <select name="saldo" id="saldo" class="form-control d-flex alto" onchange="obtener_ventas()">
+                            <option value="0" {% if xSaldo_seleccionado == 0 %}selected{% endif %}>TODOS</option>
+                            <option value="1" {% if xSaldo_seleccionado == 1 %}selected{% endif %}>CON SALDO</option>
+                            <option value="2" {% if xSaldo_seleccionado == 2 %}selected{% endif %}>SIN SALDO</option>
+                        </select>
                     </div>
                 </form>
 
@@ -62,7 +92,6 @@ M1 | IVA Pendientes
                             <th>Monto</th>
                             <th>Abonado</th>
                             <th>Saldo</th>
-                            <th>Condición</th>
                             <th>Vendedor</th>
                             <th>Estado Iva</th>
                             <th>Monto IVA</th>
@@ -83,7 +112,6 @@ M1 | IVA Pendientes
                             <td align="right">{{ xDocumento.monto|darFormato }}</td>
                             <td align="right">{{ xDocumento.abonado|darFormato }}</td>
                             <td align="right">{{ xDocumento.saldo|darFormato }}</td>
-                            <td>{{ xDocumento.condicion__condicion }} a {{ xDocumento.credito }}</td>
                             <td>{{ xDocumento.cliente_id__vendedor__nombre|truncatechars:15 }}</td>
                             <td {% if xDocumento.iva__iva == "-" %} align="center" {% endif %}>{{ xDocumento.iva__iva }}</td>
                             <td align="right">{{ xDocumento.monto_iva|default:0|darFormato }}</td>
@@ -92,7 +120,6 @@ M1 | IVA Pendientes
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
@@ -130,7 +157,7 @@ M1 | IVA Pendientes
                                 ? s
                                 : 0;
 
-                    const totalMontoIva = api.column(11, { page: 'current' }).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
+                    const totalMontoIva = api.column(10, { page: 'current' }).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
                     const f = n => darFormato(n);
 
                     $('#pt_monto_iva').html(`<span style="font-size:15px">Bs. ${f(totalMontoIva)}</span>`);
@@ -164,6 +191,7 @@ M1 | IVA Pendientes
                     }
                 },
                 "info": false,
+                "searching": false,
                 "ordering": false,
                 "paging": false,
                 "responsive": true,
@@ -176,23 +204,34 @@ M1 | IVA Pendientes
             document.getElementById('data-section').style.opacity = 1;
         }, 200);
 
-        // Selectize igual que estado_de_cuenta
-        var selectizeInstance = $('#cliente').selectize({});
-        $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
-        var selectizeControl = selectizeInstance[0].selectize;
-        selectizeControl.$control.on('click', function () {
-            selectizeControl.clear();
-            $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
+        function agregarFlechaSelectize(idSelect) {
+            const $input = $(idSelect).next('.selectize-control').find('.selectize-input');
+            if ($input.find('.custom-arrow').length === 0) {
+                $input.append('<i class="custom-arrow bi bi-chevron-down"></i>');
+            }
+        }
+
+        var selectizeCliente = $('#cliente').selectize({});
+        agregarFlechaSelectize('#cliente');
+        var selectizeClienteControl = selectizeCliente[0].selectize;
+        selectizeClienteControl.$control.on('click', function () {
+            selectizeClienteControl.clear();
+            agregarFlechaSelectize('#cliente');
         });
+
+        var selectizeVendedor = $('#vendedor').selectize({});
+        agregarFlechaSelectize('#vendedor');
     });
     function obtener_ventas() {
-        let cliente = document.getElementById("cliente").value;
-        let fecha_ini = document.getElementById("fecha_ini").value;
-        let fecha_fin = document.getElementById("fecha_fin").value;
-        if (cliente !== '') {
-            filtros.action = `/iva_pendientes/${cliente}/${fecha_ini}/${fecha_fin}/`;
-            filtros.submit();
-        }
+        let cliente = document.getElementById("cliente").value || '0';
+        let vendedor = document.getElementById("vendedor").value || '0';
+        let iva = document.getElementById("iva").value || '0';
+        let saldo = document.getElementById("saldo").value || '0';
+        let fecha_ini = document.getElementById("fecha_ini").value || ' ';
+        let fecha_fin = document.getElementById("fecha_fin").value || ' ';
+
+        filtros.action = `/iva_pendientes/${cliente}/${vendedor}/${iva}/${saldo}/${fecha_ini}/${fecha_fin}/`;
+        filtros.submit();
     }
 </script>
 {% endblock Scripts_Adicionales %}

@@ -208,7 +208,43 @@
       >
         <li>
           <a href="{% url 'doc_pro' ' '  ' ' %}">
-            <span>Doc. proc. x fechas</span>
+            <span>Doc x fechas</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="{% url 'cobranza_vendedor' 0  ' ' 0 %}">
+            <span>Cobranza por vendedor</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="{% url 'ventas' 0 ' ' ' ' %}">
+            <span>Ventas</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="{% url 'ingreso_rango' 0 0  ' ' ' ' %}">
+            <span>Ingresos</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="{% url 'ingreso_resumen'  ' ' ' ' %}">
+            <span>Ingreso resumen</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="{% url 'dolares_no_recibidos' %}">
+            <span>Dolares no recibidos</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="{% url 'iva_pendientes' 0 0 0 0 ' ' ' ' %}">
+            <span>IVA Pendiente</span>
           </a>
         </li>
 
@@ -225,47 +261,13 @@
         </li>
 
         <li>
-          <a href="{% url 'ingreso_rango' 0 0  ' ' ' ' %}">
-            <span>Ingresos </span>
-          </a>
-        </li>
-     
-        <li>
-          <a href="{% url 'ingreso_resumen'  ' ' ' ' %}">
-            <span>Ingresos resumen </span>
-          </a>
-        </li>
-  
-        <li>
-          <a href="{% url 'dolares_no_recibidos' %}">
-            <span>Dolares no recibidos </span>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'cobranza_vendedor' 0  ' ' 0 %}">
-            <span>Cobranza x vendedor</span>
-          </a>
-        </li>
-        <li>
           <a href="{% url 'estado_cuenta' 0 'menu' ' ' ' ' %}">
             <span>Estado de cuenta</span>
           </a>
         </li>
         <li>
           <a href="{% url 'saldo_favor' %}">
-            <span>Clientes con Excedentes</span>
-          </a>
-        </li>
-      
-        </li>
-        <li>
-          <a href="{% url 'ventas' 0 ' ' ' ' %}">
-            <span>Ventas</span>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'iva_pendientes' 0 ' ' ' ' %}">
-            <span>IVA Pendientes</span>
+            <span>Clientes con excedentes</span>
           </a>
         </li>
       </ul>

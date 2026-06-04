@@ -3849,15 +3849,21 @@ def ventasView(request, xCliente, fecha_ini, fecha_fin):
 
     
 @login_required
-def iva_pendientesView(request, xCliente, fecha_ini, fecha_fin):
+def iva_pendientesView(request, xCliente, xVendedor, xIva, xSaldo, fecha_ini, fecha_fin):
     xUsuario = request.user
     xClientes = Cliente.objects.all()
+    xVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
+    xIvas = Iva.objects.all()
     if request.method == 'GET':
         fecha_ini  = date.today() - timedelta(days=15)
         fecha_fin  = date.today()
         xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
         xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
-        xCliente = ''  # Iniciar vacío
+        xCliente = 0
+        xVendedor = 0
+        iva_pendiente = xIvas.filter(iva__iexact='Pendiente').first()
+        xIva = iva_pendiente.id if iva_pendiente else 0
+        xSaldo = 0
     else:
         xFecha_ini = fecha_ini
         xFecha_fin = fecha_fin
@@ -3867,6 +3873,21 @@ def iva_pendientesView(request, xCliente, fecha_ini, fecha_fin):
         xCliente_seleccionado = int(xCliente)
     except (ValueError, TypeError):
         xCliente_seleccionado = ''
+
+    try:
+        xVendedor_seleccionado = int(xVendedor)
+    except (ValueError, TypeError):
+        xVendedor_seleccionado = 0
+
+    try:
+        xIva_seleccionado = int(xIva)
+    except (ValueError, TypeError):
+        xIva_seleccionado = 0
+
+    try:
+        xSaldo_seleccionado = int(xSaldo)
+    except (ValueError, TypeError):
+        xSaldo_seleccionado = 0
 
     qDocumentos = Documento.objects.annotate(
         saldo=F('monto') - F('abonado')
@@ -3878,10 +3899,30 @@ def iva_pendientesView(request, xCliente, fecha_ini, fecha_fin):
 
     if xCliente_seleccionado == '':
         xDocumentos = []
-    elif xCliente_seleccionado == 0:
-        xDocumentos = qDocumentos.filter(fecha__range=(xFecha_ini, xFecha_fin))
     else:
-        xDocumentos = qDocumentos.filter(cliente_id=xCliente_seleccionado, fecha__range=(xFecha_ini, xFecha_fin))
+        xDocumentos = qDocumentos.filter(fecha__range=(xFecha_ini, xFecha_fin))
+        if xCliente_seleccionado != 0:
+            xDocumentos = xDocumentos.filter(cliente_id=xCliente_seleccionado)
+        if xVendedor_seleccionado != 0:
+            xDocumentos = xDocumentos.filter(cliente_id__vendedor_id=xVendedor_seleccionado)
+        if xIva_seleccionado != 0:
+            xDocumentos = xDocumentos.filter(iva_id=xIva_seleccionado)
+        if xSaldo_seleccionado == 1:
+            xDocumentos = xDocumentos.filter(saldo__gt=0)
+        elif xSaldo_seleccionado == 2:
+            xDocumentos = xDocumentos.filter(saldo__lte=0)
+
+    if isinstance(xDocumentos, list):
+        cantidad_docs = len(xDocumentos)
+    else:
+        cantidad_docs = xDocumentos.count()
+
+    print(
+        "[IVA_PENDIENTES][RESULT]",
+        {
+            'cantidad_documentos': cantidad_docs,
+        }
+    )
     # Calcular totales para el resumen
 
     if isinstance(xDocumentos, list):
@@ -3902,7 +3943,12 @@ def iva_pendientesView(request, xCliente, fecha_ini, fecha_fin):
         'xUsuario': xUsuario,
         'xDocumentos': xDocumentos,
         'xClientes': xClientes,
+        'xVendedores': xVendedores,
+        'xIvas': xIvas,
         'xCliente_seleccionado': xCliente_seleccionado,
+        'xVendedor_seleccionado': xVendedor_seleccionado,
+        'xIva_seleccionado': xIva_seleccionado,
+        'xSaldo_seleccionado': xSaldo_seleccionado,
         'xFecha_ini': xFecha_ini,
         'xFecha_fin': xFecha_fin,
         'total_ventas': total_ventas,
@@ -3911,3 +3957,13 @@ def iva_pendientesView(request, xCliente, fecha_ini, fecha_fin):
 
 
     return render(request, 'app_gestion/iva_pendientes.html', context)
+
+
+@login_required
+def iva_pendientes_legacyView(request, xCliente, fecha_ini, fecha_fin):
+    return iva_pendientesView(request, xCliente, 0, 0, 0, fecha_ini, fecha_fin)
+
+
+@login_required
+def iva_pendientes_legacy_v2View(request, xCliente, xVendedor, xIva, fecha_ini, fecha_fin):
+    return iva_pendientesView(request, xCliente, xVendedor, xIva, 0, fecha_ini, fecha_fin)
