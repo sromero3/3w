@@ -92,9 +92,9 @@ M1 | IVA Pendientes
                             <th>Monto</th>
                             <th>Abonado</th>
                             <th>Saldo</th>
-                            <th>Vendedor</th>
                             <th>Estado Iva</th>
                             <th>Monto IVA</th>
+                            <th>Vendedor</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -112,9 +112,9 @@ M1 | IVA Pendientes
                             <td align="right">{{ xDocumento.monto|darFormato }}</td>
                             <td align="right">{{ xDocumento.abonado|darFormato }}</td>
                             <td align="right">{{ xDocumento.saldo|darFormato }}</td>
-                            <td>{{ xDocumento.cliente_id__vendedor__nombre|truncatechars:15 }}</td>
                             <td {% if xDocumento.iva__iva == "-" %} align="center" {% endif %}>{{ xDocumento.iva__iva }}</td>
                             <td align="right">{{ xDocumento.monto_iva|default:0|darFormato }}</td>
+                            <td>{{ xDocumento.cliente_id__vendedor__nombre|truncatechars:15 }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -128,9 +128,9 @@ M1 | IVA Pendientes
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
                             <td class="sin-bordes"></td>
-                            <td class="sin-bordes"></td>
                             <td class="sin-bordes izquierda">Total Monto IVA:</td>
                             <td id="pt_monto_iva" class="sin-bordes text-end"></td>
+                            <td class="sin-bordes"></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -157,7 +157,7 @@ M1 | IVA Pendientes
                                 ? s
                                 : 0;
 
-                    const totalMontoIva = api.column(10, { page: 'current' }).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
+                    const totalMontoIva = api.column(9, { page: 'current' }).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
                     const f = n => darFormato(n);
 
                     $('#pt_monto_iva').html(`<span style="font-size:15px">Bs. ${f(totalMontoIva)}</span>`);

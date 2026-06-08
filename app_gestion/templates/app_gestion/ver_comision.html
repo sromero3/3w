@@ -370,12 +370,14 @@
 
     y += 6;
     doc.text("DESCUENTO POR AJUSTES :", tablaActual.settings.margin.left, y);
+    doc.setTextColor(220, 53, 69);
     doc.text(
       totalAjusteBs,
       tablaActual.settings.margin.left + 180,
       y,
       { align: "right" }
     );
+    doc.setTextColor(0, 0, 0);
 
     y += 6;
     doc.text("COMISIÓN BS A COBRAR:", tablaActual.settings.margin.left, y);
@@ -454,12 +456,14 @@
 
     y += 6;
     doc.text("DESCUENTO POR AJUSTES :", tablaActual.settings.margin.left, y);
+    doc.setTextColor(220, 53, 69);
     doc.text(
       totalAjusteUsd,
       tablaActual.settings.margin.left + 180,
       y,
       { align: "right" }
     );
+    doc.setTextColor(0, 0, 0);
 
     y += 6;
     doc.text("COMISIÓN USD A COBRAR:", tablaActual.settings.margin.left, y);
@@ -471,9 +475,7 @@
     );
 
     doc.setFont("helvetica", "normal");
-    y += 8;
-
-    y = doc.lastAutoTable.finalY + 20;
+    y += 16;
 
     // Firmas
     doc.setFontSize(10);
@@ -584,12 +586,14 @@ function generarPDF_oficina() {
 
   y += 6;
   doc.text("DESCUENTO POR AJUSTES :", tablaActual.settings.margin.left, y);
+  doc.setTextColor(220, 53, 69);
   doc.text(
     totalAjusteBs,
     xTotalBs,
     y,
     { align: "right" }
   );
+  doc.setTextColor(0, 0, 0);
 
   y += 6;
   doc.text("COMISIÓN BS A COBRAR:", tablaActual.settings.margin.left, y);
@@ -664,12 +668,14 @@ function generarPDF_oficina() {
 
   y += 6;
   doc.text("DESCUENTO POR AJUSTES :", doc.lastAutoTable.settings.margin.left, y);
+  doc.setTextColor(220, 53, 69);
   doc.text(
     totalAjusteUsd,
     xTotalUsd,
     y,
     { align: "right" }
   );
+  doc.setTextColor(0, 0, 0);
 
   y += 6;
   doc.text("COMISIÓN USD A COBRAR:", doc.lastAutoTable.settings.margin.left, y);
@@ -680,7 +686,7 @@ function generarPDF_oficina() {
     { align: "right" }
   );
 
-  y += 20;
+  y += 28;
 
   // Firmas
   doc.setFontSize(10);

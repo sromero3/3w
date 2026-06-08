@@ -73,7 +73,8 @@ M1 | Cobranza
                             </span>
                             <div id="enlaces2" hidden>
                                 <span>
-                                    <a id="url_estado">Estado de cuenta</a>
+                                    <a id="url_estado">Estado de cuenta</a><br>
+                                    <a id="url_ventas">Ventas</a>
                                 </span>
                             </div>
                             <input type="text" id="xDoc_encontrados" value="{{xDoc_encontrados}}" hidden>
@@ -475,6 +476,10 @@ M1 | Cobranza
         if (id_cliente != "0") {
             let anchor3 = document.getElementById('url_estado')
             anchor3.href = `/estado_cuentas/${id_cliente}/cobranza/' '/' '/`
+
+            let anchor4 = document.getElementById('url_ventas')
+            anchor4.href = `/ventas/${id_cliente}/' '/' '/`
+
             document.getElementById('enlaces2').removeAttribute('hidden')
         }
 
