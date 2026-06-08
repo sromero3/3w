@@ -478,7 +478,19 @@ M1 | Cobranza
             anchor3.href = `/estado_cuentas/${id_cliente}/cobranza/' '/' '/`
 
             let anchor4 = document.getElementById('url_ventas')
-            anchor4.href = `/ventas/${id_cliente}/' '/' '/`
+            const hoy = new Date();
+            const fechaFin = new Date(hoy);
+            const fechaIni = new Date(hoy);
+            fechaIni.setMonth(fechaIni.getMonth() - 6);
+
+            const formatearFecha = function (fecha) {
+                const anio = fecha.getFullYear();
+                const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                const dia = String(fecha.getDate()).padStart(2, '0');
+                return `${anio}-${mes}-${dia}`;
+            };
+
+            anchor4.href = `/ventas/${id_cliente}/${formatearFecha(fechaIni)}/${formatearFecha(fechaFin)}/?origen=cobranza`
 
             document.getElementById('enlaces2').removeAttribute('hidden')
         }

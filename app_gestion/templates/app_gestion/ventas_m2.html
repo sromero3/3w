@@ -23,9 +23,15 @@ M1 | Ventas
             <div class="card-body">
                 <h5 class="card-title">
                     Ventas
+                    {% if xOrigen == 'cobranza' %}
+                    <a href="#" class="float-end" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='{% url 'inicio_m2' %}'; } return false;">
+                        <i class="bi bi-arrow-left" title="Volver"></i>
+                    </a>
+                    {% else %}
                     <a href="{% url 'inicio_m2' %}" class="float-end">
                         <i class="bi bi-house-door" title="Cerrar"></i>
                     </a>
+                    {% endif %}
                 </h5>
 
                 <form id="filtros" action="" method="post" class="row g-3">
@@ -189,8 +195,10 @@ M1 | Ventas
         let cliente = document.getElementById("cliente").value;
         let fecha_ini = document.getElementById("fecha_ini").value;
         let fecha_fin = document.getElementById("fecha_fin").value;
+        const origen = "{{ xOrigen|default:'' }}";
+        const queryOrigen = origen ? `?origen=${encodeURIComponent(origen)}` : '';
         if (cliente !== '') {
-            filtros.action = `/ventas/${cliente}/${fecha_ini}/${fecha_fin}/`;
+            filtros.action = `/ventas/${cliente}/${fecha_ini}/${fecha_fin}/${queryOrigen}`;
             filtros.submit();
         }
     }

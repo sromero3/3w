@@ -3781,12 +3781,24 @@ def obtener_docs(vendedor_id, variables):
 def ventasView(request, xCliente, fecha_ini, fecha_fin):
     xUsuario = request.user
     xClientes = Cliente.objects.all()
+    xOrigen = request.GET.get('origen', '')
     if request.method == 'GET':
-        fecha_ini  = date.today() - timedelta(days=15)
-        fecha_fin  = date.today()
-        xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
-        xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
-        xCliente = ''  # Iniciar vacío
+        fecha_ini_limpia = str(fecha_ini).replace("'", '').strip() if fecha_ini is not None else ''
+        fecha_fin_limpia = str(fecha_fin).replace("'", '').strip() if fecha_fin is not None else ''
+
+        try:
+            xFecha_ini = datetime.strptime(fecha_ini_limpia, '%Y-%m-%d').strftime('%Y-%m-%d')
+            xFecha_fin = datetime.strptime(fecha_fin_limpia, '%Y-%m-%d').strftime('%Y-%m-%d')
+        except (ValueError, TypeError):
+            fecha_ini  = date.today() - timedelta(days=15)
+            fecha_fin  = date.today()
+            xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
+            xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
+
+        # Mantener vista inicial vacía cuando viene desde menú (cliente 0),
+        # pero permitir abrir filtrado cuando llega un cliente específico.
+        if str(xCliente) == '0':
+            xCliente = ''
     else:
         xFecha_ini = fecha_ini
         xFecha_fin = fecha_fin
@@ -3834,6 +3846,7 @@ def ventasView(request, xCliente, fecha_ini, fecha_fin):
         'xCliente_seleccionado': xCliente_seleccionado,
         'xFecha_ini': xFecha_ini,
         'xFecha_fin': xFecha_fin,
+        'xOrigen': xOrigen,
         'total_ventas': total_ventas,
         'total_monto': total_monto,
     }
