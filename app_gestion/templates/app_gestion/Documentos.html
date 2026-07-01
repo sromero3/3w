@@ -113,7 +113,8 @@ M1 | Documentos
                                 <td align="center">
                                     <input name="con_descuento_{{ xDocumento.id }}" class="form-check-input"
                                         value="{{ xDocumento.id }}" type="checkbox"
-                                        id="con_descuento_{{ xDocumento.id }}">
+                                        id="con_descuento_{{ xDocumento.id }}"
+                                        {% if xDocumento.saldo <= 0 %}disabled title="Documento sin saldo disponible"{% endif %}>
                                 </td>
                                 <td>{{ xDocumento.fecha|date:"d/m/y" }}</td>
                                 <td>{{ xDocumento.vencimiento|date:"d/m/y" }}</td>
@@ -282,7 +283,7 @@ M1 | Documentos
         if (!nombreCliente) return;
 
         const descuento = parseFloat(document.getElementById('por_descuento').value);
-        const checkboxes = document.querySelectorAll('input[type="checkbox"][id^="con_descuento_"]:checked');
+        const checkboxes = document.querySelectorAll('input[type="checkbox"][id^="con_descuento_"]:checked:not(:disabled)');
         const ids = Array.from(checkboxes).map(cb => cb.value);
 
         if (ids.length === 0) {
@@ -309,7 +310,7 @@ M1 | Documentos
 
     function aplicarDescuento(e) {
         const descuento = parseFloat(document.getElementById('por_descuento').value);
-        const checkboxes = document.querySelectorAll('input[type="checkbox"][id^="con_descuento_"]:checked');
+        const checkboxes = document.querySelectorAll('input[type="checkbox"][id^="con_descuento_"]:checked:not(:disabled)');
         const ids = Array.from(checkboxes).map(cb => cb.value);
 
         if (ids.length === 0) {
@@ -344,7 +345,7 @@ M1 | Documentos
     }
 
     function toggleCheckboxes(source) {
-        const checkboxes = document.querySelectorAll('input[type="checkbox"][id^="con_descuento_"]');
+        const checkboxes = document.querySelectorAll('input[type="checkbox"][id^="con_descuento_"]:not(:disabled)');
         checkboxes.forEach(cb => cb.checked = source.checked);
     }
 </script>
