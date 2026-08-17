@@ -32,9 +32,7 @@ M1 | Estado de cuenta
                             <select name="cliente" id="cliente" onChange="obtener_estado_cuenta()">
                                 <option value="0" selected></option>
                                 {% for xCliente in xClientes %}
-                                <option value={{xCliente.id}} {% if xCliente.id == xId %} selected {%endif %}>
-                                    {{xCliente.nombre}}
-                                </option>
+                                <option value="{{xCliente.id}}" {% if xCliente.id == xId %}selected{% endif %}>{{xCliente.nombre}}</option>
                                 {% endfor %}
                             </select>
                             {% else %}
@@ -259,90 +257,288 @@ M1 | Estado de cuenta
         }
     }
 
+    // ============================================================
+    // DISEÑO "ESTADO DE CUENTA" — adaptado del mockup aprobado
+    // ============================================================
+
+    // Paleta (RGB, escala 0-255)
+    const PDF_INK    = [22, 35, 58];     // texto principal / títulos
+    const PDF_MUTED  = [107, 114, 128];  // texto secundario / etiquetas
+    const PDF_PANEL  = [224, 240, 250];  // azul claro suave — fondo paneles de resumen
+    const PDF_HEADER = [2, 59, 109];     // #023B6D — encabezados de tabla
+    const PDF_LINE   = [224, 224, 224];  // gris claro estándar — líneas de tabla
+    const PDF_CARGO  = [199, 78, 70];    // rojo suavizado — Cargo
+    const PDF_ABONO  = [61, 151, 104];   // verde suavizado — Abono
+
     function agregarPieDePagina(data) {
-    const doc = data.doc;
-    const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
-    const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
-    const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
-    const totalPages = doc.internal.getNumberOfPages();
+        const doc = data.doc;
+        const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
+        const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
+        const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
+        const totalPages = doc.internal.getNumberOfPages();
 
-    const titulo = "SISTEMA DE GESTIÓN EMPRESARIAL";
-    const tituloWidth = doc.getTextWidth(titulo);
-    const tituloX = (pageWidth - tituloWidth) / 2;
-
-    const paginaTexto = `Página ${pageNumber} de ${totalPages}`;
-
-    doc.setFontSize(8);
-    doc.setTextColor(120);
-    doc.text(titulo, tituloX, pageHeight - 5);
-    doc.text(paginaTexto, pageWidth - 14, pageHeight - 5, { align: "right" });
-}
-
-function generarPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    const totalPagesExp = "{total_pages_count_string}";
-    let y = 10;
-
-    // Datos del encabezado
-    const clienteEl = document.getElementById("cliente");
-    const clienteNombre = clienteEl.tagName === 'SELECT'
-    ? clienteEl.options[clienteEl.selectedIndex].text
-    : clienteEl.value || "Todos";;
-    const fechaIni = document.getElementById("fecha_ini").value;
-    const fechaFin = document.getElementById("fecha_fin").value;
-    
-    const fechaHoy = new Date().toLocaleString("es-VE");
-
-    const formatFecha = (f) => {
-        if (!f) return '-';
-        const d = new Date(f);
-        return d.toLocaleDateString("es-VE", { day: "2-digit", month: "2-digit", year: "numeric" });
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(...PDF_MUTED);
+        doc.text("Sistema de Gestión Empresarial", 14, pageHeight - 8);
+        doc.text(`Página ${pageNumber} de ${totalPages}`, pageWidth - 14, pageHeight - 8, { align: "right" });
     }
 
-    // Título
-    doc.setFontSize(14);
-    doc.text("Estado de Cuenta", 14, y);
-    y += 8;
-
-    // Datos del encabezado
-    doc.setFontSize(10);
-    doc.text(`Cliente: ${clienteNombre}`, 14, y);
-    y += 6;
-    doc.text(`Desde: ${formatFecha(fechaIni)}`, 14, y);
-    y += 6;
-    doc.text(`Hasta: ${formatFecha(fechaFin)}`, 14, y);
-    y += 6;
-  
-    doc.text(`Generado: ${fechaHoy}`, 14, y);
-
-    // Tabla
-    doc.autoTable({
-        html: "#asientos",
-        startY: y + 4,
-        theme: "grid",
-        headStyles: { fillColor: [1, 31, 58] },
-        styles: {
-            fontSize: 9,
-            overflow: "linebreak",
-            halign: "right",
-        },
-        columnStyles: {
-            0: { halign: "center" },  // Fecha
-            1: { halign: "left" },    // Referencia
-            2: { halign: "center" },  // Forma de pago
-            3: { halign: "center" },  // Cta. destino
-            4: { halign: "center" },  // d/c
-        },
-        didDrawPage: agregarPieDePagina,
-    });
-
-    if (typeof doc.putTotalPages === "function") {
-        doc.putTotalPages(totalPagesExp);
+    // Convierte "1.234,56" (formato VE) a número
+    function parseMontoVE(txt) {
+        if (!txt) return 0;
+        const limpio = txt.replace(/\./g, '').replace(',', '.').trim();
+        const n = parseFloat(limpio);
+        return isNaN(n) ? 0 : n;
+    }
+    function fmtVE(n) {
+        return n.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
-    doc.save(`Estado de Cuenta - ${clienteNombre}.pdf`);
-}
+    function generarPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const totalPagesExp = "{total_pages_count_string}";
+        const marginX = 14;
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const usableWidth = pageWidth - marginX * 2;
+        let y = 18;
+
+        // --- Datos del encabezado ---
+        const clienteEl = document.getElementById("cliente");
+        const clienteNombre = clienteEl.tagName === 'SELECT'
+            ? clienteEl.options[clienteEl.selectedIndex].text
+            : clienteEl.value || "Todos";
+        const fechaIni = document.getElementById("fecha_ini").value;
+        const fechaFin = document.getElementById("fecha_fin").value;
+        const fechaHoy = new Date().toLocaleString("es-VE");
+
+        const formatFecha = (f) => {
+            if (!f) return '-';
+            const d = new Date(f);
+            return d.toLocaleDateString("es-VE", { day: "2-digit", month: "2-digit", year: "numeric" });
+        };
+
+        // --- Título "Estado de Cuenta" + Desde/Hasta/Generado (izquierda) ---
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(17);
+        doc.setTextColor(...PDF_INK);
+        doc.text("Estado de Cuenta", marginX, y);
+        doc.text("3W2014, C.A.", marginX + usableWidth, y, { align: "right" });
+        y += 7;
+
+        doc.setFont("courier", "normal");
+        doc.setFontSize(9.5);
+            doc.setTextColor(0, 0, 0);
+        doc.text(`DESDE: ${formatFecha(fechaIni)}`, marginX, y); y += 5;
+        doc.text(`HASTA: ${formatFecha(fechaFin)}`, marginX, y); y += 5;
+        doc.text(`GENERADO: ${fechaHoy}`, marginX, y); y += 3;
+
+        // --- Leer las filas visibles de la tabla #asientos ---
+        const filas = [];
+        let saldoAnteriorTxt = '0,00';
+        let saldoFinalTxt = '0,00';
+        const limpiarTextoCelda = (txt) => (txt || '').replace(/\s+/g, ' ').trim();
+
+        $('#asientos tbody tr').each(function () {
+            const tds = $(this).find('td');
+            const fecha = $(tds[0]).text().trim();
+            const esApertura = fecha === '';
+
+            if (esApertura) {
+                const saldo = $(tds[6]).text().trim();
+                saldoAnteriorTxt = saldo || '0,00';
+                filas.push({ tipo: 'apertura', fecha: '-', detalle: 'SALDO ANTES DE ESTE PERIODO', monto: '-', saldo: saldoAnteriorTxt });
+                return;
+            }
+
+            const referencia = limpiarTextoCelda($(tds[1]).text());
+            const forma = limpiarTextoCelda($(tds[2]).text());
+            const destino = limpiarTextoCelda($(tds[3]).text());
+            const dc = $(tds[4]).text().trim();
+            const monto = $(tds[5]).text().trim();
+            const saldo = $(tds[6]).text().trim();
+            saldoFinalTxt = saldo;
+
+            let detalle = referencia;
+            let detalleSecundario = '';
+            if (dc === '+') {
+                const numeroDoc = referencia.replace(/^Doc\s*[:.]\s*/i, '').trim();
+                detalle = numeroDoc ? `Doc. ${numeroDoc}` : referencia;
+            } else if (forma && forma !== '-') {
+                detalleSecundario = forma + (destino && destino !== '-' ? ' · ' + destino : '');
+            }
+
+            filas.push({ tipo: dc === '+' ? 'cargo' : 'abono', fecha, detalle, detalleSecundario, monto, saldo });
+        });
+
+        // --- Totales ---
+        let totalCargos = 0, totalAbonos = 0;
+        filas.forEach(f => {
+            if (f.tipo === 'cargo') totalCargos += parseMontoVE(f.monto);
+            if (f.tipo === 'abono') totalAbonos += parseMontoVE(f.monto);
+        });
+
+        // --- Panel Cliente / Saldo actual ---
+        const panelH = 14;
+        doc.setFillColor(...PDF_PANEL);
+        doc.rect(marginX, y, usableWidth, panelH, 'F');
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8.5);
+        doc.setTextColor(0, 0, 0);
+        doc.text("CLIENTE", marginX + 4, y + 5);
+        doc.setTextColor(0, 0, 0);
+        doc.text("SALDO ACTUAL", marginX + usableWidth - 4, y + 5, { align: "right" });
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.text(clienteNombre, marginX + 4, y + 11);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.text(saldoFinalTxt, marginX + usableWidth - 4, y + 11, { align: "right" });
+
+        y += panelH + 3;
+
+        // --- Tabla: Fecha | Detalle | Tipo | Monto | Saldo ---
+        const body = filas.map(f => [f.fecha, f.detalle, '', f.monto, f.saldo]);
+
+        doc.autoTable({
+            startY: y,
+            head: [["Fecha", "Detalle", "Tipo", "Monto", "Saldo"]],
+            body: body,
+            theme: 'plain',
+            styles: {
+                font: "helvetica",
+                fontSize: 9,
+                textColor: PDF_INK,
+                cellPadding: { top: 3.5, bottom: 3.5, left: 3, right: 3 },
+                lineColor: PDF_LINE,
+                lineWidth: { bottom: 0.15 },
+                valign: 'middle',
+            },
+            headStyles: {
+                fillColor: PDF_HEADER,
+                textColor: [255, 255, 255],
+                fontStyle: 'bold',
+                fontSize: 8,
+                lineWidth: { bottom: 0.4 },
+                lineColor: PDF_LINE,
+            },
+            columnStyles: {
+                0: { cellWidth: 20 },
+                1: { cellWidth: 'auto' },
+                2: { cellWidth: 16, halign: 'center' },
+                3: { cellWidth: 26, halign: 'right' },
+                4: { cellWidth: 26, halign: 'right', font: 'courier', fontStyle: 'bold' },
+            },
+            didParseCell: function (data) {
+                if (data.section !== 'body') return;
+                const fila = filas[data.row.index];
+                if (fila.tipo === 'apertura') {
+                    data.cell.styles.fontStyle = 'normal';
+                    data.cell.styles.textColor = PDF_INK;
+                    data.cell.styles.fontSize = 9;
+                    if (data.column.index === 0) {
+                        data.cell.styles.halign = 'center';
+                    }
+                    if (data.column.index === 2) {
+                        data.cell.styles.halign = 'center';
+                        data.cell.text = ['-'];
+                    }
+                    if (data.column.index === 3) {
+                        data.cell.styles.halign = 'center';
+                    }
+                    if (data.column.index === 4) {
+                        data.cell.styles.fontStyle = 'bold';
+                    }
+                }
+                // Mantener primera línea oscura y reservar espacio para segunda línea gris en Detalle.
+                if (data.column.index === 1 && fila.detalleSecundario) {
+                    data.cell.text = [fila.detalle, ' '];
+                }
+                // el texto de la columna Tipo se oculta: se dibuja como círculo en didDrawCell
+                if (data.column.index === 2) {
+                    if (fila.tipo !== 'apertura') {
+                        data.cell.text = [];
+                    }
+                }
+            },
+            didDrawCell: function (data) {
+                if (data.section !== 'body') return;
+                const fila = filas[data.row.index];
+
+                if (data.column.index === 1 && fila.detalleSecundario) {
+                    const xDetalle = data.cell.x + 3;
+                    const yDetalle = data.cell.y + data.cell.height - 3.1;
+                    doc.setTextColor(...PDF_MUTED);
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(8.3);
+                    doc.text(fila.detalleSecundario, xDetalle, yDetalle);
+                    doc.setTextColor(...PDF_INK);
+                    return;
+                }
+
+                if (data.column.index !== 2) return;
+                if (fila.tipo !== 'cargo' && fila.tipo !== 'abono') return;
+
+                const cx = data.cell.x + data.cell.width / 2;
+                const cy = data.cell.y + data.cell.height / 2;
+                const r = 2.6;
+
+                doc.setFillColor(...(fila.tipo === 'cargo' ? PDF_CARGO : PDF_ABONO));
+                doc.circle(cx, cy, r, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(9);
+                doc.text(fila.tipo === 'cargo' ? '+' : '-', cx, cy + 1.1, { align: 'center' });
+            },
+            didDrawPage: agregarPieDePagina,
+        });
+
+        // --- Resumen: Saldo anterior · Total cargos · Total abonos · Saldo final ---
+        let yResumen = doc.lastAutoTable.finalY + 2;
+        doc.setDrawColor(...PDF_INK);
+        doc.setLineWidth(0.4);
+        doc.line(marginX, yResumen, marginX + usableWidth, yResumen);
+        yResumen += 6;
+
+        const columnas = [
+            { label: 'SALDO ANTERIOR', value: saldoAnteriorTxt },
+            { label: 'TOTAL CARGOS', value: fmtVE(totalCargos) },
+            { label: 'TOTAL ABONOS', value: fmtVE(totalAbonos) },
+            { label: 'SALDO FINAL', value: saldoFinalTxt, destacado: true },
+        ];
+        const gap = 2;
+        const colWidth = (usableWidth - gap * (columnas.length - 1)) / columnas.length;
+        const padX = 3;
+        const yLabel = yResumen;
+        const yValue = yResumen + 6.5;
+
+        columnas.forEach((c, i) => {
+            const x = marginX + i * (colWidth + gap);
+            doc.setFillColor(...PDF_PANEL);
+            doc.rect(x, yResumen - 5, colWidth, 15, 'F');
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(7.5);
+            doc.setTextColor(...PDF_MUTED);
+            doc.text(c.label, x + colWidth - padX, yLabel, { align: "right" });
+
+            doc.setFont("courier", "bold");
+            doc.setFontSize(c.destacado ? 12 : 10);
+            doc.setTextColor(...PDF_INK);
+            doc.text(c.value, x + colWidth - padX, yValue, { align: "right" });
+        });
+
+        if (typeof doc.putTotalPages === "function") {
+            doc.putTotalPages(totalPagesExp);
+        }
+
+        doc.save(`Estado de Cuenta - ${clienteNombre}.pdf`);
+    }
 
 </script>
 {% endblock Scripts_Adicionales %}

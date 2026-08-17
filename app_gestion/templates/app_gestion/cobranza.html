@@ -25,9 +25,7 @@ M1 | Cobranza
                         <select name="cliente" id="cliente" required class="form-control  alto" onChange="obtener_documentos()">
                             <option value="0" selected>TODOS</option>
                             {% for xCliente in xClientes %}
-                            <option value={{xCliente.id}} {% if xCliente.id == xCliente_seleccionado %} selected {%endif %}>
-                                {{xCliente.nombre}}
-                            </option>
+                                <option value="{{xCliente.id}}" {% if xCliente.id == xCliente_seleccionado %}selected{% endif %}>{{xCliente.nombre}}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -37,10 +35,7 @@ M1 | Cobranza
                             onChange="obtener_documentos()">
                             <option value="0" selected>TODOS</option>
                             {% for xVendedor in xVendedores %}
-                            <option value={{xVendedor.id}} {% if xVendedor.id == xVendedor_seleccionado %} selected
-                                {%endif %}>
-                                {{xVendedor.nombre}}
-                            </option>
+                            <option value="{{xVendedor.id}}" {% if xVendedor.id == xVendedor_seleccionado %}selected{% endif %}>{{xVendedor.nombre}}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -50,9 +45,7 @@ M1 | Cobranza
                             onChange="obtener_documentos()">
                             <option value="0" selected>TODOS</option>
                             {% for xIva in xIvas %}
-                            <option value={{xIva.id}} {% if xIva.id == xIva_seleccionado %} selected {% endif %}>
-                                {{xIva.iva}}
-                            </option>
+                            <option value="{{xIva.id}}" {% if xIva.id == xIva_seleccionado %}selected{% endif %}>{{xIva.iva}}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -241,9 +234,7 @@ M1 | Cobranza
                     <span class="titulos">IVA</span>
                     <select name="modal_iv" id="modal_iv" class="form-control d-flex alto">
                         {% for xIva in xIvas %}
-                        <option id={{xIva.id}} value="{{xIva.id}}" {% if xIva.id == modal_iv %} selected {% endif %}>
-                            {{xIva.iva}}
-                        </option>
+                        <option id="{{xIva.id}}" value="{{xIva.id}}" {% if xIva.id == modal_iv %}selected{% endif %}>{{xIva.iva}}</option>
                         {% endfor %}
                     </select>
                     <input type="text" id="modal_i_iva" hidden>
@@ -357,8 +348,8 @@ M1 | Cobranza
 
                     $('#pt').html('<span style="font-size: 15px">$' + pt + '</span>')
                     $('#t').html('<span style="font-size: 15px">$' + t + '</span>')
-                    $('#pt_iva').html('<span style="font-size: 15px">Bs.' + ptIva + '</span>')
-                    $('#t_iva').html('<span style="font-size: 15px">Bs.' + tIva + '</span>')
+                    $('#pt_iva').html('<span style="font-size: 15px; color: red;">Bs.' + ptIva + '</span>')
+                    $('#t_iva').html('<span style="font-size: 15px; color: red;">Bs.' + tIva + '</span>')
                 },
                 language: {
                     "sProcessing": "Procesando...",

@@ -27,13 +27,12 @@ M1 | Documentos crud
                         <span class="titulos">
                             Cliente</span><span id="nuevo" class="boton-ajustado-a-la-derecha"
                             title="Agrgara un cliente" onclick="javascript:openModal.click()">AGREGAR</span>
-                        <select name="cliente" id="cliente" required class="demo-default" <option value="0" selected>
+                        <select name="cliente" id="cliente" required class="demo-default">
+                            <option value="0" selected>
                             </option>
                             <option selected></option>
                             {% for xCliente in xClientes %}
-                            <option value={{xCliente.id}}>
-                                {{xCliente.nombre}}
-                            </option>
+                            <option value="{{xCliente.id}}">{{xCliente.nombre}}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -108,9 +107,7 @@ M1 | Documentos crud
                             onchange="javascript:llenar_nombre()">
                             <!-- <option selected></option> -->
                             {% for xCliente in xClientes %}
-                            <option id={{xCliente.id}} value="{{xCliente.id}}" data-nombre="{{ xCliente.nombre }}" {% if xCliente.id == rClienteId %} selected {% endif %}>
-                                {{xCliente.nombre}}
-                            </option>
+                            <option id="{{xCliente.id}}" value="{{xCliente.id}}" data-nombre="{{ xCliente.nombre }}" {% if xCliente.id == rClienteId %}selected{% endif %}>{{xCliente.nombre}}</option>
                             {% endfor %}
                         </select>
                         <input hidden name="nombre_cliente" id="nombreClienteInput">

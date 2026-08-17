@@ -24,9 +24,7 @@ M2 | Cobranza
                         <select name="cliente" id="cliente" required class="form-control  alto" onChange="obtener_documentos()">
                             <option value="0" selected>TODOS</option>
                             {% for xCliente in xClientes %}
-                            <option value={{xCliente.id}} {% if xCliente.id == xCliente_seleccionado %} selected {%endif %}>
-                                {{xCliente.nombre}}
-                            </option>
+                            <option value="{{xCliente.id}}" {% if xCliente.id == xCliente_seleccionado %}selected{% endif %}>{{xCliente.nombre}}</option>
                             {% endfor %}
                         </select>
                     </div>
