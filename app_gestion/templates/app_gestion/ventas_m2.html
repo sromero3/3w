@@ -42,9 +42,7 @@ M1 | Ventas
                             <option value="" {% if xCliente_seleccionado == '' %}selected{% endif %} disabled hidden>Seleccione...</option>
                             <option value="0" {% if xCliente_seleccionado == 0 %}selected{% endif %}>TODOS</option>
                             {% for xCliente in xClientes %}
-                            <option value="{{ xCliente.id }}" {% if xCliente.id == xCliente_seleccionado %}selected{% endif %}>
-                                {{ xCliente.nombre }}
-                            </option>
+                            <option value="{{ xCliente.id }}" {% if xCliente.id == xCliente_seleccionado %}selected{% endif %}>{{ xCliente.nombre }}</option>
                             {% endfor %}
                         </select>
                     </div>

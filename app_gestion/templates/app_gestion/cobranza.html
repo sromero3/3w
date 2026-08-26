@@ -61,6 +61,7 @@ M1 | Cobranza
                     </div>
                     <div class="row">
                         <div class="mt-1 col-lg-3 col-sm-12">
+                            <span id="saldo_favor" hidden style="background-color: #e8f5e9; padding: 0 0px; border-radius: 3px;">Saldo a favor: <strong class="text-success">{{xExcedente.saldo|default:0|darFormato}}</strong></span><br>
                             <span id="enlaces" hidden>
                                 <a id="url_pago_cuenta">Pago a cuenta</a><br>
                                 <a id="url_pago_documentos">Pago a documentos</a><br>
@@ -466,6 +467,8 @@ M1 | Cobranza
 
         // construir el url para estado de cuenta
         if (id_cliente != "0") {
+            document.getElementById('saldo_favor').removeAttribute('hidden')
+
             let anchor3 = document.getElementById('url_estado')
             anchor3.href = `/estado_cuentas/${id_cliente}/cobranza/' '/' '/`
 

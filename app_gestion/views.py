@@ -658,6 +658,10 @@ def cobranzaView(request, xCliente, xVendedor, xIva, xVencido):
          xDocumentos=qDocumentos.filter(cliente_id__vendedor_id=xVendedor_seleccionado, iva_id=xIva_seleccionado, cliente_id=xCliente_seleccionado)
     
     xDoc_encontrados = xDocumentos.count()
+    xExcedente = Excedente.objects.filter(
+        cli_id=xCliente_seleccionado,
+        saldo__gt=0
+    ).first()
     
     context = {
         'xUsuario': xUsuario,
@@ -669,7 +673,8 @@ def cobranzaView(request, xCliente, xVendedor, xIva, xVencido):
         'xVendedores': xVendedores,
         'xVendedor_seleccionado': int(xVendedor_seleccionado),
         'xVencido_seleccionado': xVencido_seleccionado,
-        'xDoc_encontrados': xDoc_encontrados 
+        'xDoc_encontrados': xDoc_encontrados,
+        'xExcedente': xExcedente
     }
 
     if xUsuario.groups.exists():
