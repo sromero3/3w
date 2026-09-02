@@ -183,7 +183,7 @@ class Cliente(models.Model):
     ('No', 'No'),
     ]
     ced_rif = models.CharField(max_length=10)
-    nombre = models.CharField(max_length=40)
+    nombre = models.CharField(max_length=80)
     # telefono = models.CharField(max_length=25)
     # correo = models.CharField(max_length=50,blank=True,null=True)
     # direccion = models.CharField(max_length=300)
