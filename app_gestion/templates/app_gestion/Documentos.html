@@ -36,9 +36,7 @@ M1 | Documentos
                             onchange="mostrarDescuento(); obtener_documentos()">
                             <option value="0" selected>TODOS</option>
                             {% for xCliente in xClientes_select %}
-                            <option value="{{ xCliente.id }}" {% if xCliente.id == xCliente_seleccionado %}selected{% endif %}>
-                                {{ xCliente.nombre }}
-                            </option>
+                                <option value="{{xCliente.id}}" {% if xCliente.id == xCliente_seleccionado %}selected{% endif %}>{{xCliente.nombre}}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -248,7 +246,10 @@ M1 | Documentos
     [...tooltipTriggerList].map(el => new bootstrap.Tooltip(el));
 
     function obtener_documentos() {
-        filtros.action = `/documentos/${cliente.value}/${dias.value}/`;
+        const enlace = `/documentos/${cliente.value}/${dias.value}/`;
+        console.log('Cliente seleccionado:', document.getElementById('cliente').selectedOptions[0]?.textContent.trim());
+        console.log('Enlace generado:', enlace);
+        filtros.action = enlace;
         if (document.getElementById('cliente').value !== '') filtros.submit();
     }
 
