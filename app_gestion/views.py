@@ -3331,6 +3331,66 @@ def ingreso_rango_conciliacionView(request, xCta, fecha_ini, fecha_fin):
     return render(request, 'app_gestion/ingresos_rango_conciliacion.html', context)
 
 
+@login_required
+def ingreso_rango_conciliacion_usdView(request, xCta, fecha_ini, fecha_fin):
+    xUsuario = request.user
+
+    try:
+        xCta_int = int(xCta)
+    except (ValueError, TypeError):
+        xCta_int = 0
+
+    if request.method == 'GET':
+        fecha_ini = date.today()
+        fecha_fin = date.today()
+        xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
+        xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
+    else:
+        xFecha_ini = fecha_ini
+        xFecha_fin = fecha_fin
+
+    xCtas = BancoDestino.objects.filter(tipo__in=['Nacional$', 'Inter']).order_by('tipo', 'nombre')
+    xPagos = []
+
+    if xCta_int:
+        xCta_seleccionada = xCta_int
+        qPagos = Pago.objects.filter(
+            fecha__range=(fecha_ini, fecha_fin),
+            banco_destino_id=xCta_int,
+            banco_destino__tipo__in=['Nacional$', 'Inter'],
+        ).exclude(
+            forma_id__in=[6, 9]
+        ).exclude(
+            referencia__icontains='Abono excedente'
+        ).values(
+            'id',
+            'cliente_id',
+            'cliente__nombre',
+            'referencia',
+            'fecha',
+            'monto_procesar',
+            'forma__forma',
+            'observacion',
+            'creado',
+            'banco_destino__nombre',
+            'banco_destino__tipo',
+        ).order_by('-id')
+        xPagos = list(qPagos)
+    else:
+        xCta_seleccionada = 0
+
+    context = {
+        'xUsuario': xUsuario,
+        'xPagos': xPagos,
+        'xCtas': xCtas,
+        'xCta_seleccionada': xCta_seleccionada,
+        'xFecha_ini': xFecha_ini,
+        'xFecha_fin': xFecha_fin,
+    }
+
+    return render(request, 'app_gestion/ingresos_rango_conciliacion_usd.html', context)
+
+
 
 @login_required
 def ingreso_rango_conciliacion_suView(request, xCta, fecha_ini, fecha_fin):

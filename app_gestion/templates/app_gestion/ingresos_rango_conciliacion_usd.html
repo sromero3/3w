@@ -1,0 +1,211 @@
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+{% block title %}
+M1 | Ingresos por rango (Conciliación USD)
+{% endblock title %}
+{% block icon %}{% endblock %}
+{% block styles %}{% endblock styles %}
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px;">
+    <div class="col-lg-12">
+        <div class="card" id="data-section" style="opacity: 0;">
+            <div class="card-body">
+                <h5 class="card-title">
+                    Ingresos por rango (Conciliación USD)
+                    <a href="{% url 'inicio' %}" class="float-end">
+                        <i class="bi bi-house-door" title="Cerrar"></i>
+                    </a>
+                </h5>
+
+                <form id="filtros" action="" method="post" class="mb-4" style="margin-bottom: 8px !important;">
+                    {% csrf_token %}
+                    <div class="row col align-items-end">
+                        <div class="col-md-3">
+                            <span class="titulos">Desde</span>
+                            <input type="date" id="fecha_ini" name="fecha_ini" value="{{ xFecha_ini }}" class="form-control alto" onchange="obtener_ingresos()" />
+                        </div>
+                        <div class="col-md-3">
+                            <span class="titulos">Hasta</span>
+                            <input type="date" id="fecha_fin" name="fecha_fin" value="{{ xFecha_fin }}" class="form-control alto" onchange="obtener_ingresos()" />
+                        </div>
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button type="button" class="btn btn-outline-secondary" title="Retroceder 1 día" onclick="retrocederUnDia()" style="height:30px; min-width:30px; padding:0 6px 1px 6px; display:flex; align-items:center; margin-bottom:1px;">
+                                <i class="bi bi-arrow-left" style="font-size:1.1rem;"></i>
+                            </button>
+                        </div>
+                        <div class="col-md-5">
+                            <span class="titulos">A Cuenta USD</span>
+                            <select name="cuenta" id="cuenta" required onchange="obtener_ingresos()" class="form-control custom-selectd-flex alto">
+                                <option value="" selected disabled>Seleccione una cuenta</option>
+                                {% for xCta in xCtas %}
+                                    <option value="{{ xCta.id }}" {% if xCta.id == xCta_seleccionada %}selected{% endif %}>{{ xCta.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </form>
+
+                {% if xCta_seleccionada %}
+                <table id="ingresos" class="table table-hover table-bordered" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Procesado</th>
+                            <th>Referencia</th>
+                            <th style="width:140px">Monto USD</th>
+                            <th>Cliente</th>
+                            <th>Forma de pago</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for xPago in xPagos %}
+                        <tr>
+                            <td align="center">{{ xPago.fecha|date:"d-m-Y" }}</td>
+                            <td align="center">{{ xPago.creado|date:"d-m-Y" }} {{ xPago.creado|time }}</td>
+                            {% if xPago.observacion == "" %}
+                                {% if xPago.referencia == "-" %}
+                                    <td align="center">{{ xPago.referencia }}</td>
+                                {% else %}
+                                    <td>{{ xPago.referencia|rellenar }}</td>
+                                {% endif %}
+                            {% else %}
+                                <td>
+                                    {{ xPago.referencia|rellenar }}
+                                    <a href="#"><i class="bi bi-search" style="font-size: small;" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true" data-bs-title="{{ xPago.observacion }}<br>"></i></a>
+                                </td>
+                            {% endif %}
+                            <td align="right">{{ xPago.monto_procesar|darFormato }}</td>
+                            <td>{{ xPago.cliente__nombre }}</td>
+                            <td>{{ xPago.forma__forma }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td id="pt_monto_total" class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                {% endif %}
+
+                <div class="row justify-content-end">
+                    <div class="col-auto pt-2">
+                        <button class="btn btn-primary" style="width: auto" onclick="generarPDF()">Generar PDF</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock content %}
+
+{% block Scripts_Adicionales %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+<script>
+    function retrocederUnDia() {
+        const fechaIni = document.getElementById('fecha_ini');
+        const fechaFin = document.getElementById('fecha_fin');
+        if (fechaIni.value && fechaFin.value) {
+            const ini = new Date(fechaIni.value);
+            const fin = new Date(fechaFin.value);
+            ini.setDate(ini.getDate() - 1);
+            fin.setDate(fin.getDate() - 1);
+            const f = d => d.toISOString().slice(0, 10);
+            fechaIni.value = f(ini);
+            fechaFin.value = f(fin);
+            obtener_ingresos();
+        }
+    }
+
+    $(document).ready(function () {
+        $('#ingresos').DataTable({
+            paging: false,
+            ordering: false,
+            responsive: true,
+            lengthChange: true,
+            autoWidth: true,
+            pageLength: 500,
+            scrollX: true,
+            language: {
+                sProcessing: 'Procesando...',
+                sLengthMenu: 'Mostrar _MENU_ registros',
+                sZeroRecords: 'No se encontraron resultados',
+                sEmptyTable: '*** No se encontró información ***',
+                sInfo: 'Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros',
+                sInfoEmpty: 'Mostrando registros del 0 al 0 de un total de 0 registros',
+                sInfoFiltered: '(filtrado de un total de _MAX_ registros)',
+                sSearch: 'Buscar:',
+                sLoadingRecords: 'Cargando...'
+            },
+            footerCallback: function () {
+                const api = this.api();
+                const toNumber = value => typeof value === 'string'
+                    ? parseFloat(value.replace(/\./g, '').replace(',', '.')) || 0
+                    : typeof value === 'number' ? value : 0;
+                const total = api.column(3, { page: 'current' }).data()
+                    .reduce((a, b) => toNumber(a) + toNumber(b), 0);
+                $('#pt_monto_total').html(`<span style="font-size:15px">USD ${darFormato(total)}</span>`);
+            }
+        });
+        setTimeout(() => { document.getElementById('data-section').style.opacity = 1; }, 200);
+    });
+
+    function obtener_ingresos() {
+        const cuenta = document.getElementById('cuenta');
+        if (!cuenta.value) return;
+        document.getElementById('filtros').action = `/ingreso_rango_conciliacion_usd/${cuenta.value}/${fecha_ini.value}/${fecha_fin.value}/`;
+        document.getElementById('filtros').submit();
+    }
+
+    function agregarPieDePagina(data) {
+        const doc = data.doc;
+        const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
+        const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
+        const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
+        const totalPages = doc.internal.getNumberOfPages();
+        doc.setFontSize(8);
+        doc.setTextColor(120);
+        doc.text('SISTEMA DE GESTIÓN EMPRESARIAL', pageWidth / 2, pageHeight - 5, { align: 'center' });
+        doc.text(`Página ${pageNumber} de ${totalPages}`, pageWidth - 14, pageHeight - 5, { align: 'right' });
+    }
+
+    function generarPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const cuenta = document.getElementById('cuenta');
+        const cuentaNombre = cuenta.options[cuenta.selectedIndex].text;
+        const fechaIni = document.getElementById('fecha_ini').value;
+        const fechaFin = document.getElementById('fecha_fin').value;
+        const formatFecha = value => value ? new Date(value).toLocaleDateString('es-VE') : '-';
+        let y = 10;
+        doc.setFontSize(14);
+        doc.text('Ingresos por rango (Conciliación USD)', 14, y);
+        y += 8;
+        doc.setFontSize(10);
+        doc.text(`Cuenta: ${cuentaNombre}`, 14, y);
+        y += 6;
+        doc.text(`Desde: ${formatFecha(fechaIni)}`, 14, y);
+        y += 6;
+        doc.text(`Hasta: ${formatFecha(fechaFin)}`, 14, y);
+        y += 6;
+        doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, 14, y);
+        doc.autoTable({
+            html: '#ingresos',
+            startY: y + 4,
+            theme: 'grid',
+            headStyles: { fillColor: [1, 31, 58], halign: 'center', valign: 'middle' },
+            styles: { fontSize: 9, overflow: 'linebreak', halign: 'right' },
+            columnStyles: { 0: { halign: 'center' }, 1: { halign: 'center' }, 2: { halign: 'left' }, 4: { halign: 'left' }, 5: { halign: 'left' } },
+            didDrawPage: agregarPieDePagina
+        });
+        doc.save(`Ingresos Conciliacion USD - ${cuentaNombre}.pdf`);
+    }
+</script>
+{% endblock Scripts_Adicionales %}
