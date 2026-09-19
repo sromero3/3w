@@ -260,6 +260,26 @@ class Documento(models.Model):
         # ordering = ["vencimiento","-id"]  
         ordering = ["vencimiento","fecha","id"]  
 
+class DocumentoIvaPago(models.Model):
+    documento = models.ForeignKey(Documento, on_delete=models.CASCADE, related_name='pagos_iva')
+    fecha = models.DateField()
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
+    referencia = models.CharField(max_length=50, blank=True, null=True)
+    banco_destino = models.ForeignKey('BancoDestino', on_delete=models.CASCADE, null=True, blank=True, verbose_name='Banco destino')
+    observacion = models.TextField(blank=True, null=True)
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.documento.numero} - {self.monto} - {self.fecha}"
+
+    class Meta:
+        db_table = "app_gestion_documento_iva_pagos"
+        verbose_name = "Pago de IVA"
+        verbose_name_plural = "Pagos de IVA"
+        ordering = ["-fecha", "-id"]
+
 class PagoForma(models.Model):
     forma = models.CharField(max_length=40, default="")
     orden = models.IntegerField()

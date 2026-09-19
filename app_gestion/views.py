@@ -21,7 +21,7 @@ from app_gestion.functions import *
 from decimal import Decimal
 from django.http import JsonResponse
 from operator import itemgetter
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from django.db.models import Q
 from decimal import *
 import os
@@ -29,6 +29,7 @@ from django.contrib.auth import logout
 from django.db.models.functions import ExtractYear
 import json
 from django.db.models import Sum, Case, When, F, DecimalField
+from django.db import transaction
 from django.views.decorators.http import require_POST
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.contrib.auth.views import LoginView
@@ -512,6 +513,12 @@ def Editar_documentoView(request, id):
                 documento.seguimiento = documento.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" + "</b>"
                 documento.seguimiento = documento.seguimiento + "&nbsp cambió el monto de: "+ darFormato(rMonto) + " a "+ darFormato(request.POST.get("monto")) +"<br>"
 
+            nMonto_iva = round(Decimal(request.POST.get('monto_iva')), 2)
+            if rMonto_iva != nMonto_iva:
+                documento.seguimiento = documento.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" + "</b>"
+                documento.seguimiento = documento.seguimiento + "&nbsp cambió el monto del IVA de: " + darFormato(rMonto_iva) + " a " + darFormato(nMonto_iva) + "<br>"
+
+            documento.actualizado = timezone.now()
             documento.save()
             return redirect('documentos', rClienteId, 1)
         else:
@@ -600,6 +607,7 @@ def cobranzaView(request, xCliente, xVendedor, xIva, xVencido):
     # xClientes = Cliente.objects.filter(Q( status_id=1) | Q(status_id=2))
     xIva_seleccionado  = 0
     xIvas = Iva.objects.all()
+    xBancosdestino = BancoDestino.objects.exclude(id=6).order_by('nombre')
     xVendedor_seleccionado  = 0
     xVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
     
@@ -669,6 +677,7 @@ def cobranzaView(request, xCliente, xVendedor, xIva, xVencido):
         'xClientes': xClientes,
         'xCliente_seleccionado': int(xCliente_seleccionado),
         'xIvas': xIvas,
+        'xBancosdestino': xBancosdestino,
         'xIva_seleccionado': int(xIva_seleccionado),
         'xVendedores': xVendedores,
         'xVendedor_seleccionado': int(xVendedor_seleccionado),
@@ -1095,23 +1104,132 @@ def Actualizar_montoView(request):
 
 
 @login_required
+def Pagos_iva_documentoView(request, id):
+    pagos_query = DocumentoIvaPago.objects.filter(documento_id=id).select_related('banco_destino').values(
+        'fecha', 'monto', 'referencia', 'banco_destino__nombre'
+    )
+    total = pagos_query.aggregate(total=Sum('monto'))['total'] or Decimal('0')
+    data = [
+        {
+            'fecha': pago['fecha'].strftime('%d/%m/%Y'),
+            'monto': darFormato(pago['monto']),
+            'referencia': pago['referencia'] or '-',
+            'banco_destino': pago['banco_destino__nombre'] or '-',
+        }
+        for pago in pagos_query
+    ]
+    return JsonResponse({'pagos': data, 'total': darFormato(total)})
+
+
+@login_required
 def Actualizar_ivaView(request):
-    # parametros
-    id =  request.POST.get('reg_id')
+    if request.method != 'POST':
+        return JsonResponse({'status': False, 'error': 'La solicitud debe ser POST.'}, status=405)
+
+    id = request.POST.get('reg_id')
     data = {'status': True}
     iva_id = request.POST.get('iva_id')
-    fecha_actual = datetime.now()
-    # Obtengo el registro a editar
+
     try:
         documento = Documento.objects.get(id=id)
-    except documento.DoesNotExist:
+    except Documento.DoesNotExist:
         data = {'status': False}
-    
-    # actualizo el iva
-    documento.iva_id = iva_id
+        return JsonResponse(data, safe=False)
 
-    documento.save()
-    
+    if iva_id:
+        documento.iva_id = iva_id
+
+    monto_iva_pago = request.POST.get('monto_iva_pago')
+    fecha_iva_pago = request.POST.get('fecha_iva_pago')
+    referencia_iva = request.POST.get('referencia_iva', '').strip()
+    banco_destino_id = request.POST.get('banco_destino_id')
+    tiene_monto = monto_iva_pago not in [None, '', '0', '0,00']
+    tiene_fecha = bool(fecha_iva_pago)
+    fecha_registro = None
+
+    if tiene_fecha:
+        try:
+            fecha_texto = str(fecha_iva_pago)
+            if len(fecha_texto) != 10 or fecha_texto[4] != '-' or fecha_texto[7] != '-':
+                raise ValueError('La fecha debe tener el formato AAAA-MM-DD.')
+            fecha_registro = datetime.strptime(fecha_texto, '%Y-%m-%d').date()
+        except (TypeError, ValueError):
+            return JsonResponse({
+                'status': False,
+                'error': 'Ingrese una fecha válida con el formato AAAA-MM-DD.',
+            }, status=400)
+
+    if tiene_monto != tiene_fecha:
+        return JsonResponse({
+            'status': False,
+            'error': 'Para registrar el pago debe indicar monto y fecha.',
+        }, status=400)
+
+    if not tiene_monto and not tiene_fecha:
+        return JsonResponse({
+            'status': False,
+            'error': 'Debe ingresar el monto y la fecha del pago.',
+        }, status=400)
+
+    if not banco_destino_id:
+        return JsonResponse({
+            'status': False,
+            'error': 'Debe seleccionar el banco destino del pago.',
+        }, status=400)
+
+    try:
+        banco_destino = BancoDestino.objects.get(id=banco_destino_id)
+    except (BancoDestino.DoesNotExist, TypeError, ValueError):
+        return JsonResponse({
+            'status': False,
+            'error': 'El banco destino seleccionado no es válido.',
+        }, status=400)
+
+    pago_creado = False
+    if tiene_monto and tiene_fecha:
+        try:
+            monto_decimal = quitarFormatoDecimal(monto_iva_pago)
+            if monto_decimal <= 0:
+                raise ValueError('El monto pagado debe ser mayor que cero.')
+            with transaction.atomic():
+                DocumentoIvaPago.objects.create(
+                    documento=documento,
+                    fecha=fecha_registro,
+                    monto=monto_decimal,
+                    referencia=referencia_iva or '-',
+                    banco_destino=banco_destino,
+                    observacion='Pago de IVA registrado desde cobranza',
+                    usuario=request.user,
+                )
+                pago_creado = True
+
+                total_pagado = documento.pagos_iva.aggregate(
+                    total=Sum('monto')
+                )['total'] or Decimal('0')
+                estado_anterior = documento.iva.iva
+                estado_actualizado = False
+                if total_pagado >= documento.monto_iva and estado_anterior.lower() != 'pagado':
+                    estado_pagado = Iva.objects.filter(iva__iexact='Pagado').first()
+                    if not estado_pagado:
+                        raise ValueError('No existe el estado IVA Pagado.')
+                    documento.iva = estado_pagado
+                    estado_actualizado = True
+
+                hoy = datetime.now()
+                hoyStr = hoy.strftime('%d/%m/%Y %H:%M')
+                seguimiento_actual = documento.seguimiento or ''
+                documento.seguimiento = seguimiento_actual + "<b>-" + request.user.username + " a las " + hoyStr + "<br></b>"
+                documento.seguimiento = documento.seguimiento + "&nbsp registró pago de IVA por: " + darFormato(monto_decimal) + " el " + fecha_registro.strftime('%d/%m/%Y') + "<br>"
+                if referencia_iva:
+                    documento.seguimiento = documento.seguimiento + "&nbsp referencia: " + referencia_iva + "<br>"
+                if estado_actualizado:
+                    documento.seguimiento = documento.seguimiento + "&nbsp actualizó el estado del IVA de: " + estado_anterior + " a Pagado por pagos acumulados de: " + darFormato(total_pagado) + "<br>"
+                documento.actualizado = timezone.now()
+                documento.save()
+        except (TypeError, ValueError, ArithmeticError) as error:
+            return JsonResponse({'status': False, 'error': str(error)}, status=400)
+
+    data['pago_creado'] = pago_creado
     return JsonResponse(data, safe=False)
     
 # validar ced_rif del cliente
@@ -3476,6 +3594,50 @@ def ingreso_rango_conciliacion_suView(request, xCta, fecha_ini, fecha_fin):
      }
 
     return render(request, 'app_gestion/ingresos_rango_conciliacion_su.html', context)
+
+
+@login_required
+def iva_pagos_conciliacionView(request, xCta, fecha_ini, fecha_fin):
+    try:
+        xCta_int = int(xCta)
+    except (TypeError, ValueError):
+        xCta_int = 0
+
+    if request.method == 'GET':
+        fecha_ini = date.today()
+        fecha_fin = date.today()
+        xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
+        xFecha_fin = fecha_fin.strftime('%Y-%m-%d')
+    else:
+        xFecha_ini = fecha_ini
+        xFecha_fin = fecha_fin
+
+    xCtas = BancoDestino.objects.exclude(id=6).order_by('nombre')
+    xPagos = []
+    if xCta_int:
+        xPagos = DocumentoIvaPago.objects.filter(
+            fecha__range=(fecha_ini, fecha_fin),
+            banco_destino_id=xCta_int,
+        ).values(
+            'id',
+            'fecha',
+            'monto',
+            'referencia',
+            'observacion',
+            'creado',
+            'documento__numero',
+            'documento__cliente__nombre',
+            'banco_destino__nombre',
+        ).order_by('-fecha', '-id')
+
+    context = {
+        'xPagos': xPagos,
+        'xCtas': xCtas,
+        'xCta_seleccionada': xCta_int,
+        'xFecha_ini': xFecha_ini,
+        'xFecha_fin': xFecha_fin,
+    }
+    return render(request, 'app_gestion/iva_pagos_conciliacion.html', context)
 
     
 @login_required

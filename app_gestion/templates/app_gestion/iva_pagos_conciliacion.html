@@ -1,0 +1,173 @@
+{% extends "app_gestion/base_m1.html" %}
+{% load static %}
+{% load filtros %}
+{% block title %}M1 | Conciliacion pagos IVA{% endblock title %}
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px;">
+    <div class="col-lg-12">
+        <div class="card" id="data-section" style="opacity: 0;">
+            <div class="card-body">
+                <h5 class="card-title">
+                    Conciliacion pagos IVA
+                    <a href="{% url 'inicio' %}" class="float-end"><i class="bi bi-house-door" title="Cerrar"></i></a>
+                </h5>
+                <form id="filtros" action="" method="post" class="row g-3 mb-3">
+                    {% csrf_token %}
+                    <div class="col-md-3">
+                        <span class="titulos">Desde</span>
+                        <input type="date" id="fecha_ini" name="fecha_ini" value="{{ xFecha_ini }}" class="form-control alto" onchange="obtener_pagos_iva()" />
+                    </div>
+                    <div class="col-md-3">
+                        <span class="titulos">Hasta</span>
+                        <input type="date" id="fecha_fin" name="fecha_fin" value="{{ xFecha_fin }}" class="form-control alto" onchange="obtener_pagos_iva()" />
+                    </div>
+                    <div class="col-md-6">
+                        <span class="titulos">Banco destino</span>
+                        <select id="cuenta" name="cuenta" class="form-control alto" required onchange="obtener_pagos_iva()">
+                            <option value="" disabled {% if not xCta_seleccionada %}selected{% endif %}>Seleccione una cuenta</option>
+                            {% for cuenta in xCtas %}
+                            <option value="{{ cuenta.id }}" {% if cuenta.id == xCta_seleccionada %}selected{% endif %}>{{ cuenta.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+
+                {% if xCta_seleccionada %}
+                <table id="pagos-iva" class="table table-hover table-bordered" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th>Fecha pago</th>
+                            <th>Procesado</th>
+                            <th>Documento</th>
+                            <th>Cliente</th>
+                            <th>Referencia</th>
+                            <th>Banco destino</th>
+                            <th>Monto IVA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pago in xPagos %}
+                        <tr>
+                            <td align="center">{{ pago.fecha|date:"d-m-Y" }}</td>
+                            <td align="center">{{ pago.creado|date:"d-m-Y" }} {{ pago.creado|time }}</td>
+                            <td>{{ pago.documento__numero }}</td>
+                            <td>{{ pago.documento__cliente__nombre }}</td>
+                            <td>{{ pago.referencia|default:"-" }}</td>
+                            <td>{{ pago.banco_destino__nombre }}</td>
+                            <td align="right">{{ pago.monto|darFormato }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td class="sin-bordes"></td><td class="sin-bordes"></td><td class="sin-bordes"></td>
+                            <td class="sin-bordes"></td><td class="sin-bordes"></td><td class="sin-bordes"></td>
+                            <td id="total-iva" class="sin-bordes"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                {% endif %}
+
+                <div class="row justify-content-end">
+                    <div class="col-auto pt-2">
+                        <button class="btn btn-primary" style="width: auto" onclick="generarPDF()">
+                            Generar PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock content %}
+{% block Scripts_Adicionales %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+<script>
+    function obtener_pagos_iva() {
+        if (!cuenta.value) return;
+        filtros.action = `/iva_pagos_conciliacion/${cuenta.value}/${fecha_ini.value}/${fecha_fin.value}/`;
+        filtros.submit();
+    }
+
+    function agregarPieDePagina(data) {
+        const doc = data.doc;
+        const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
+        const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
+        const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
+        const totalPages = doc.internal.getNumberOfPages();
+        doc.setFontSize(8);
+        doc.setTextColor(120);
+        doc.text('SISTEMA DE GESTIÓN EMPRESARIAL', 14, pageHeight - 5);
+        doc.text(`Página ${pageNumber} de ${totalPages}`, pageWidth - 14, pageHeight - 5, { align: 'right' });
+    }
+
+    function generarPDF() {
+        if (!document.getElementById('pagos-iva')) return;
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const cuentaEl = document.getElementById('cuenta');
+        const cuentaNombre = cuentaEl.options[cuentaEl.selectedIndex].text;
+        const fechaIni = document.getElementById('fecha_ini').value;
+        const fechaFin = document.getElementById('fecha_fin').value;
+        const fechaHoy = new Date().toLocaleString('es-VE');
+        const formatFecha = fecha => fecha
+            ? new Date(`${fecha}T00:00:00`).toLocaleDateString('es-VE')
+            : '-';
+
+        doc.setFontSize(14);
+        doc.text('Conciliación pagos IVA', 14, 10);
+        doc.setFontSize(10);
+        doc.text(`Banco destino: ${cuentaNombre}`, 14, 18);
+        doc.text(`Desde: ${formatFecha(fechaIni)}`, 14, 24);
+        doc.text(`Hasta: ${formatFecha(fechaFin)}`, 14, 30);
+        doc.text(`Generado: ${fechaHoy}`, 14, 36);
+
+        doc.autoTable({
+            html: '#pagos-iva',
+            startY: 42,
+            theme: 'grid',
+            headStyles: { fillColor: [1, 31, 58], halign: 'center', valign: 'middle' },
+            styles: { fontSize: 8, overflow: 'linebreak' },
+            columnStyles: {
+                0: { halign: 'center' },
+                1: { halign: 'center' },
+                2: { halign: 'left' },
+                3: { halign: 'left' },
+                4: { halign: 'left' },
+                5: { halign: 'left' },
+                6: { halign: 'right' },
+            },
+            didDrawPage: agregarPieDePagina,
+        });
+
+        doc.save(`Conciliacion pagos IVA - ${cuentaNombre}.pdf`);
+    }
+
+    $(document).ready(function () {
+        $('#pagos-iva').DataTable({
+            paging: false,
+            ordering: false,
+            responsive: true,
+            scrollX: true,
+            language: {
+                sProcessing: 'Procesando...',
+                sZeroRecords: 'No se encontraron resultados',
+                sEmptyTable: '*** No se encontro informacion ***',
+                sSearch: 'Buscar:',
+                sLoadingRecords: 'Cargando...'
+            },
+            footerCallback: function () {
+                const api = this.api();
+                const toNumber = value => typeof value === 'string'
+                    ? parseFloat(value.replace(/\./g, '').replace(',', '.')) || 0
+                    : Number(value) || 0;
+                const total = api.column(6, { page: 'current' }).data().reduce((a, b) => toNumber(a) + toNumber(b), 0);
+                $('#total-iva').html(`<span style="font-size:15px">Bs. ${darFormato(total)}</span>`);
+            }
+        });
+        setTimeout(() => document.getElementById('data-section').style.opacity = 1, 200);
+    });
+</script>
+{% endblock Scripts_Adicionales %}

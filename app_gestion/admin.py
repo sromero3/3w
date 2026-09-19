@@ -22,6 +22,9 @@ class VendedorEnAmind(admin.ModelAdmin):
 class DocumentoEnAmind(admin.ModelAdmin):
     list_display = ("id", "numero")
 
+class DocumentoIvaPagoEnAmind(admin.ModelAdmin):
+    list_display = ("id", "documento", "fecha", "monto", "banco_destino", "referencia", "usuario")
+
 class PeriodoEnAmind(admin.ModelAdmin):
     list_display = ("id", "numero_semana")
 
@@ -31,5 +34,6 @@ admin.site.register(Ciudad, CiudadEnAmind)
 admin.site.register(Iva, IvaEnAmind)
 admin.site.register(Vendedor, VendedorEnAmind)
 admin.site.register(Documento, DocumentoEnAmind)
+admin.site.register(DocumentoIvaPago, DocumentoIvaPagoEnAmind)
 admin.site.register(Periodo, PeriodoEnAmind)
 
