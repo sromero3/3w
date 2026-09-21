@@ -89,7 +89,7 @@ M1 | Documentos
                                 <th>Saldo</th>
                                 <th>Condición</th>
                                 <th>Vendedor</th>
-                                <th>Estado Iva</th>
+                                <th>Iva</th>
                                 <th>Monto IVA</th>
                                 <th>Opción</th>
                                 <th>Seguimiento</th>
@@ -127,7 +127,15 @@ M1 | Documentos
                                 <td align="right">{{ xDocumento.saldo|darFormato }}</td>
                                 <td>{{ xDocumento.condicion__condicion }} a {{ xDocumento.credito }}</td>
                                 <td>{{ xDocumento.cliente_id__vendedor__nombre|truncatechars:15 }}</td>
-                                <td {% if xDocumento.iva__iva == "-" %} align="center" {% endif %}>{{ xDocumento.iva__iva }}</td>
+                                {% if xDocumento.iva__iva == "-" %}
+                                <td align="center">{{ xDocumento.iva__iva }}</td>
+                                {% else %}
+                                <td>{{ xDocumento.iva__iva }}
+                                    <a href="#" onclick="abrir_modalIva('{{ xDocumento.iva__id }}', '{{ xDocumento.id }}', '{{ xDocumento.monto_iva|darFormato }}', '{{ xDocumento.monto_iva }}'); return false;" title="Editar IVA" aria-label="Editar IVA">
+                                        <i class="bi bi-pencil" style="font-size: 16px; color: #0d6efd;"></i>
+                                    </a>
+                                </td>
+                                {% endif %}
                                 <td align="right">{{ xDocumento.monto_iva|darFormato }}</td>
                                 <td style="width:0px">
                                     <a href="{% url 'editar_documento' xDocumento.id %}">
@@ -185,6 +193,66 @@ M1 | Documentos
         </div>
     </div>
 </div>
+
+<button type="button" id="modal_iva" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#smallModalIva" hidden>
+    Actualizar IVA
+</button>
+
+<div class="modal fade" id="smallModalIva" tabindex="-1" style="margin-top: 100px;">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="card-title">Actualizando el IVA</h5>
+            </div>
+            <form id="modal-iva-form" action="" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <span class="titulos">IVA</span>
+                    <select id="modal_iv" class="form-control d-flex alto">
+                        {% for xIva in xIvas %}
+                        <option value="{{ xIva.id }}">{{ xIva.iva }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <span class="titulos mt-2">Monto IVA del documento</span>
+                    <input type="text" id="modal_monto_iva_documento" class="form-control alto" readonly>
+
+                    <div class="mt-3 border rounded p-2">
+                        <span class="titulos">Historial de pagos de IVA</span>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered mt-1" id="pagos_iva_documento">
+                                <thead><tr><th>Fecha del pago</th><th class="text-end">Monto pagado</th><th>Referencia</th><th>Banco destino</th></tr></thead>
+                                <tbody></tbody>
+                                <tfoot><tr><td></td><td id="total_pagos_iva" class="text-end fw-bold">0,00</td><td colspan="2"></td></tr></tfoot>
+                            </table>
+                        </div>
+                        <div class="text-end fw-bold">Resta: <span id="resta_iva_documento">0,00</span></div>
+                    </div>
+
+                    <div class="mt-3 border rounded p-3">
+                        <span class="titulos">Registrar nuevo pago</span>
+                        <span class="titulos mt-2">Monto pagado</span>
+                        <input type="text" id="modal_monto_iva" class="form-control alto input-numero" placeholder="0,00">
+                        <span class="titulos mt-2">Fecha de pago</span>
+                        <input type="date" id="modal_fecha_iva" class="form-control alto">
+                        <span class="titulos mt-2">Banco destino</span>
+                        <select id="modal_banco_destino_iva" class="form-control alto">
+                            <option value="">Seleccione una cuenta</option>
+                            {% for banco in xBancosdestino %}<option value="{{ banco.id }}">{{ banco.nombre }}</option>{% endfor %}
+                        </select>
+                        <span class="titulos mt-2">Referencia</span>
+                        <input type="text" id="modal_referencia_iva" class="form-control alto">
+                    </div>
+                    <input type="hidden" id="modal_i_iva">
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="submit" class="btn btn-primary" onclick="guardar_iva_documentos(event)">Guardar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Descartar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock content %}
 
 {% block Scripts_Adicionales %}
@@ -236,6 +304,8 @@ M1 | Documentos
             selectizeControl.clear();
             $('.selectize-control.single .selectize-input').append('<i class="custom-arrow bi bi-chevron-down"></i>');
         });
+
+        checkPattern("modal_monto_iva");
 
         setTimeout(() => {
             document.getElementById('data-section').style.opacity = 1;
@@ -348,6 +418,125 @@ M1 | Documentos
     function toggleCheckboxes(source) {
         const checkboxes = document.querySelectorAll('input[type="checkbox"][id^="con_descuento_"]:not(:disabled)');
         checkboxes.forEach(cb => cb.checked = source.checked);
+    }
+
+    function abrir_modalIva(ivaId, documentoId, montoIvaDocumento, montoIvaNumerico) {
+        document.getElementById('modal_iv').value = ivaId;
+        document.getElementById('modal_i_iva').value = documentoId;
+        document.getElementById('modal_monto_iva_documento').value = montoIvaDocumento || '0,00';
+        document.getElementById('modal_monto_iva_documento').dataset.valor = montoIvaNumerico || '0';
+        document.getElementById('resta_iva_documento').textContent = montoIvaDocumento || '0,00';
+        document.getElementById('modal_monto_iva').value = '';
+        document.getElementById('modal_fecha_iva').value = '';
+        document.getElementById('modal_banco_destino_iva').value = '';
+        document.getElementById('modal_referencia_iva').value = '';
+        actualizarFormularioPagoIvaDocumentos(false);
+        cargarPagosIvaDocumentos(documentoId);
+        document.getElementById('modal_iva').click();
+    }
+
+    function actualizarFormularioPagoIvaDocumentos(bloquear) {
+        [
+            'modal_monto_iva',
+            'modal_fecha_iva',
+            'modal_banco_destino_iva',
+            'modal_referencia_iva'
+        ].forEach(function (id) {
+            document.getElementById(id).disabled = bloquear;
+        });
+    }
+
+    function parseMontoIvaDocumentos(valor) {
+        const texto = String(valor).trim().replace(/\./g, '').replace(',', '.');
+        return parseFloat(texto);
+    }
+
+    function cargarPagosIvaDocumentos(documentoId) {
+        const cuerpo = document.querySelector('#pagos_iva_documento tbody');
+        document.getElementById('total_pagos_iva').textContent = '0,00';
+        cuerpo.innerHTML = '<tr><td colspan="4" class="text-center">Cargando...</td></tr>';
+        $.ajax({
+            url: `/pagos_iva_documento/${documentoId}/`,
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                const totalPagado = parseMontoIvaDocumentos(data.total || '0,00');
+                const montoDocumento = parseMontoIvaDocumentos(document.getElementById('modal_monto_iva_documento').value);
+                const resta = montoDocumento - totalPagado;
+                document.getElementById('total_pagos_iva').textContent = data.total || '0,00';
+                const saldoIva = Math.abs(resta) <= 0.005 ? 0 : resta;
+                document.getElementById('resta_iva_documento').textContent = darFormato(saldoIva);
+                actualizarFormularioPagoIvaDocumentos(saldoIva <= 0);
+                cuerpo.innerHTML = '';
+                if (!data.pagos.length) {
+                    cuerpo.innerHTML = '<tr><td colspan="4" class="text-center">No hay pagos registrados</td></tr>';
+                    return;
+                }
+                data.pagos.forEach(function (pago) {
+                    const fila = document.createElement('tr');
+                    [pago.fecha, pago.monto, pago.referencia, pago.banco_destino].forEach(function (valor, indice) {
+                        const celda = document.createElement('td');
+                        if (indice === 1) celda.className = 'text-end';
+                        celda.textContent = valor;
+                        fila.appendChild(celda);
+                    });
+                    cuerpo.appendChild(fila);
+                });
+            },
+            error: function () {
+                cuerpo.innerHTML = '<tr><td colspan="4" class="text-center text-danger">No se pudieron cargar los pagos</td></tr>';
+            }
+        });
+    }
+
+    function guardar_iva_documentos(event) {
+        event.preventDefault();
+        const monto = document.getElementById('modal_monto_iva').value.trim();
+        const fecha = document.getElementById('modal_fecha_iva').value;
+        const banco = document.getElementById('modal_banco_destino_iva').value;
+        if (!monto || !fecha || !banco) {
+            Swal.fire({ icon: 'error', title: 'Complete monto, fecha y banco destino.' });
+            return;
+        }
+        $.ajax({
+            url: "{% url 'actualizar_iva' %}",
+            type: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                reg_id: document.getElementById('modal_i_iva').value,
+                iva_id: document.getElementById('modal_iv').value,
+                monto_iva_pago: monto,
+                fecha_iva_pago: fecha,
+                banco_destino_id: banco,
+                referencia_iva: document.getElementById('modal_referencia_iva').value
+            },
+            success: function (data) {
+                if (!data.status) {
+                    Swal.fire({ icon: 'error', title: 'No se guardó el pago', text: data.error });
+                    return;
+                }
+                filtros.action = `/documentos/${cliente.value}/${dias.value}/`;
+                filtros.submit();
+            },
+            error: function (xhr) {
+                Swal.fire({ icon: 'error', title: 'No se guardó el pago', text: xhr.responseJSON?.error || 'Error inesperado.' });
+            }
+        });
+    }
+
+    function checkPattern(elementId) {
+        $("#" + elementId).on({
+            "focus": function (event) {
+                $(event.target).select();
+            },
+            "keyup": function (event) {
+                $(event.target).val(function (index, value) {
+                    return value.replace(/\D/g, "")
+                        .replace(/([0-9])([0-9]{2})$/, '$1,$2')
+                        .replace(/\B(?=(\d{3})+(?!\d)\.?)/g, ".");
+                });
+            }
+        });
     }
 </script>
 {% endblock Scripts_Adicionales %}

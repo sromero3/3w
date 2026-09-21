@@ -302,7 +302,7 @@ def documentosView(request, xCliente, xDias):
         xDia_seleccionado  = request.POST.get('dias')
 
     actualizar_dias_vencido()
-    qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).values('saldo','id','numero','fecha','vencimiento','cliente__nombre','monto','monto_iva','iva__iva','condicion__condicion','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado', 'dias_v','credito','seguimiento').order_by('-id')
+    qDocumentos = Documento.objects.annotate(saldo = F('monto') - F('abonado')).values('saldo','id','numero','fecha','vencimiento','cliente__nombre','monto','monto_iva','iva__iva','iva__id','condicion__condicion','cliente_id__vendedor__nombre', 'cliente_id__vendedor_id','observacion','abonado', 'dias_v','credito','seguimiento').order_by('-id')
 
    
     if xCliente == 0 and xDias == 0:
@@ -325,6 +325,8 @@ def documentosView(request, xCliente, xDias):
     context = {
         'xUsuario': xUsuario,
         'xDocumentos': xDocumentos,
+        'xIvas': Iva.objects.all(),
+        'xBancosdestino': BancoDestino.objects.exclude(id=6).order_by('nombre'),
         'xClientes_select':  xClientes_select,
         'xCliente_seleccionado': int(xCliente_seleccionado),
         'xDia_seleccionado': int(xDia_seleccionado),
