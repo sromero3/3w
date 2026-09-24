@@ -183,7 +183,11 @@ M1 | Ingresos por rango (Conciliación USD)
         const cuentaNombre = cuenta.options[cuenta.selectedIndex].text;
         const fechaIni = document.getElementById('fecha_ini').value;
         const fechaFin = document.getElementById('fecha_fin').value;
-        const formatFecha = value => value ? new Date(value).toLocaleDateString('es-VE') : '-';
+        const formatFecha = value => {
+            if (!value) return '-';
+            const [anio, mes, dia] = value.split('-');
+            return `${Number(dia)}/${Number(mes)}/${anio}`;
+        };
         let y = 10;
         doc.setFontSize(14);
         doc.text('Ingresos por rango (Conciliación USD)', 14, y);
