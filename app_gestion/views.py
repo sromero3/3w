@@ -806,6 +806,8 @@ def Pago_cuentaView(request, id, cliente):
                 detalle = Pago_detalle(pago_id = xPago_id, documento_id =  xDocumento.id, monto_procesar = xAbono)  
                 detalle.save()
                 # actualizar el abonado del documento
+                if xDocumento.monto - xDocumento.abonado <= 0:
+                    xDocumento.dias_v = (xDocumento.vencimiento - pago.fecha).days
                 xDocumento.save()
              
                 # print("-------------Fac: " ,xDocumento.numero,"----------------")
@@ -1716,6 +1718,10 @@ def Pago_documentosView(request, id, cliente):
                         # actualizo el abonado del documento
                         documento = Documento.objects.get(id=xDoc_Id)
                         documento.abonado = documento.abonado + Decimal(xMonto_ingresado)
+                        # actualizar dias_v si el documento quedó saldado
+                        if documento.monto - documento.abonado <= 0:
+                            xFecha_pago = datetime.strptime(request.POST.get('fecha'), '%Y-%m-%d').date()
+                            documento.dias_v = (documento.vencimiento - xFecha_pago).days
                         documento.save() 
                         # guardar el pago
                         pago = form.save(commit=False)
@@ -2068,6 +2074,9 @@ def Pago_cuenta_corregirView(request, id, forma_id):
                 # guardar detelle del pago
                 detalle = Pago_detalle(pago_id = xPago_id, documento_id =  xDocumento.id, monto_procesar = xAbono)  
                 detalle.save()
+                # actualizar dias_v si el documento quedó saldado
+                if xDocumento.monto - xDocumento.abonado <= 0:
+                    xDocumento.dias_v = (xDocumento.vencimiento - pago.fecha).days
                 # actualizar el abonado del documento
                 xDocumento.save()
              
@@ -2204,6 +2213,12 @@ def Pago_documentos_corregirView(request, id, forma_id):
 
         if request.POST['monto'] == "":
             request.POST['monto'] = "0,00"
+
+        if request.POST.get('monto_iva', '') == "":
+            request.POST['monto_iva'] = "0,00"
+
+        if request.POST.get('ajuste', '') == "":
+            request.POST['ajuste'] = "0,00"
         
         if request.POST['banco_destino'] == "":
             request.POST['banco_destino'] = "6"
@@ -2218,6 +2233,8 @@ def Pago_documentos_corregirView(request, id, forma_id):
         request.POST['tasa'] = quitarFormato(request.POST['tasa'])
         request.POST['monto_procesar'] = quitarFormato(request.POST['monto_procesar'])
         strMonto_procesar = darFormato(request.POST['monto_procesar'])
+        strMonto_iva = darFormato((request.POST['monto_iva']))
+        strAjuste = darFormato((request.POST['ajuste']))
 
         form = asentar_pagoForm(request.POST, instance=xPago)
         
@@ -2237,12 +2254,27 @@ def Pago_documentos_corregirView(request, id, forma_id):
                 pago.seguimiento = pago.seguimiento + "&nbsp Corrigió fecha de: "+ str(oFecha) + " a "+ fechaStr +"<br>"
      
             nMonto_p = round(Decimal(request.POST.get('monto_procesar')),2)
+            nMonto_iva = round(Decimal(request.POST.get('monto_iva')),2)
+            nAjuste = round(Decimal(request.POST.get('ajuste')),2)
+            
             
             if nMonto_p != oMonto_p:
                 if hay_cambio == False:
                     pago.seguimiento = pago.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" +  "</b>"
                     hay_cambio = True
                 pago.seguimiento =  pago.seguimiento + "&nbsp Corrigió monto de: "+ darFormato(oMonto_p) + " a "+ strMonto_procesar +"<br>"
+
+            if nMonto_iva != oMonto_iva:
+                            if hay_cambio == False:
+                                pago.seguimiento = pago.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" +  "</b>"
+                                hay_cambio = True
+                            pago.seguimiento =  pago.seguimiento + "&nbsp Corrigió monto IVA de: "+ darFormato(oMonto_iva) + " a "+ strMonto_iva +"<br>"
+
+            if nAjuste != oAjuste:
+                            if hay_cambio == False:
+                                pago.seguimiento = pago.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" +  "</b>"
+                                hay_cambio = True
+                            pago.seguimiento =  pago.seguimiento + "&nbsp Corrigió ajuste de: "+ darFormato(oAjuste) + " a "+ strAjuste +"<br>"
            
             if int(request.POST.get('banco_destino')) != oBanco:
                 if hay_cambio == False:
@@ -2299,6 +2331,10 @@ def Pago_documentos_corregirView(request, id, forma_id):
                         # actualizo el abonado en documento
                         documento = Documento.objects.get(id=xDoc_Id)
                         documento.abonado = documento.abonado + Decimal(xMonto_ingresado)
+                        # actualizar dias_v si el documento quedó saldado
+                        if documento.monto - documento.abonado <= 0:
+                            xFecha_pago = datetime.strptime(request.POST.get('fecha'), '%Y-%m-%d').date()
+                            documento.dias_v = (documento.vencimiento - xFecha_pago).days
                         documento.save() 
                         # guardar el pago
                         # pago = form.save(commit=False)

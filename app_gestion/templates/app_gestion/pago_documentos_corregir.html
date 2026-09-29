@@ -59,7 +59,7 @@ M1 | Pago a documentos
                     <div id="div_monto_iva" class="col-md-6">
                         <span class="titulos">{{form.monto_iva.label}}</span>
                         <input id="monto_iva" name="monto_iva" class="form-control input-numero alto"
-                            readonly maxlength="10" value="{{rMonto_iva}}" onblur="FormatearNumerosInputs(this)"></input>
+                            maxlength="10" value="{{rMonto_iva}}" onblur="FormatearNumerosInputs(this)"></input>
                     </div>
                     <div id="div_ajuste" class="col-md-6">
                         <span class="titulos">Ajuste</span>
@@ -242,6 +242,7 @@ M1 | Pago a documentos
     checkPattern("monto")
     checkPattern("monto_procesar")
     checkPattern("tasa")
+    checkPattern("monto_iva") 
     checkPattern("ajuste") 
 
     document.getElementById('tasa').value = darFormato(document.getElementById('tasa').value)
