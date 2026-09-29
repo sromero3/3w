@@ -91,6 +91,7 @@ M1 | Cobranza
                             <th>Monto IVA</th>
                             <th style="width:90px">Condición</th>
                             <th style="width:150px">Vendedor</th>
+                            <th>Seguimiento</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -106,7 +107,7 @@ M1 | Cobranza
                                 </a>
                             </td>
                             {% endif %}
-                            <td>{{xDocumento.fecha|date:"d/m/y"}}<a href="javascript:abrir_modal( '{{xDocumento.fecha|date:"Y-m-d"}}','{{xDocumento.vencimiento|date:"Y-m-d"}}','{{xDocumento.id}}' )">
+                            <td>{{xDocumento.fecha|date:"d/m/y"}}<a href="javascript:abrir_modalFecha( '{{xDocumento.fecha|date:"Y-m-d"}}','{{xDocumento.vencimiento|date:"Y-m-d"}}','{{xDocumento.id}}' )">
                                  <i style="font-size: small;" class="bi bi-pencil"></a></i>
                             </td>
                             <td>{{xDocumento.vencimiento|date:"d/m/y"}}</td>
@@ -145,6 +146,16 @@ M1 | Cobranza
                             <td>{{xDocumento.condicion__condicion}} a {{xDocumento.credito}}</td>
                             {% endif %}
                             <td>{{xDocumento.cliente_id__vendedor__nombre|truncatechars:15}}</td>
+
+                              <td align="center">
+                                    {% if xDocumento.seguimiento %}
+                                    <a href="javascript:abrir_modal('{{ xDocumento.seguimiento }}')">
+                                        <i class="bi bi-activity" style="font-size: small;"></i>
+                                    </a>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -342,6 +353,24 @@ M1 | Cobranza
     </div> <!-- fin modal-dialog -->
 </div><!-- fin modal-->
 
+<button type="button" id="boton_modal" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#miModal" hidden>
+    Extra Large Modal
+</button>
+
+<div class="modal fade" id="miModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" style="color:#012970">Seguimiento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6 id="texto_seguimiento"></h6>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock content %}
 {% block Scripts_Adicionales %}
 <script>
@@ -480,6 +509,11 @@ M1 | Cobranza
             filtros.submit()
         }
     } // fin obtener documentos
+
+     function abrir_modal(seguimiento) {
+        document.getElementById('texto_seguimiento').innerHTML = seguimiento;
+        boton_modal.click();
+    }
 
     // tool tip
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
@@ -743,7 +777,7 @@ M1 | Cobranza
         return parseFloat(texto);
     }
 
-    function abrir_modal(f, v, i) {
+    function abrir_modalFecha(f, v, i) {
         document.getElementById('modal_f').value = f
         document.getElementById('modal_v').value = v
         document.getElementById('modal_i_fechas').value = i
