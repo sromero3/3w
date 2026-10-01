@@ -1127,113 +1127,22 @@ def Pagos_iva_documentoView(request, id):
 
 @login_required
 def Actualizar_ivaView(request):
-    if request.method != 'POST':
-        return JsonResponse({'status': False, 'error': 'La solicitud debe ser POST.'}, status=405)
-
-    id = request.POST.get('reg_id')
+    # parametros
+    id =  request.POST.get('reg_id')
     data = {'status': True}
     iva_id = request.POST.get('iva_id')
-
+    fecha_actual = datetime.now()
+    # Obtengo el registro a editar
     try:
         documento = Documento.objects.get(id=id)
-    except Documento.DoesNotExist:
+    except documento.DoesNotExist:
         data = {'status': False}
-        return JsonResponse(data, safe=False)
+    
+    # actualizo el iva
+    documento.iva_id = iva_id
 
-    if iva_id:
-        documento.iva_id = iva_id
-
-    monto_iva_pago = request.POST.get('monto_iva_pago')
-    fecha_iva_pago = request.POST.get('fecha_iva_pago')
-    referencia_iva = request.POST.get('referencia_iva', '').strip()
-    banco_destino_id = request.POST.get('banco_destino_id')
-    tiene_monto = monto_iva_pago not in [None, '', '0', '0,00']
-    tiene_fecha = bool(fecha_iva_pago)
-    fecha_registro = None
-
-    if tiene_fecha:
-        try:
-            fecha_texto = str(fecha_iva_pago)
-            if len(fecha_texto) != 10 or fecha_texto[4] != '-' or fecha_texto[7] != '-':
-                raise ValueError('La fecha debe tener el formato AAAA-MM-DD.')
-            fecha_registro = datetime.strptime(fecha_texto, '%Y-%m-%d').date()
-        except (TypeError, ValueError):
-            return JsonResponse({
-                'status': False,
-                'error': 'Ingrese una fecha válida con el formato AAAA-MM-DD.',
-            }, status=400)
-
-    if tiene_monto != tiene_fecha:
-        return JsonResponse({
-            'status': False,
-            'error': 'Para registrar el pago debe indicar monto y fecha.',
-        }, status=400)
-
-    if not tiene_monto and not tiene_fecha:
-        return JsonResponse({
-            'status': False,
-            'error': 'Debe ingresar el monto y la fecha del pago.',
-        }, status=400)
-
-    if not banco_destino_id:
-        return JsonResponse({
-            'status': False,
-            'error': 'Debe seleccionar el banco destino del pago.',
-        }, status=400)
-
-    try:
-        banco_destino = BancoDestino.objects.get(id=banco_destino_id)
-    except (BancoDestino.DoesNotExist, TypeError, ValueError):
-        return JsonResponse({
-            'status': False,
-            'error': 'El banco destino seleccionado no es válido.',
-        }, status=400)
-
-    pago_creado = False
-    if tiene_monto and tiene_fecha:
-        try:
-            monto_decimal = quitarFormatoDecimal(monto_iva_pago)
-            if monto_decimal <= 0:
-                raise ValueError('El monto pagado debe ser mayor que cero.')
-            with transaction.atomic():
-                DocumentoIvaPago.objects.create(
-                    documento=documento,
-                    fecha=fecha_registro,
-                    monto=monto_decimal,
-                    referencia=referencia_iva or '-',
-                    banco_destino=banco_destino,
-                    observacion='Pago de IVA registrado desde cobranza',
-                    usuario=request.user,
-                )
-                pago_creado = True
-
-                total_pagado = documento.pagos_iva.aggregate(
-                    total=Sum('monto')
-                )['total'] or Decimal('0')
-                estado_anterior = documento.iva.iva
-                estado_actualizado = False
-                if total_pagado >= documento.monto_iva and estado_anterior.lower() != 'pagado':
-                    estado_pagado = Iva.objects.filter(iva__iexact='Pagado').first()
-                    if not estado_pagado:
-                        raise ValueError('No existe el estado IVA Pagado.')
-                    documento.iva = estado_pagado
-                    estado_actualizado = True
-
-                hoy = datetime.now()
-                hoyStr = hoy.strftime('%d/%m/%Y %H:%M')
-                seguimiento_actual = documento.seguimiento or ''
-                documento.seguimiento = seguimiento_actual + "<b>-" + request.user.username + " a las " + hoyStr + "<br></b>"
-                documento.seguimiento = documento.seguimiento + "&nbsp registró pago de IVA por: " + darFormato(monto_decimal) + " el " + fecha_registro.strftime('%d/%m/%Y') + "<br>"
-                if referencia_iva:
-                    documento.seguimiento = documento.seguimiento + "&nbsp referencia: " + referencia_iva + "<br>"
-                if estado_actualizado:
-                    documento.seguimiento = documento.seguimiento + "&nbsp actualizó el estado del IVA de: " + estado_anterior + " a Pagado por pagos acumulados de: " + darFormato(total_pagado) + "<br>"
-                documento.actualizado = timezone.now()
-                documento.save()
-        except (TypeError, ValueError, ArithmeticError) as error:
-            return JsonResponse({'status': False, 'error': str(error)}, status=400)
-
-    data['pago_creado'] = pago_creado
+    documento.save()
+    
     return JsonResponse(data, safe=False)
     
 # validar ced_rif del cliente
@@ -4245,3 +4154,116 @@ def iva_pendientes_legacyView(request, xCliente, fecha_ini, fecha_fin):
 @login_required
 def iva_pendientes_legacy_v2View(request, xCliente, xVendedor, xIva, fecha_ini, fecha_fin):
     return iva_pendientesView(request, xCliente, xVendedor, xIva, 0, fecha_ini, fecha_fin)
+
+
+
+@login_required
+def Registrar_pago_ivaView(request):
+    if request.method != 'POST':
+        return JsonResponse({'status': False, 'error': 'La solicitud debe ser POST.'}, status=405)
+
+    id = request.POST.get('reg_id')
+    data = {'status': True}
+    iva_id = request.POST.get('iva_id')
+
+    try:
+        documento = Documento.objects.get(id=id)
+    except Documento.DoesNotExist:
+        data = {'status': False}
+        return JsonResponse(data, safe=False)
+
+    if iva_id:
+        documento.iva_id = iva_id
+
+    monto_iva_pago = request.POST.get('monto_iva_pago')
+    fecha_iva_pago = request.POST.get('fecha_iva_pago')
+    referencia_iva = request.POST.get('referencia_iva', '').strip()
+    banco_destino_id = request.POST.get('banco_destino_id')
+    tiene_monto = monto_iva_pago not in [None, '', '0', '0,00']
+    tiene_fecha = bool(fecha_iva_pago)
+    fecha_registro = None
+
+    if tiene_fecha:
+        try:
+            fecha_texto = str(fecha_iva_pago)
+            if len(fecha_texto) != 10 or fecha_texto[4] != '-' or fecha_texto[7] != '-':
+                raise ValueError('La fecha debe tener el formato AAAA-MM-DD.')
+            fecha_registro = datetime.strptime(fecha_texto, '%Y-%m-%d').date()
+        except (TypeError, ValueError):
+            return JsonResponse({
+                'status': False,
+                'error': 'Ingrese una fecha válida con el formato AAAA-MM-DD.',
+            }, status=400)
+
+    if tiene_monto != tiene_fecha:
+        return JsonResponse({
+            'status': False,
+            'error': 'Para registrar el pago debe indicar monto y fecha.',
+        }, status=400)
+
+    if not tiene_monto and not tiene_fecha:
+        return JsonResponse({
+            'status': False,
+            'error': 'Debe ingresar el monto y la fecha del pago.',
+        }, status=400)
+
+    if not banco_destino_id:
+        return JsonResponse({
+            'status': False,
+            'error': 'Debe seleccionar el banco destino del pago.',
+        }, status=400)
+
+    try:
+        banco_destino = BancoDestino.objects.get(id=banco_destino_id)
+    except (BancoDestino.DoesNotExist, TypeError, ValueError):
+        return JsonResponse({
+            'status': False,
+            'error': 'El banco destino seleccionado no es válido.',
+        }, status=400)
+
+    pago_creado = False
+    if tiene_monto and tiene_fecha:
+        try:
+            monto_decimal = quitarFormatoDecimal(monto_iva_pago)
+            if monto_decimal <= 0:
+                raise ValueError('El monto pagado debe ser mayor que cero.')
+            with transaction.atomic():
+                DocumentoIvaPago.objects.create(
+                    documento=documento,
+                    fecha=fecha_registro,
+                    monto=monto_decimal,
+                    referencia=referencia_iva or '-',
+                    banco_destino=banco_destino,
+                    observacion='Pago de IVA registrado desde cobranza',
+                    usuario=request.user,
+                )
+                pago_creado = True
+
+                total_pagado = documento.pagos_iva.aggregate(
+                    total=Sum('monto')
+                )['total'] or Decimal('0')
+                estado_anterior = documento.iva.iva
+                estado_actualizado = False
+                if total_pagado >= documento.monto_iva and estado_anterior.lower() != 'pagado':
+                    estado_pagado = Iva.objects.filter(iva__iexact='Pagado').first()
+                    if not estado_pagado:
+                        raise ValueError('No existe el estado IVA Pagado.')
+                    documento.iva = estado_pagado
+                    estado_actualizado = True
+
+                hoy = datetime.now()
+                hoyStr = hoy.strftime('%d/%m/%Y %H:%M')
+                seguimiento_actual = documento.seguimiento or ''
+                documento.seguimiento = seguimiento_actual + "<b>-" + request.user.username + " a las " + hoyStr + "<br></b>"
+                documento.seguimiento = documento.seguimiento + "&nbsp registró pago de IVA por: " + darFormato(monto_decimal) + " el " + fecha_registro.strftime('%d/%m/%Y') + "<br>"
+                if referencia_iva:
+                    documento.seguimiento = documento.seguimiento + "&nbsp referencia: " + referencia_iva + "<br>"
+                if estado_actualizado:
+                    documento.seguimiento = documento.seguimiento + "&nbsp actualizó el estado del IVA de: " + estado_anterior + " a Pagado por pagos acumulados de: " + darFormato(total_pagado) + "<br>"
+                documento.actualizado = timezone.now()
+                documento.save()
+        except (TypeError, ValueError, ArithmeticError) as error:
+            return JsonResponse({'status': False, 'error': str(error)}, status=400)
+
+    data['pago_creado'] = pago_creado
+    return JsonResponse(data, safe=False)

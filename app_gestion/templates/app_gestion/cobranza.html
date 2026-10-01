@@ -87,11 +87,10 @@ M1 | Cobranza
                             <th>Monto</th>
                             <th>Abonado</th>
                             <th>Pendiente</th>
-                            <th style="width:100px">Iva</th>
+                            <th style="width:100px">Estado IVA</th>
                             <th>Monto IVA</th>
                             <th style="width:90px">Condición</th>
                             <th style="width:150px">Vendedor</th>
-                            <th>Seguimiento</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -107,7 +106,7 @@ M1 | Cobranza
                                 </a>
                             </td>
                             {% endif %}
-                            <td>{{xDocumento.fecha|date:"d/m/y"}}<a href="javascript:abrir_modalFecha( '{{xDocumento.fecha|date:"Y-m-d"}}','{{xDocumento.vencimiento|date:"Y-m-d"}}','{{xDocumento.id}}' )">
+                            <td>{{xDocumento.fecha|date:"d/m/y"}}<a href="javascript:abrir_modal( '{{xDocumento.fecha|date:"Y-m-d"}}','{{xDocumento.vencimiento|date:"Y-m-d"}}','{{xDocumento.id}}' )">
                                  <i style="font-size: small;" class="bi bi-pencil"></a></i>
                             </td>
                             <td>{{xDocumento.vencimiento|date:"d/m/y"}}</td>
@@ -134,7 +133,7 @@ M1 | Cobranza
                             {% if xDocumento.iva__iva == "-" %}
                             <td align="center">{{xDocumento.iva__iva}}</td>
                             {% else %}
-                            <td>{{xDocumento.iva__iva}}<a href="javascript:abrir_modalIva( '{{xDocumento.iva__id}}','{{xDocumento.id}}','{{xDocumento.monto_iva|darFormato}}','{{xDocumento.monto_iva}}' )">
+                            <td>{{xDocumento.iva__iva}}<a href="javascript:abrir_modalIva( '{{xDocumento.iva__id}}','{{xDocumento.id}}' )">
                                  <i style="font-size: small;" class="bi bi-pencil"></a></i>
                             </td>
                             {% endif %}
@@ -146,16 +145,6 @@ M1 | Cobranza
                             <td>{{xDocumento.condicion__condicion}} a {{xDocumento.credito}}</td>
                             {% endif %}
                             <td>{{xDocumento.cliente_id__vendedor__nombre|truncatechars:15}}</td>
-
-                              <td align="center">
-                                    {% if xDocumento.seguimiento %}
-                                    <a href="javascript:abrir_modal('{{ xDocumento.seguimiento }}')">
-                                        <i class="bi bi-activity" style="font-size: small;"></i>
-                                    </a>
-                                    {% else %}
-                                    -
-                                    {% endif %}
-                                </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -235,7 +224,7 @@ M1 | Cobranza
     Small Modal Iva
 </button>
 <div class="modal fade" id="smallModalIva" tabindex="-1" style="margin-top: 100px;">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="card-title">Actualizando el IVA</h5>
@@ -249,58 +238,6 @@ M1 | Cobranza
                         <option id="{{xIva.id}}" value="{{xIva.id}}" {% if xIva.id == modal_iv %}selected{% endif %}>{{xIva.iva}}</option>
                         {% endfor %}
                     </select>
-
-                    <span class="titulos mt-2">Monto IVA del documento</span>
-                    <input type="text" id="modal_monto_iva_documento" class="form-control alto input-numero" readonly />
-
-                    <div class="mt-3 border rounded p-2">
-                        <span class="titulos">Historial de pagos de IVA</span>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-bordered mt-1" id="pagos_iva_documento">
-                                <thead>
-                                    <tr>
-                                        <th>Fecha del pago</th>
-                                        <th class="text-end">Monto pagado</th>
-                                        <th>Referencia</th>
-                                        <th>Banco destino</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                                <tfoot>
-                                    <tr>
-                                        <td class="text-start fw-bold"></td>
-                                        <td id="total_pagos_iva" class="text-end fw-bold">0,00</td>
-                                        <td colspan="2"></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                        <div class="text-end fw-bold mt-2">
-                            <span>Resta: </span><span id="resta_iva_documento">0,00</span>
-                        </div>
-                    </div>
-
-                    <div class="mt-3 border rounded p-3">
-                        <span class="titulos">Registrar nuevo pago</span>
-
-                        <span class="titulos mt-2">Monto pagado</span>
-                        <input type="text" id="modal_monto_iva" class="form-control alto input-numero" placeholder="0,00" />
-
-                        <span class="titulos mt-2">Fecha de pago</span>
-                        <input type="date" id="modal_fecha_iva" class="form-control alto" />
-
-                        <span class="titulos mt-2">Banco destino</span>
-                        <select id="modal_banco_destino_iva" class="form-control alto">
-                            <option value="">Seleccione una cuenta</option>
-                            {% for banco in xBancosdestino %}
-                            <option value="{{ banco.id }}">{{ banco.nombre }}</option>
-                            {% endfor %}
-                        </select>
-
-                        <span class="titulos mt-2">Referencia</span>
-                        <input type="text" id="modal_referencia_iva" class="form-control alto" />
-                    </div>
-
                     <input type="text" id="modal_i_iva" hidden>
                 </div>
                 <div class="modal-footer justify-content-center">
@@ -352,24 +289,6 @@ M1 | Cobranza
         </div> <!-- fin modal content -->
     </div> <!-- fin modal-dialog -->
 </div><!-- fin modal-->
-
-<button type="button" id="boton_modal" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#miModal" hidden>
-    Extra Large Modal
-</button>
-
-<div class="modal fade" id="miModal" tabindex="-1">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" style="color:#012970">Seguimiento</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <h6 id="texto_seguimiento"></h6>
-            </div>
-        </div>
-    </div>
-</div>
 
 {% endblock content %}
 {% block Scripts_Adicionales %}
@@ -510,11 +429,6 @@ M1 | Cobranza
         }
     } // fin obtener documentos
 
-     function abrir_modal(seguimiento) {
-        document.getElementById('texto_seguimiento').innerHTML = seguimiento;
-        boton_modal.click();
-    }
-
     // tool tip
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
@@ -523,7 +437,6 @@ M1 | Cobranza
     document.addEventListener('DOMContentLoaded', function () {
 
         checkPattern("modal_m_nuevo_monto")
-        checkPattern("modal_monto_iva")
 
         // Declaracion unica de cliente_select e id_cliente para todo el bloque
         const cliente_select = document.getElementById("cliente")
@@ -580,180 +493,37 @@ M1 | Cobranza
     }) // fin document load
 
 
-    function abrir_modalIva(ivaId, i, montoIvaDocumento, montoIvaNumerico) {
+    function abrir_modalIva(ivaId, i) {
         document.getElementById('modal_iv').value = Number(ivaId)
         document.getElementById('modal_i_iva').value = i
-        document.getElementById('modal_monto_iva_documento').value = montoIvaDocumento || '0,00'
-        document.getElementById('modal_monto_iva_documento').dataset.valor = montoIvaNumerico || '0'
-        document.getElementById('resta_iva_documento').textContent = montoIvaDocumento || '0,00'
-        cargarPagosIva(i)
-        document.getElementById('modal_monto_iva').value = ''
-        document.getElementById('modal_fecha_iva').value = ''
-        document.getElementById('modal_banco_destino_iva').value = ''
-        document.getElementById('modal_referencia_iva').value = ''
-        actualizarFormularioPagoIva(false)
         modal_iva.click();
     }
 
-    function actualizarFormularioPagoIva(bloquear) {
-        const campos = [
-            'modal_monto_iva',
-            'modal_fecha_iva',
-            'modal_banco_destino_iva',
-            'modal_referencia_iva'
-        ];
-        campos.forEach(function (id) {
-            document.getElementById(id).disabled = bloquear;
-        });
-    }
-
-    function cargarPagosIva(documentoId) {
-        const cuerpo = document.querySelector('#pagos_iva_documento tbody');
-        document.getElementById('total_pagos_iva').textContent = '0,00';
-        cuerpo.innerHTML = '<tr><td colspan="4" class="text-center">Cargando...</td></tr>';
-
-        $.ajax({
-            url: `/pagos_iva_documento/${documentoId}/`,
-            type: 'GET',
-            dataType: 'json',
-            success: function (data) {
-                const totalPagado = parseMontoIva(data.total || '0,00');
-                const montoDocumento = parseMontoIva(document.getElementById('modal_monto_iva_documento').value);
-                const resta = montoDocumento - totalPagado;
-                document.getElementById('total_pagos_iva').textContent = data.total || '0,00';
-                const saldoIva = Math.abs(resta) <= 0.005 ? 0 : resta;
-                document.getElementById('resta_iva_documento').textContent = darFormato(saldoIva);
-                actualizarFormularioPagoIva(saldoIva <= 0);
-                cuerpo.innerHTML = '';
-                if (!data.pagos.length) {
-                    cuerpo.innerHTML = '<tr><td colspan="4" class="text-center">No hay pagos registrados</td></tr>';
-                    return;
-                }
-                data.pagos.forEach(function (pago) {
-                    const fila = document.createElement('tr');
-                    [pago.fecha, pago.monto, pago.referencia, pago.banco_destino].forEach(function (valor, indice) {
-                        const celda = document.createElement('td');
-                        if (indice === 1) celda.className = 'text-end';
-                        celda.textContent = valor;
-                        fila.appendChild(celda);
-                    });
-                    cuerpo.appendChild(fila);
-                });
-            },
-            error: function () {
-                cuerpo.innerHTML = '<tr><td colspan="4" class="text-center text-danger">No se pudieron cargar los pagos</td></tr>';
-            }
-        });
-    }
-
-    async function guardar_iva(e) {
+    function guardar_iva(e) {
         e.preventDefault();
 
         const form = document.getElementById('modal-iva-form');
-        const montoInput = document.getElementById('modal_monto_iva');
-        const fechaInput = document.getElementById('modal_fecha_iva');
-        fechaInput.required = Boolean(montoInput.value.trim());
-        montoInput.required = Boolean(fechaInput.value);
-
         if (!form.checkValidity()) {
-            form.reportValidity();
             return false;
         }
 
-        const iva_id = document.getElementById('modal_iv').value;
+        let op_exitosa = false;
+        const iva_id = document.getElementById('modal_iv').value;  // id del select
         const reg_id = document.getElementById('modal_i_iva').value;
-        const monto_iva_pago = document.getElementById('modal_monto_iva').value;
-        const fecha_iva_pago = document.getElementById('modal_fecha_iva').value;
-        const banco_destino_id = document.getElementById('modal_banco_destino_iva').value;
-        const referencia_iva = document.getElementById('modal_referencia_iva').value;
-        const montoIvaDocumento = document.getElementById('modal_monto_iva_documento').value;
-
-        if (!monto_iva_pago.trim()) {
-            Swal.fire({
-                position: 'center',
-                icon: 'error',
-                title: 'Debe ingresar el monto pagado. Verifique...!',
-                showConfirmButton: true,
-            });
-            montoInput.focus();
-            return false;
-        }
-
-        if (!banco_destino_id) {
-            Swal.fire({
-                position: 'center',
-                icon: 'error',
-                title: 'Debe seleccionar el banco destino. Verifique...!',
-                showConfirmButton: true,
-            });
-            document.getElementById('modal_banco_destino_iva').focus();
-            return false;
-        }
-
-        if (fecha_iva_pago && isNaN(new Date(fecha_iva_pago).getTime())) {
-            Swal.fire({
-                position: 'center',
-                icon: 'error',
-                title: 'La fecha del pago no es válida. Verifique...!',
-                showConfirmButton: true,
-            });
-            return false;
-        }
-
-        if (monto_iva_pago) {
-            const montoPago = parseMontoIva(monto_iva_pago);
-            const montoDocumento = parseMontoIva(document.getElementById('modal_monto_iva_documento').value);
-
-            if (!Number.isFinite(montoPago) || !Number.isFinite(montoDocumento)) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Monto inválido',
-                    text: 'Verifique el monto del pago.'
-                });
-                return false;
-            }
-
-            let advertenciaMonto = '';
-            if (Math.abs(montoPago - montoDocumento) > 0.005) {
-                const tipo = montoPago < montoDocumento ? 'menor' : 'mayor';
-                advertenciaMonto = `<p class="text-danger">El pago ingresado es ${tipo} que el IVA del documento (${montoIvaDocumento || '0,00'}).</p>`;
-            }
-
-            const confirmacion = await Swal.fire({
-                title: '¿Está seguro de guardar el pago?',
-                html: `${advertenciaMonto}<h5>Monto ingresado: <b>${monto_iva_pago}</b></h5><h5>Fecha: <b>${fecha_iva_pago}</b></h5>`,
-                showDenyButton: true,
-                confirmButtonText: 'Guardar',
-                denyButtonText: 'Descartar'
-            });
-            if (!confirmacion.isConfirmed) {
-                return false;
-            }
-        }
 
         $.ajax({
             url: "{% url 'actualizar_iva' %}",
             type: 'POST',
+            // async: false,
             data: {
                 csrfmiddlewaretoken: '{{ csrf_token }}',
                 'reg_id': reg_id,
                 'iva_id': iva_id,
-                'monto_iva_pago': monto_iva_pago,
-                'fecha_iva_pago': fecha_iva_pago,
-                'banco_destino_id': banco_destino_id,
-                'referencia_iva': referencia_iva,
             },
             datatype: 'json',
             success: function (data) {
-                if (!data.status) {
-                    console.error('No se pudo guardar el pago de IVA:', data.error || 'Error desconocido');
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'No se guardó el pago',
-                        text: data.error || 'Verifique el monto y la fecha.'
-                    });
-                    return;
-                }
+                // console.log('RESULTADO', data.status, typeof data.status);
+                op_exitosa = data.status;
                 cerrar_iva.click();
                 const checkBox = document.getElementById("vencido");
                 const ven = checkBox.checked ? "1" : "0";
@@ -761,23 +531,12 @@ M1 | Cobranza
                 filtros.submit();
             },
             error: function (xhr, status, error) {
-                const mensaje = xhr.responseJSON?.error || error;
-                console.error('Error en AJAX:', mensaje);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'No se guardó el pago',
-                    text: mensaje
-                });
+                console.error('Error en AJAX:', error);
             }
         });
     }
 
-    function parseMontoIva(valor) {
-        const texto = String(valor).trim().replace(/\./g, '').replace(',', '.');
-        return parseFloat(texto);
-    }
-
-    function abrir_modalFecha(f, v, i) {
+    function abrir_modal(f, v, i) {
         document.getElementById('modal_f').value = f
         document.getElementById('modal_v').value = v
         document.getElementById('modal_i_fechas').value = i

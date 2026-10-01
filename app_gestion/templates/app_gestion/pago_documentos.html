@@ -57,25 +57,7 @@ M1 | Pago a documentos
                         <span class="titulos">{{form.monto.label}}</span>
                         <input id="monto" name="monto" class="form-control input-numero alto" value="" maxlength="13" onChange="Calcular()" onblur="FormatearNumerosInputs(this)"></input>
                     </div>
-                    <div id="div_monto_iva" class="col-md-6" hidden>
-                        <span class="titulos">Monto IVA</span>
-                        <input id="monto_iva"
-                               name="monto_iva"
-                               class="form-control input-numero alto"
-                               value=""
-                               maxlength="13"
-                               onblur="FormatearNumerosInputs(this)">
-                    </div>
-
-                    <div id="div_ajuste" class="col-md-6">
-                        <span class="titulos">Ajuste</span>
-                        <input id="ajuste"
-                               name="ajuste"
-                               class="form-control input-numero alto"
-                               value=""
-                               maxlength="13"
-                               onblur="FormatearNumerosInputs(this)">
-                    </div>
+                  
                     <div id="div_tasa" class="col-md-6" hidden>
                         <span class="titulos">{{form.tasa.label}}</span>
                         <input class="form-control alto input-numero" name="tasa" id="tasa" value="{{xTasa}}"
@@ -122,7 +104,7 @@ M1 | Pago a documentos
                     </div>
 
                     <div class="col-6" id="div_comprobante" hidden>
-                        <span class="titulos">Comprobante (opcional)</span>
+                        <span class="titulos">Comprobante</span>
                         <div style="display:flex; align-items:center; gap:5px;">
                             <input type="file" 
                                 name="comprobante" 
@@ -137,6 +119,31 @@ M1 | Pago a documentos
                             </button>
                         </div>
                     </div>
+
+                    <!-- Fila fija: Monto IVA + Ajuste -->
+                    <div class="col-12">
+                        <div class="row g-3">
+                            <div id="div_monto_iva" class="col-md-6" hidden>
+                                <span class="titulos">Monto IVA <span style="color: #86b7fe;">(Opcional. si incluyó IVA en este pago)</span></span>
+                                <input id="monto_iva"
+                                    name="monto_iva"
+                                    class="form-control input-numero alto"
+                                    value=""
+                                    maxlength="13"
+                                    onblur="FormatearNumerosInputs(this)">
+                            </div>
+
+                            <div id="div_ajuste" class="col-md-6" hidden>
+                                <span class="titulos">Ajuste <span style="color: #86b7fe;">(Opcional. Si el monto no es exacto)</span></span>
+                                <input id="ajuste"
+                                    name="ajuste"
+                                    class="form-control input-numero alto"
+                                    value=""
+                                    maxlength="13"
+                                    onblur="FormatearNumerosInputs(this)">
+                            </div>
+                        </div>
+                    </div>    
 
                     <div class="col-12 pb-4">
                         <span class="titulos">
@@ -203,6 +210,7 @@ M1 | Pago a documentos
             document.getElementById("div_monto").removeAttribute('hidden')
             document.getElementById("div_tasa").removeAttribute('hidden')
             document.getElementById("div_monto_iva").removeAttribute('hidden')
+            document.getElementById("div_ajuste").removeAttribute('hidden')
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById("div_ban").removeAttribute('hidden')
             document.getElementById('monto').setAttribute("required", "")
@@ -308,6 +316,7 @@ M1 | Pago a documentos
             document.getElementById("div_monto").removeAttribute('hidden')
             document.getElementById("div_tasa").removeAttribute('hidden')
             document.getElementById("div_monto_iva").removeAttribute('hidden')
+            document.getElementById("div_ajuste").removeAttribute('hidden')
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById('monto').setAttribute("required", "")
             document.getElementById("monto").value = ""
@@ -316,7 +325,6 @@ M1 | Pago a documentos
             document.getElementById("div_ref").hidden = true
             document.getElementById("div_ban").hidden = true
             document.getElementById('banco_destino').removeAttribute("required")
-            document.getElementById("div_monto_iva").hidden = true
         } // fin form 4
 
         if (document.getElementById('forma').value == 6) { // Nota de credito
@@ -383,6 +391,7 @@ M1 | Pago a documentos
             document.getElementById("div_ref").hidden = true
             document.getElementById("div_monto").hidden = true
             document.getElementById("div_monto_iva").hidden = true
+            document.getElementById("div_ajuste").removeAttribute('hidden')
             document.getElementById("div_tasa").hidden = true
             document.getElementById("div_monto_procesar").removeAttribute('hidden')
             document.getElementById("div_ban").hidden = true

@@ -89,7 +89,7 @@ M1 | Documentos
                                 <th>Saldo</th>
                                 <th>Condición</th>
                                 <th>Vendedor</th>
-                                <th>Iva</th>
+                                <th>Pagar IVA</th>
                                 <th>Monto IVA</th>
                                 <th>Editar</th>
                                 <th>Seguimiento</th>
@@ -131,7 +131,7 @@ M1 | Documentos
                                 <td align="center">{{ xDocumento.iva__iva }}</td>
                                 {% else %}
                                 <td>{{ xDocumento.iva__iva }}
-                                    <a href="#" onclick="abrir_modalIva('{{ xDocumento.iva__id }}', '{{ xDocumento.id }}', '{{ xDocumento.monto_iva|darFormato }}', '{{ xDocumento.monto_iva }}'); return false;" title="Editar IVA" aria-label="Editar IVA">
+                                    <a href="#" onclick="abrir_modalIva('{{ xDocumento.iva__id }}', '{{ xDocumento.id }}', '{{ xDocumento.monto_iva|darFormato }}', '{{ xDocumento.monto_iva }}'); return false;" title="Registrar pago IVA" aria-label="registrar pago IVA">
                                         <i class="bi bi-pencil" style="font-size: 16px; color: #0d6efd;"></i>
                                     </a>
                                 </td>
@@ -195,14 +195,14 @@ M1 | Documentos
 </div>
 
 <button type="button" id="modal_iva" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#smallModalIva" hidden>
-    Actualizar IVA
+    Registrar pago IVA
 </button>
 
 <div class="modal fade" id="smallModalIva" tabindex="-1" style="margin-top: 100px;">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="card-title">Actualizando el IVA</h5>
+                <h5 class="card-title">Registrar pago IVA</h5>
             </div>
             <form id="modal-iva-form" action="" method="post">
                 {% csrf_token %}
@@ -246,7 +246,7 @@ M1 | Documentos
                     <input type="hidden" id="modal_i_iva">
                 </div>
                 <div class="modal-footer justify-content-center">
-                    <button type="submit" class="btn btn-primary" onclick="guardar_iva_documentos(event)">Guardar</button>
+                    <button type="submit" class="btn btn-primary" onclick="registrar_iva_documento(event)">Guardar</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Descartar</button>
                 </div>
             </form>
@@ -489,7 +489,7 @@ M1 | Documentos
         });
     }
 
-    function guardar_iva_documentos(event) {
+    function registrar_iva_documento(event) {
         event.preventDefault();
         const monto = document.getElementById('modal_monto_iva').value.trim();
         const fecha = document.getElementById('modal_fecha_iva').value;
@@ -499,7 +499,7 @@ M1 | Documentos
             return;
         }
         $.ajax({
-            url: "{% url 'actualizar_iva' %}",
+            url: "{% url 'registrar_pago_iva' %}",
             type: 'POST',
             data: {
                 csrfmiddlewaretoken: '{{ csrf_token }}',
