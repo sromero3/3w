@@ -92,7 +92,7 @@ M1 | Documentos
                                 <th>Pagar IVA</th>
                                 <th>Monto IVA</th>
                                 <th>Editar</th>
-                                <th>Seguimiento</th>
+                                <th>Segui.</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -132,12 +132,12 @@ M1 | Documentos
                                 {% else %}
                                 <td>{{ xDocumento.iva__iva }}
                                     <a href="#" onclick="abrir_modalIva('{{ xDocumento.iva__id }}', '{{ xDocumento.id }}', '{{ xDocumento.monto_iva|darFormato }}', '{{ xDocumento.monto_iva }}'); return false;" title="Registrar pago IVA" aria-label="registrar pago IVA">
-                                        <i class="bi bi-pencil" style="font-size: 16px; color: #0d6efd;"></i>
+                                        <i class="bi bi-building-check" style="font-size: 16px; color: #0d6efd;"></i>
                                     </a>
                                 </td>
                                 {% endif %}
                                 <td align="right">{{ xDocumento.monto_iva|darFormato }}</td>
-                                <td style="width:0px">
+                                <td class="text-nowrap">
                                     <a href="{% url 'editar_documento' xDocumento.id %}">
                                         &nbsp;&nbsp;<i class="bi bi-pencil"></i>
                                     </a>
@@ -491,6 +491,7 @@ M1 | Documentos
 
     function registrar_iva_documento(event) {
         event.preventDefault();
+        const botonGuardar = document.querySelector('#modal-iva-form button[type="submit"]');
         const monto = document.getElementById('modal_monto_iva').value.trim();
         const fecha = document.getElementById('modal_fecha_iva').value;
         const banco = document.getElementById('modal_banco_destino_iva').value;
@@ -498,29 +499,43 @@ M1 | Documentos
             Swal.fire({ icon: 'error', title: 'Complete monto, fecha y banco destino.' });
             return;
         }
-        $.ajax({
-            url: "{% url 'registrar_pago_iva' %}",
-            type: 'POST',
-            data: {
-                csrfmiddlewaretoken: '{{ csrf_token }}',
-                reg_id: document.getElementById('modal_i_iva').value,
-                iva_id: document.getElementById('modal_iv').value,
-                monto_iva_pago: monto,
-                fecha_iva_pago: fecha,
-                banco_destino_id: banco,
-                referencia_iva: document.getElementById('modal_referencia_iva').value
-            },
-            success: function (data) {
-                if (!data.status) {
-                    Swal.fire({ icon: 'error', title: 'No se guardó el pago', text: data.error });
-                    return;
+        Swal.fire({
+            title: '¿Registrar pago de IVA?',
+            text: `Monto: ${monto}`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Guardar',
+            cancelButtonText: 'Descartar'
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+
+            botonGuardar.disabled = true;
+            $.ajax({
+                url: "{% url 'registrar_pago_iva' %}",
+                type: 'POST',
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    reg_id: document.getElementById('modal_i_iva').value,
+                    iva_id: document.getElementById('modal_iv').value,
+                    monto_iva_pago: monto,
+                    fecha_iva_pago: fecha,
+                    banco_destino_id: banco,
+                    referencia_iva: document.getElementById('modal_referencia_iva').value
+                },
+                success: function (data) {
+                    if (!data.status) {
+                        Swal.fire({ icon: 'error', title: 'No se guardó el pago', text: data.error });
+                        botonGuardar.disabled = false;
+                        return;
+                    }
+                    filtros.action = `/documentos/${cliente.value}/${dias.value}/`;
+                    filtros.submit();
+                },
+                error: function (xhr) {
+                    Swal.fire({ icon: 'error', title: 'No se guardó el pago', text: xhr.responseJSON?.error || 'Error inesperado.' });
+                    botonGuardar.disabled = false;
                 }
-                filtros.action = `/documentos/${cliente.value}/${dias.value}/`;
-                filtros.submit();
-            },
-            error: function (xhr) {
-                Swal.fire({ icon: 'error', title: 'No se guardó el pago', text: xhr.responseJSON?.error || 'Error inesperado.' });
-            }
+            });
         });
     }
 

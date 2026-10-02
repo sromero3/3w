@@ -62,7 +62,6 @@ M1 | IVA Pendientes
                     <div class="col-md-2">
                         <label class="titulos d-flex me-2 mt-1">Cliente</label>
                         <select name="cliente" id="cliente" required onchange="obtener_ventas()">
-                            <option value="" {% if xCliente_seleccionado == '' %}selected{% endif %} disabled hidden>Seleccione...</option>
                             <option value="0" {% if xCliente_seleccionado == 0 %}selected{% endif %}>TODOS</option>
                             {% for xCliente in xClientes %}
                             <option value="{{ xCliente.id }}" {% if xCliente.id == xCliente_seleccionado %}selected{% endif %}>
@@ -215,21 +214,27 @@ M1 | IVA Pendientes
         agregarFlechaSelectize('#cliente');
         var selectizeClienteControl = selectizeCliente[0].selectize;
         selectizeClienteControl.$control.on('click', function () {
-            selectizeClienteControl.clear();
+            selectizeClienteControl.clear(true);
             agregarFlechaSelectize('#cliente');
         });
 
         var selectizeVendedor = $('#vendedor').selectize({});
         agregarFlechaSelectize('#vendedor');
+        var selectizeVendedorControl = selectizeVendedor[0].selectize;
+        selectizeVendedorControl.$control.on('click', function () {
+            selectizeVendedorControl.clear(true);
+            agregarFlechaSelectize('#vendedor');
+        });
     });
     function obtener_ventas() {
-        let cliente = document.getElementById("cliente").value || '0';
+        const cliente = document.getElementById("cliente").value;
         let vendedor = document.getElementById("vendedor").value || '0';
         let iva = document.getElementById("iva").value || '0';
         let saldo = document.getElementById("saldo").value || '0';
         let fecha_ini = document.getElementById("fecha_ini").value || ' ';
         let fecha_fin = document.getElementById("fecha_fin").value || ' ';
 
+        if (!cliente) return;
         filtros.action = `/iva_pendientes/${cliente}/${vendedor}/${iva}/${saldo}/${fecha_ini}/${fecha_fin}/`;
         filtros.submit();
     }

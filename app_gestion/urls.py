@@ -94,6 +94,7 @@ urlpatterns = [
      path('actualizar_fechas/', views.Actualizar_fechasView, name='actualizar_fechas'),
      path('actualizar_iva/', views.Actualizar_ivaView, name='actualizar_iva'),
      path('registrar_pago_iva/', views.Registrar_pago_ivaView, name='registrar_pago_iva'),
+    path('editar_pago_iva/', views.Editar_pago_ivaView, name='editar_pago_iva'),
      path('pagos_iva_documento/<int:id>/', views.Pagos_iva_documentoView, name='pagos_iva_documento'),
      path('validar_cliente/', views.Validar_clienteView, name='validar_cliente'),
      path('agregar_ciudad_desde_agregar_vendedor/', views.agregar_ciudad_desde_agregar_vendedorView, name='agregar_ciudad_desde_agregar_vendedor'),

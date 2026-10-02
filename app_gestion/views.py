@@ -4041,7 +4041,7 @@ def iva_pendientesView(request, xCliente, xVendedor, xIva, xSaldo, fecha_ini, fe
     xClientes = Cliente.objects.all()
     xVendedores = Vendedor.objects.filter(status_id=1).order_by('nombre')
     xIvas = Iva.objects.all()
-    if request.method == 'GET':
+    if request.method == 'GET' and (fecha_ini == ' ' or fecha_fin == ' '):
         fecha_ini  = date.today() - timedelta(days=15)
         fecha_fin  = date.today()
         xFecha_ini = fecha_ini.strftime('%Y-%m-%d')
@@ -4267,3 +4267,80 @@ def Registrar_pago_ivaView(request):
 
     data['pago_creado'] = pago_creado
     return JsonResponse(data, safe=False)
+
+
+@login_required
+@require_POST
+def Editar_pago_ivaView(request):
+    pago_id = request.POST.get('pago_id')
+    monto_texto = request.POST.get('monto_iva_pago')
+    fecha_texto = request.POST.get('fecha_iva_pago')
+    referencia = request.POST.get('referencia_iva', '').strip()
+    banco_destino_id = request.POST.get('banco_destino_id')
+
+    try:
+        pago = DocumentoIvaPago.objects.select_related('documento__iva', 'banco_destino').get(id=pago_id)
+        monto = quitarFormatoDecimal(monto_texto)
+        if monto <= 0:
+            raise ValueError('El monto pagado debe ser mayor que cero.')
+        fecha = datetime.strptime(fecha_texto, '%Y-%m-%d').date()
+        banco_destino = BancoDestino.objects.get(id=banco_destino_id)
+    except DocumentoIvaPago.DoesNotExist:
+        return JsonResponse({'status': False, 'error': 'El pago de IVA no existe.'}, status=404)
+    except BancoDestino.DoesNotExist:
+        return JsonResponse({'status': False, 'error': 'El banco destino seleccionado no es válido.'}, status=400)
+    except (TypeError, ValueError, ArithmeticError):
+        return JsonResponse({'status': False, 'error': 'Ingrese monto, fecha y banco destino válidos.'}, status=400)
+
+    try:
+        with transaction.atomic():
+            documento = pago.documento
+            monto_anterior = pago.monto
+            fecha_anterior = pago.fecha
+            referencia_anterior = pago.referencia or ''
+            banco_anterior = pago.banco_destino.nombre if pago.banco_destino else '-'
+
+            pago.monto = monto
+            pago.fecha = fecha
+            pago.referencia = referencia or '-'
+            pago.banco_destino = banco_destino
+            pago.save()
+
+            total_pagado = documento.pagos_iva.aggregate(total=Sum('monto'))['total'] or Decimal('0')
+            estado_anterior = documento.iva.iva
+            estado_nuevo = estado_anterior
+            if total_pagado >= documento.monto_iva:
+                estado_pagado = Iva.objects.filter(iva__iexact='Pagado').first()
+                if not estado_pagado:
+                    raise ValueError('No existe el estado IVA Pagado.')
+                documento.iva = estado_pagado
+                estado_nuevo = estado_pagado.iva
+            elif estado_anterior.lower() == 'pagado':
+                estado_pendiente = Iva.objects.filter(iva__iexact='Pendiente').first()
+                if not estado_pendiente:
+                    raise ValueError('No existe el estado IVA Pendiente.')
+                documento.iva = estado_pendiente
+                estado_nuevo = estado_pendiente.iva
+
+            hoy = datetime.now()
+            seguimiento = documento.seguimiento or ''
+            seguimiento += '<b>-' + request.user.username + ' a las ' + hoy.strftime('%d/%m/%Y %H:%M') + '<br></b>'
+            seguimiento += '&nbsp corrigió pago de IVA #' + str(pago.id) + '<br>'
+            if monto_anterior != monto:
+                seguimiento += '&nbsp monto: ' + darFormato(monto_anterior) + ' a ' + darFormato(monto) + '<br>'
+            if fecha_anterior != fecha:
+                seguimiento += '&nbsp fecha: ' + fecha_anterior.strftime('%d/%m/%Y') + ' a ' + fecha.strftime('%d/%m/%Y') + '<br>'
+            if referencia_anterior != referencia:
+                seguimiento += '&nbsp referencia: ' + (referencia_anterior or '-') + ' a ' + (referencia or '-') + '<br>'
+            if banco_anterior != banco_destino.nombre:
+                seguimiento += '&nbsp banco destino: ' + banco_anterior + ' a ' + banco_destino.nombre + '<br>'
+            if estado_anterior != estado_nuevo:
+                seguimiento += '&nbsp actualizó el estado del IVA de: ' + estado_anterior + ' a ' + estado_nuevo + ' por pagos acumulados de: ' + darFormato(total_pagado) + '<br>'
+
+            documento.seguimiento = seguimiento
+            documento.actualizado = hoy
+            documento.save()
+    except ValueError as error:
+        return JsonResponse({'status': False, 'error': str(error)}, status=400)
+
+    return JsonResponse({'status': True})
