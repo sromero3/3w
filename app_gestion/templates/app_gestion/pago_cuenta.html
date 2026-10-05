@@ -395,6 +395,11 @@ M1 | Pago a cuenta
             document.getElementById("div_monto_iva").hidden = true
         } // fin forma 8
 
+        if (document.getElementById('forma').value) {
+            document.getElementById("div_monto_iva").removeAttribute('hidden')
+            document.getElementById("div_ajuste").removeAttribute('hidden')
+        }
+
     } // fin mostrar campos
 
 

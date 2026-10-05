@@ -726,6 +726,12 @@ def Pago_cuentaView(request, id, cliente):
         if request.POST['monto'] == "":
             request.POST['monto'] = "0,00"
 
+        if request.POST.get('monto_iva', '') == "":
+            request.POST['monto_iva'] = "0,00"
+
+        if request.POST.get('ajuste', '') == "":
+            request.POST['ajuste'] = "0,00"
+
         if request.POST['banco_destino'] == "":
             request.POST['banco_destino'] = "6"
       
@@ -1894,6 +1900,7 @@ def Pago_cuenta_corregirView(request, id, forma_id):
         request.POST['tasa'] = quitarFormato(request.POST['tasa'])
         request.POST['monto_procesar'] = quitarFormato(request.POST['monto_procesar'])
         strMonto_procesar = darFormato(request.POST['monto_procesar'])
+        strMonto_iva = darFormato(request.POST['monto_iva'])
 
         form = asentar_pagoForm(request.POST, instance=xPago)
         
@@ -1914,12 +1921,19 @@ def Pago_cuenta_corregirView(request, id, forma_id):
                 pago.seguimiento = pago.seguimiento + "&nbsp Corrigió fecha de: "+ str(oFecha) + " a "+ fechaStr +"<br>"
      
             nMonto_p = round(Decimal(request.POST.get('monto_procesar')),2)
+            nMonto_iva = round(Decimal(request.POST.get('monto_iva')),2)
             if nMonto_p != oMonto_p:
                 Corrigio_monto = True
                 if hay_cambio == False:
                     pago.seguimiento = pago.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" +  "</b>"
                     hay_cambio = True
                 pago.seguimiento =  pago.seguimiento + "&nbsp Corrigió monto de: "+ darFormato(oMonto_p) + " a "+ strMonto_procesar +"<br>"
+
+            if nMonto_iva != oMonto_iva:
+                if hay_cambio == False:
+                    pago.seguimiento = pago.seguimiento + "<b>-" + request.user.username + " a las " + hoyStr + "<br>" + "</b>"
+                    hay_cambio = True
+                pago.seguimiento = pago.seguimiento + "&nbsp Corrigió monto IVA de: " + darFormato(oMonto_iva) + " a " + strMonto_iva + "<br>"
            
             if int(request.POST.get('banco_destino')) != oBanco:
                 if hay_cambio == False:
@@ -4082,7 +4096,7 @@ def iva_pendientesView(request, xCliente, xVendedor, xIva, xSaldo, fecha_ini, fe
         'saldo','id','numero','fecha','vencimiento','cliente__nombre','monto','iva__iva',
         'condicion__condicion','cliente_id__vendedor__nombre','cliente_id__vendedor_id',
         'observacion','abonado','dias_v','credito','seguimiento','monto_iva'
-    ).order_by('-id')
+    ).order_by('cliente__nombre', '-id')
 
     if xCliente_seleccionado == '':
         xDocumentos = []
