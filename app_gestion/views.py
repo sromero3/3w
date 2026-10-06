@@ -3845,7 +3845,7 @@ def obtener_porcentaje_backend(vendedor_id, cliente_id):
 
     # 1️⃣ Regla especial Edin Camargo
     if vendedor_id == 17:
-        return 5
+        return 4
 
     # 2️⃣ Paul + Indaca
     if vendedor_id == 10 and cliente_id == 90:
