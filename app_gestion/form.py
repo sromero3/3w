@@ -121,9 +121,12 @@ class tasaForm(ModelForm):
         self.fields['monto'].widget.input_type = 'text' #Pasa el campo numerico a texto
 
         self.fields['monto'].widget.attrs.update(
-          { 'maxlength': '6', 'class': 'form-control input-numero alto',
-             'onblur': "FormatearNumerosInputs(this)"
-            })
+            {
+                'maxlength': '7',
+                'class': 'form-control input-numero alto',
+                'onblur': "FormatearNumerosInputs(this)",
+            }
+        )
       
     class Meta:
         model = Tasa

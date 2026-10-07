@@ -319,7 +319,7 @@ class Pago(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     creado = models.DateTimeField(auto_now_add=True, null=False)
     actualizado = models.DateTimeField(null=False)
-    tasa = models.DecimalField(max_digits=5, decimal_places=2)
+    tasa = models.DecimalField(max_digits=7, decimal_places=2)
     tipo = models.IntegerField() # 1 = cuenta 2 = documento
     recibido = models.BooleanField(default=False)  # Este campo indica si ya se recibio en la ofina el pago.
     comprobante = models.ImageField(upload_to='comprobantes/', null=True, blank=True)
