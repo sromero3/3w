@@ -1,0 +1,166 @@
+{% extends xBase %}
+{% block title %}
+{{ xModulo }} | Clientes sin compras recientes
+{% endblock %}
+
+{% block content %}
+<main id="main" class="main" style="margin-top: 40px">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    Clientes sin compras recientes
+                    <a href="{% url xInicio %}" class="float-end">
+                        <i class="bi bi-house-door" title="Cerrar"></i>
+                    </a>
+                </h5>
+
+                <form method="post" class="row g-3 align-items-end">
+                    {% csrf_token %}
+                    <div class="col-md-4">
+                        <label for="fecha_corte" class="titulos d-flex me-2 mt-1">Fecha de referencia</label>
+                        <input type="date" id="fecha_corte" name="fecha_corte" value="{{ xFecha_corte }}"
+                            class="form-control alto" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="vendedor" class="titulos d-flex me-2 mt-1">Vendedor</label>
+                        <select name="vendedor" id="vendedor" class="form-control alto">
+                            <option value="0" {% if xVendedor_seleccionado == 0 %}selected{% endif %}>TODOS</option>
+                            {% for vendedor in xVendedores %}
+                            <option value="{{ vendedor.id }}" {% if vendedor.id == xVendedor_seleccionado %}selected{% endif %}>{{ vendedor.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary">Consultar</button>
+                    </div>
+                </form>
+
+                {% if xError %}
+                <div class="alert alert-danger mt-3" role="alert">{{ xError }}</div>
+                {% endif %}
+
+                {% if xConsultado and not xError %}
+                <p class="mt-4 mb-2">
+                    Clientes cuya última compra fue anterior al {{ xFecha_corte_fecha|date:"d/m/Y" }}:
+                    <strong>{{ xClientes|length }}</strong>
+                </p>
+                <p>Vendedor: <strong>{{ xVendedor_nombre }}</strong></p>
+                <div class="text-end mb-3">
+                    <button type="button" class="btn btn-primary" onclick="generarPDF()">
+                        Generar PDF
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table id="clientes-sin-compra" class="table table-hover table-bordered" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>RIF</th>
+                                <th>Cliente</th>
+                                <th>Vendedor</th>
+                                <th>Última compra</th>
+                                <th>Días sin comprar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cliente in xClientes %}
+                            <tr>
+                                <td>{{ cliente.ced_rif }}</td>
+                                <td>{{ cliente.nombre }}</td>
+                                <td>{{ cliente.vendedor__nombre }}</td>
+                                <td>{{ cliente.ultima_compra|date:"d/m/Y" }}</td>
+                                <td class="text-end">{{ cliente.dias_sin_compra }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock content %}
+
+{% block Scripts_Adicionales %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+<script>
+    function generarPDF() {
+        if (!window.jspdf || typeof window.jspdf.jsPDF.API.autoTable !== 'function') {
+            Swal.fire({ icon: 'error', title: 'No se pudo generar el PDF', text: 'No se cargaron las herramientas de PDF. Recargue la página e intente nuevamente.' });
+            return;
+        }
+
+        const tabla = $('#clientes-sin-compra').DataTable();
+        const filas = tabla.rows({ search: 'applied', order: 'applied' }).nodes().toArray()
+            .map(fila => Array.from(fila.cells, celda => celda.textContent.trim()));
+        const fechaCorte = '{{ xFecha_corte|escapejs }}';
+        const fechaFormateada = '{{ xFecha_corte_fecha|date:"d/m/Y"|escapejs }}';
+        const vendedor = '{{ xVendedor_nombre|escapejs }}';
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.setFontSize(14);
+        doc.text('Clientes sin compras recientes', 14, 14);
+        doc.setFontSize(10);
+        doc.text(`Última compra anterior al: ${fechaFormateada}`, 14, 22);
+        const lineasVendedor = doc.splitTextToSize(`Vendedor: ${vendedor}`, 180);
+        doc.text(lineasVendedor, 14, 28);
+        const yResumen = 28 + lineasVendedor.length * 5;
+        doc.text(`Total de clientes: ${filas.length}`, 14, yResumen);
+        doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, 14, yResumen + 6);
+        doc.autoTable({
+            head: [['RIF', 'Cliente', 'Vendedor', 'Última compra', 'Días sin comprar']],
+            body: filas,
+            startY: yResumen + 12,
+            margin: { bottom: 18 },
+            theme: 'grid',
+            headStyles: { fillColor: [1, 31, 58], halign: 'center', valign: 'middle' },
+            styles: { fontSize: 9, overflow: 'linebreak' },
+            columnStyles: {
+                3: { halign: 'center' },
+                4: { halign: 'right' }
+            }
+        });
+
+        const totalPaginas = doc.internal.getNumberOfPages();
+        for (let pagina = 1; pagina <= totalPaginas; pagina++) {
+            doc.setPage(pagina);
+            doc.setFontSize(8);
+            doc.setTextColor(120);
+            const ancho = doc.internal.pageSize.getWidth();
+            const alto = doc.internal.pageSize.getHeight();
+            doc.text('SISTEMA DE GESTIÓN EMPRESARIAL', 14, alto - 8);
+            doc.text(`Página ${pagina} de ${totalPaginas}`, ancho - 14, alto - 8, { align: 'right' });
+        }
+        doc.save(`Clientes sin compras recientes - ${fechaCorte}.pdf`);
+    }
+
+    $(document).ready(function () {
+        if (document.getElementById('clientes-sin-compra')) {
+            $('#clientes-sin-compra').DataTable({
+                language: {
+                    "sProcessing": "Procesando...",
+                    "sLengthMenu": "Mostrar _MENU_ registros",
+                    "sZeroRecords": "No se encontraron resultados",
+                    "sEmptyTable": "No se encontraron clientes",
+                    "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                    "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                    "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                    "sSearch": "Buscar:",
+                    "oPaginate": {
+                        "sFirst": "Primero",
+                        "sLast": "Último",
+                        "sNext": "Siguiente",
+                        "sPrevious": "Anterior"
+                    }
+                },
+                order: [[4, 'desc']],
+                paging: false,
+                lengthChange: false,
+                scrollX: true
+            });
+        }
+    });
+</script>
+{% endblock Scripts_Adicionales %}

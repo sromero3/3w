@@ -13,7 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.template.loader import get_template
 from app_gestion.models import *
-from django.db.models import Sum, Avg, Count, OuterRef
+from django.db.models import Sum, Avg, Count, Max, OuterRef
 from django.db.models import F
 from app_gestion.form import *
 import csv
@@ -2402,6 +2402,74 @@ def doc_proView(request, fecha_ini, fecha_fin):
     }
  
     return render(request, 'app_gestion/documentos_proc.html', context)
+
+
+@login_required
+def clientes_sin_compraView(request):
+    xFecha_corte = ''
+    xFecha_corte_fecha = None
+    xVendedores = list(Vendedor.objects.filter(status_id=1).order_by('nombre'))
+    xVendedor_seleccionado = 0
+    xVendedor_nombre = 'TODOS'
+    xClientes = []
+    xError = ''
+    xConsultado = request.method == 'POST'
+
+    if xConsultado:
+        xFecha_corte = request.POST.get('fecha_corte', '').strip()
+        try:
+            xVendedor_seleccionado = int(request.POST.get('vendedor', '0'))
+        except ValueError:
+            xError = 'Seleccione un vendedor válido.'
+        else:
+            if xVendedor_seleccionado != 0:
+                vendedor = next(
+                    (v for v in xVendedores if v.id == xVendedor_seleccionado), None
+                )
+                if vendedor is None:
+                    xError = 'Seleccione un vendedor válido.'
+                else:
+                    xVendedor_nombre = vendedor.nombre
+
+        try:
+            fecha_corte = datetime.strptime(xFecha_corte, '%Y-%m-%d').date()
+        except ValueError:
+            xError = 'Ingrese una fecha válida para consultar.'
+        else:
+            xFecha_corte_fecha = fecha_corte
+            if not xError:
+                qClientes = Cliente.objects.annotate(
+                    ultima_compra=Max('documento__fecha')
+                ).filter(
+                    ultima_compra__lt=fecha_corte
+                )
+                if xVendedor_seleccionado != 0:
+                    qClientes = qClientes.filter(vendedor_id=xVendedor_seleccionado)
+                xClientes = list(qClientes.values(
+                    'ced_rif',
+                    'nombre',
+                    'vendedor__nombre',
+                    'ultima_compra'
+                ).order_by('ultima_compra', 'nombre'))
+            for cliente in xClientes:
+                cliente['dias_sin_compra'] = (fecha_corte - cliente['ultima_compra']).days
+
+    es_m2 = request.user.groups.filter(name='m2').exists()
+    context = {
+        'xUsuario': request.user,
+        'xBase': 'app_gestion/base_m2.html' if es_m2 else 'app_gestion/base_m1.html',
+        'xModulo': 'M2' if es_m2 else 'M1',
+        'xInicio': 'inicio_m2' if es_m2 else 'inicio',
+        'xFecha_corte': xFecha_corte,
+        'xFecha_corte_fecha': xFecha_corte_fecha,
+        'xVendedores': xVendedores,
+        'xVendedor_seleccionado': xVendedor_seleccionado,
+        'xVendedor_nombre': xVendedor_nombre,
+        'xClientes': xClientes,
+        'xConsultado': xConsultado,
+        'xError': xError,
+    }
+    return render(request, 'app_gestion/clientes_sin_compra.html', context)
 
 
 @login_required

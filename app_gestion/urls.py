@@ -61,6 +61,7 @@ urlpatterns = [
      path('historial_pagos_detalle_doc/<int:id>/<xMonto>/', views.historial_pagos_detalle_docView, name='historial_pagos_detalle_doc'),
      path('ingreso_resumen/<fecha_ini>/<fecha_fin>/', views.ingreso_resumenView, name='ingreso_resumen'),
      path('doc_pro/<fecha_ini>/<fecha_fin>/', views.doc_proView, name='doc_pro'),
+     path('clientes_sin_compra/', views.clientes_sin_compraView, name='clientes_sin_compra'),
      path('saldo_favor/', views.saldo_favorView, name='saldo_favor'),
      path('dolares_no_recibidos/', views.dolares_no_recibidosView, name='dolares_no_recibidos'),
      path('dolares_no_recibidos_modal/', views.dolares_no_recibidos_modalView, name='dolares_no_recibidos_modal'),
